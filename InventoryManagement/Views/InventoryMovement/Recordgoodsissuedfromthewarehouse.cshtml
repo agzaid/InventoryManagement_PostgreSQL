@@ -1,0 +1,527 @@
+﻿@* @model Application.ViewModels.InwardRecordViewModel *@
+@{
+    ViewData["Title"] = "تسجيل الوارد إلى المخزن";
+}
+<style>
+    .tab-btn.active {
+        background-color: white;
+        color: #1e40af; /* blue-800 */
+        border-bottom: 2px solid #1e40af;
+    }
+
+    .dark .tab-btn.active {
+        background-color: #0f172a; /* slate-900 */
+        color: #3b82f6; /* blue-500 */
+        border-bottom: 2px solid #3b82f6;
+    }
+
+    .tab-btn {
+        transition: all 0.3s ease;
+        position: relative;
+    }
+        /* تأثير الخط السفلي عند النشاط */
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #1e40af; /* Blue-800 */
+        }
+    /* تخصيص لون الراديو بتن ليتناسب مع الأخضر الحديث */
+    input[type="radio"]:checked {
+        background-color: #10b981; /* emerald-500 */
+        border-color: #10b981;
+    }
+
+    .select2-container--default .select2-selection--single {
+        border-radius: 0.5rem !important;
+        border-color: #cbd5e1 !important;
+    }
+    /* Styling for Select2 validation error */
+    .border-red-500 {
+        border: 1.5px solid #ef4444 !important;
+    }
+
+    #validation-msg {
+        animation: shake 0.5s ease-in-out;
+    }
+
+    @@keyframes shake {
+        0%, 100% {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-5px);
+        }
+
+        75% {
+            transform: translateX(5px);
+        }
+    }
+</style>
+
+<main class="flex-1 overflow-hidden flex flex-col p-4 md:p-6 bg-slate-50 dark:bg-slate-950" dir="rtl">
+    <form asp-action="CreateWithReceiver" method="post" id="outwardForm">
+        <input type="hidden" name="TrType" id="trType" value="2" />
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span class="material-icons-outlined text-blue-600">inventory_2</span>
+                    تسجيل الوارد إلى المخزن
+                </h2>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">إنشاء سجل جديد لاستلام البضائع وإضافتها للمخزون</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition-all text-sm font-medium">
+                    <span class="material-icons-outlined text-lg">print</span> طباعة
+                </button>
+                <button type="submit" class="flex items-center gap-2 px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg shadow-md transition-all text-sm font-medium">
+                    <span class="material-icons-outlined text-lg">save</span> حفظ المستند
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-5 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <div class="space-y-1.5 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">جهة الاستلام</label>
+                    <div class="flex items-center gap-6">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="disbursementType" value="dept" checked onchange="toggleReceiverType()" class="w-4 h-4 text-blue-600">
+                            <span class="text-sm font-medium">إدارة</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="disbursementType" value="emp" onchange="toggleReceiverType()" class="w-4 h-4 text-blue-600">
+                            <span class="text-sm font-medium">موظف</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="relative min-h-[70px]">
+                    <div id="deptContainer" class="space-y-1.5 transition-all duration-300">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase">الإدارة</label>
+                        <select name="DeptCode" id="deptSelect" class="w-full">
+                            <option value="">اختر الإدارة...</option>
+                            @foreach (var d in ViewBag.departments)
+                            {
+                                <option value="@d.DepCode">@d.DepDesc</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div id="empContainer" class="space-y-1.5 hidden transition-all duration-300">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase">الموظف</label>
+                        <select name="EmpCode" id="empSelect" class="w-full">
+                            <option value="">اختر الموظف...</option>
+                            @foreach (var e in ViewBag.egxEmployees)
+                            {
+                                <option value="@e.EmpCode">@e.EmpName</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div id="validation-msg" class="hidden text-red-500 text-[11px] font-bold mt-1 flex items-center gap-1">
+                        <span class="material-icons-outlined text-xs">error_outline</span>
+                        <span id="error-text"></span>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2">
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-col lg:flex-row gap-6 h-[600px]">
+            <div class="w-full lg:w-1/3 flex flex-col bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div class="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
+                    <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-3">
+                        <span class="material-icons-outlined text-blue-600">category</span> دليل الأصناف
+                    </h3>
+                    <div class="relative">
+                        <input type="text" id="itemSearch" onkeyup="filterItems()" class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 rounded-lg text-sm" placeholder="بحث باسم الصنف...">
+                        <span class="material-icons-outlined absolute left-3 top-2 text-slate-400">search</span>
+                    </div>
+                    <div id="item-error-msg" class="hidden text-red-500 text-[11px] font-bold mt-1 flex items-center gap-1">
+                        <span class="material-icons-outlined text-xs">error_outline</span>
+                        <span>يجب إضافة صنف واحد على الأقل للفاتورة</span>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto p-2 custom-scrollbar" id="itemsList">
+                    @if (ViewBag.items != null)
+                    {
+                        foreach (var item in ViewBag.items)
+                        {
+                            <div onclick="addItemToTable('@item.ItemCode', '@item.ItemDesc')"
+                                 class="item-card group p-3 mb-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-500 cursor-pointer transition-all flex justify-between items-center"
+                                 data-name="@item.ItemDesc">
+                                <div>
+                                    <div class="text-[10px] text-blue-500 font-mono font-bold">#@item.ItemCode</div>
+                                    <h4 class="font-bold text-sm text-slate-700 dark:text-slate-100">@item.ItemDesc</h4>
+                                </div>
+                                <span class="material-icons-outlined text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">add_circle</span>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <div class="w-full lg:w-2/3 flex flex-col gap-4">
+                <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex-1 overflow-hidden flex flex-col">
+                    <div class="p-4 border-b border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center bg-slate-100 dark:bg-slate-900/50 p-1.5 rounded-2xl w-fit gap-3 border border-slate-200 dark:border-slate-800">
+
+                            <button type="button" onclick="switchTab('currentInv')" id="tab-currentInv"
+                                    class="tab-btn active px-6 py-3 text-sm font-bold flex items-center gap-2 rounded-xl transition-all duration-300 hover:bg-emerald-50/50">
+                                <span class="material-icons-outlined text-lg">receipt_long</span>
+                                الفاتورة الحالية
+                            </button>
+
+                            <button type="button" onclick="switchTab('todayTrans')" id="tab-todayTrans"
+                                    class="tab-btn px-6 py-3 text-sm font-bold flex items-center gap-2 rounded-xl transition-all duration-300 text-slate-500 opacity-60 hover:bg-emerald-50/50">
+                                <span class="material-icons-outlined text-lg">history</span>
+                                معاملات اليوم
+                            </button>
+
+                        </div>
+                    </div>
+
+                    <div id="content-currentInv" class="tab-content flex-1 flex flex-col">
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-right" id="tmp_dbgrid">
+                                <thead class="bg-slate-50 dark:bg-slate-900 sticky top-0 text-xs text-slate-500">
+                                    <tr>
+                                        <th class="px-4 py-3 border-b">الترتيب</th>
+                                        <th class="px-4 py-3 border-b">كود</th>
+                                        <th class="px-4 py-3 border-b">اسم الصنف</th>
+                                        <th class="px-4 py-3 border-b text-center w-24">الكمية</th>
+                                        <th class="px-4 py-3 border-b text-center w-32">السعر</th>
+                                        <th class="px-4 py-3 border-b text-center">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y dark:divide-slate-700">
+                                </tbody>
+                            </table>
+                        </div>
+                        @* <div class="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 flex justify-end items-center gap-6">
+                            <div class="text-2xl font-bold text-blue-700">
+                                <span id="grandTotal">0.00</span> <span class="text-sm font-normal text-slate-500">ج.م</span>
+                            </div>
+                        </div> *@
+                    </div>
+
+                    <div id="content-todayTrans" class="tab-content hidden flex-1 overflow-y-auto">
+                        <table class="w-full text-right text-sm">
+                            <thead class="bg-slate-50 dark:bg-slate-900 sticky top-0 text-slate-500">
+                                <tr>
+                                    <th class="p-4 border-b">الترتيب</th>
+                                    @* <th class="p-4 border-b">كود المورد</th> *@
+                                    <th class="p-4 border-b">اسم المورد</th>
+                                    <th class="p-4 border-b">اسم الصنف</th>
+                                    <th class="p-4 border-b">العدد</th>
+                                    <th class="p-4 border-b">التاريخ</th>
+                                    <th class="p-4 border-b text-center">إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                @if (ViewBag.TodayTransactions != null)
+                                {
+                                    foreach (var tr in ViewBag.TodayTransactions)
+                                    {
+                                        <tr class="hover:bg-slate-50">
+                                            <td class="p-4 font-bold text-blue-600">@tr.TrNum</td>
+                                            <td class="p-4">@tr.SupplierDesc</td>
+                                            <td class="p-4">@tr.ItemDesc</td>
+                                            <td class="p-4">@tr.ItemQnt</td>
+                                            <td class="p-4 text-slate-400">@tr.TrDate2</td>
+                                            <td class="p-4 text-center">
+                                                <button type="button"
+                                                        onclick="deleteTransaction('@tr.TrNum')"
+                                                        class="text-red-500 hover:text-red-700 transition-colors">
+                                                    <span class="material-icons-outlined">delete</span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</main>
+@section Scripts {
+
+    <script>
+  $(document).ready(function() {
+                
+       $('input[name="disbursementType"]').on('change', function() {
+            const val = $(this).val();
+
+            if (val === 'dept') {
+                $('#deptContainer').removeClass('hidden').fadeIn(300);
+                $('#empContainer').addClass('hidden');
+
+                // تصفير الموظف
+                $('#empSelect').val(null).trigger('change');
+            } else {
+                $('#empContainer').removeClass('hidden').fadeIn(300);
+                $('#deptContainer').addClass('hidden');
+
+                // تصفير الإدارة
+                $('#deptSelect').val(null).trigger('change');
+            }
+        });
+
+        // تهيئة Select2 للحقول الجديدة
+        $('#deptSelect, #empSelect').select2({
+            width: '100%',
+            dir: "rtl"
+        });
+              $('#deptSelect, #empSelect').on('change', function() {
+              if ($(this).val()) {
+                  hideError();
+              }
+          });
+
+       $('#outwardForm').on('submit', function (e) {
+            // Reset styles
+            $('.select2-selection').css('border-color', '#cbd5e1');
+            $('#itemSearch').removeClass('border-red-500');
+            $('#validation-msg, #item-error-msg').addClass('hidden');
+
+            const type = $('input[name="disbursementType"]:checked').val();
+            const deptValue = $('#deptSelect').val();
+            const empValue = $('#empSelect').val();
+            const itemsCount = $('#tmp_dbgrid tbody tr').length;
+            const trType = 2;
+
+            let isValid = true;
+
+            // 1. Validate Receiver (Uses the shared message div)
+            if (type === 'dept' && !deptValue) {
+                highlightError('#deptSelect', "يجب اختيار الإدارة");
+                isValid = false;
+            }
+            else if (type === 'emp' && !empValue) {
+                highlightError('#empSelect', "يجب اختيار الموظف");
+                isValid = false;
+            }
+
+            // 2. Validate Items (Shows message under search box)
+            if (itemsCount === 0) {
+                $('#itemSearch').addClass('border-red-500');
+                $('#item-error-msg').removeClass('hidden'); // Show the item specific message
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                return false;
+            }
+            return true;
+        });
+
+          // إخفاء اللون الأحمر فور اختيار مورد
+          $('#supplierSelect').on('change', function() {
+              if ($(this).val()) {
+                  $('#supplierError').addClass('hidden');
+                  $(this).next('.select2-container').find('.select2-selection').css('border', '1px solid #cbd5e1');
+              }
+          });
+
+          // إخفاء رسالة الخطأ عند اختيار مورد
+          $('#supplierSelect').on('change', function() {
+              if ($(this).val()) {
+                  $('#supplierError').addClass('hidden');
+                  $(this).next('.select2-container').css('border', 'none');
+              }
+          });
+                $('#supplierSelect').select2({
+                    placeholder: "بحث عن مورد...",
+                    allowClear: true,
+                    width: '100%',
+                    dir: "rtl" // لدعم اللغة العربية
+                });
+
+                // تحسين شكل المربع ليتناسب مع تصميمك (اختياري)
+                $('.select2-container--default .select2-selection--single').css({
+                    'height': '42px',
+                    'background-color': '#f8fafc', // نفس لون bg-slate-50
+                    'border-color': '#cbd5e1',     // نفس لون border-slate-300
+                    'border-radius': '0.5rem',
+                    'padding-top': '6px'
+                });
+
+
+              $('#itemSearch').on('keyup', function() {
+                  var value = $(this).val().toLowerCase();
+                  $("#itemsList .item-card").filter(function() {
+                      $(this).toggle($(this).data('name').toLowerCase().indexOf(value) > -1)
+                  });
+              });
+
+
+          });
+    </script>
+
+    <script>
+       window.deleteTransaction = function(trNum) {
+            _AlertHelper.showConfirm("حذف معاملة", `هل أنت متأكد من حذف هذه المعاملة؟`, "نعم، احذف")
+            .then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                            url: '@Url.Action("DeleteRecord", "InventoryMovement")',
+                        type: 'POST',
+                        // Use 'id' as the key to match the C# parameter name
+                        data: { id: trNum },
+                        success: function (response) {
+                            if (response.success) {
+                                _AlertHelper.showSuccess(response.message).then(() => {
+                                    // Instead of reload, just remove the row for better UX
+                                    $(`#row-tr-${trNum}`).fadeOut(300, function() {
+                                        $(this).remove();
+                                    });
+                                });
+                            } else {
+                                _AlertHelper.showError(response.message);
+                            }
+                        },
+                        error: function (xhr) {
+                            console.log("Error details:", xhr.status, xhr.statusText);
+                            _AlertHelper.showError("خطأ 404: المسار غير موجود");
+                        }
+                    });
+                }
+            });
+        };
+      function showError(message) {
+            $('#error-text').text(message);
+            $('#validation-msg').removeClass('hidden').fadeIn();
+
+            // Add red border to Select2 container
+            $('.select2-selection').addClass('border-red-500');
+
+            // Use your existing helper if available
+            if (typeof _AlertHelper !== 'undefined') {
+                _AlertHelper.showWarning(message);
+            }
+        }
+        function highlightError(selectId, message) {
+                 const select2Selection = $(selectId).next('.select2-container').find('.select2-selection');
+                 select2Selection.css('border', '2px solid #ef4444');
+                 $('#error-text').text(message);
+                 $('#validation-msg').removeClass('hidden');
+             }
+       function hideError() {
+            $('#validation-msg').addClass('hidden').hide();
+            $('.select2-selection').css('border-color', '#cbd5e1');
+        }
+
+    function toggleReceiverType() {
+              const type = $('input[name="disbursementType"]:checked').val();
+              $('#validation-msg').addClass('hidden');
+              $('.select2-selection').css('border-color', '#cbd5e1');
+
+              if (type === 'dept') {
+                  $('#deptContainer').removeClass('hidden');
+                  $('#empContainer').addClass('hidden');
+                  $('#empSelect').val(null).trigger('change');
+              } else {
+                  $('#empContainer').removeClass('hidden');
+                  $('#deptContainer').addClass('hidden');
+                  $('#deptSelect').val(null).trigger('change');
+              }
+          }
+      function selectItem(id, name, code) {
+                 document.getElementById('selectedItemId').value = id;
+                 document.getElementById('selectedItemName').value = code + " - " + name;
+             }
+
+      function addItemToTable(itemCode, itemDesc) {
+                 const tableBody = document.querySelector('#tmp_dbgrid tbody');
+                 if (!tableBody) return;
+
+                 let isExist = false;
+                 tableBody.querySelectorAll('tr').forEach(row => {
+                     if (row.cells[1].innerText === itemCode) isExist = true;
+                 });
+
+                 if (isExist) {
+                     _AlertHelper.showWarning("هذا الصنف مضاف مسبقاً");
+                     return;
+                 }
+
+                 const index = tableBody.rows.length; // استخدام العدد الحالي كـ Index
+                 const newRow = `
+                     <tr class="border-b dark:border-slate-700">
+                         <td class="p-3 text-center text-xs text-slate-500">${index + 1}</td>
+                         <td class="p-3 text-xs font-mono font-bold text-blue-600">
+                             ${itemCode}
+                             <input type="hidden" name="Items[${index}].ItemCode" value="${itemCode}" />
+                         </td>
+                         <td class="p-3 text-sm font-semibold text-slate-700 dark:text-slate-200">${itemDesc}</td>
+                         <td class="p-2">
+                             <input type="number" name="Items[${index}].ItemQnt" class="w-20 p-1 text-center border rounded dark:bg-slate-900" value="1" min="1">
+                         </td>
+                         <td class="p-2">
+                             <input type="number" name="Items[${index}].ItemPrice" class="w-24 p-1 text-center border rounded dark:bg-slate-900" value="0" step="0.01">
+                         </td>
+                         <td class="p-3 text-center">
+                             <button type="button" onclick="this.closest('tr').remove(); reorderRows();" class="text-red-400 hover:text-red-600">
+                                 <span class="material-icons-outlined">delete_outline</span>
+                             </button>
+                         </td>
+                     </tr>`;
+
+                 tableBody.insertAdjacentHTML('beforeend', newRow);
+             }
+
+   function reorderRows() {
+                const rows = document.querySelectorAll('#tmp_dbgrid tbody tr');
+                 rows.forEach((row, index) => {
+                     row.cells[0].innerText = index + 1;
+
+                     // إعادة تعيين الأسماء للمصفوفة لضمان وصولها للـ Controller بشكل سليم
+                     row.querySelector('input[name*=".ItemCode"]').setAttribute('name', `Items[${index}].ItemCode`);
+                     row.querySelector('input[name*=".ItemQnt"]').setAttribute('name', `Items[${index}].ItemQnt`);
+                     row.querySelector('input[name*=".ItemPrice"]').setAttribute('name', `Items[${index}].ItemPrice`);
+                 });
+        }
+    function switchTab(tabId) {
+                 // 1. تبديل المحتوى بتأثير اختفاء وظهور سلس
+                 $('.tab-content').addClass('hidden');
+                 $('#content-' + tabId).hide().removeClass('hidden').fadeIn(500);
+
+                 // 2. تحديث التصميم الأخضر للأزرار
+                 $('.tab-btn').each(function() {
+                     const $btn = $(this);
+                     const isSelected = $btn.attr('id') === 'tab-' + tabId;
+
+                     if (isSelected) {
+                         $btn.addClass('bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 shadow-sm ring-1 ring-emerald-200')
+                             .removeClass('text-slate-500 opacity-60 bg-transparent')
+                             .css({
+                                 'border-bottom': '3px solid #10b981'
+                             });
+
+                         $btn.find('.material-icons-outlined').css('color', '#059669');
+                     } else {
+                         $btn.removeClass('bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 shadow-sm ring-1 ring-emerald-200')
+                             .addClass('text-slate-500 opacity-60 bg-transparent')
+                             .css({
+                                 'border-bottom': '3px solid transparent'
+                             });
+
+                         $btn.find('.material-icons-outlined').css('color', '#64748b');
+                     }
+                 });
+             }
+
+
+    </script>
+}

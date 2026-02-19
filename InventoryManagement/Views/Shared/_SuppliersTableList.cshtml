@@ -1,0 +1,47 @@
+﻿@model IEnumerable<Application.Interfaces.Models.SupplierDto>
+
+@if (Model != null && Model.Any())
+{
+    foreach (var item in Model)
+    {
+        <tr class="supplier-row group hover:bg-gray-50 dark:hover:bg-[#334155]/20 transition-colors"
+            data-code="@item.SuplierCode"
+            data-desc="@item.SuplierDesc"
+            data-activity="@item.SuplierActivity"
+            data-address="@item.SuplierAddress"
+            data-tel="@item.SuplierTel"
+            data-fax="@item.SuplierFax"
+            data-email="@item.SuplierEmail">
+
+            <td class="px-6 py-4 text-center font-mono text-blue-600">@item.SuplierCode</td>
+            <td class="px-6 py-4 font-bold">@item.SuplierDesc</td>
+            <td class="px-6 py-4">@item.SuplierTel</td>
+            <td class="px-6 py-4 text-slate-500">
+                <div class="text-xs font-bold text-slate-700">@item.SuplierActivity</div>
+                <div class="text-[10px]">@item.SuplierAddress</div>
+            </td>
+            <td class="px-6 py-4 text-center">
+                <div class="flex items-center justify-center gap-3">
+                    <button onclick="editSupplier(this)" class="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors" title="تعديل">
+                        <span class="material-icons-outlined text-lg">edit</span>
+                    </button>
+                    <button onclick="deleteSupplier('@item.SuplierCode', '@item.SuplierDesc')" class="p-1 text-red-500 hover:bg-red-50 rounded transition-colors" title="حذف">
+                        <span class="material-icons-outlined text-lg">delete</span>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    }
+}
+else
+{
+    <tr>
+        <td colspan="5" class="px-6 py-10 text-center text-slate-400 italic">
+            لا يوجد موردين مطابقين للبحث...
+        </td>
+    </tr>
+}
+
+@* الحقول المخفية للبيانات *@
+<input type="hidden" id="hdnTotalCount" value="@ViewBag.TotalCount" />
+<input type="hidden" id="hdnTotalPages" value="@ViewBag.TotalPages" />

@@ -1,0 +1,291 @@
+﻿@model Application.Interfaces.Models.StoreDto
+
+@* تأكد من إضافة مكتبة الأيقونات في ملف Layout الرئيسي أو هنا *@
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
+<form id="settingsForm" asp-action="SaveSettings" method="post">
+    @* حقول مخفية للبيانات الأساسية *@
+    <input type="hidden" asp-for="StoreCode" />
+    <input type="hidden" id="SysLockValue" asp-for="SysLock" />
+
+    <div class="max-w-7xl mx-auto w-full font-display" dir="rtl">
+
+        @* --- الجزء العلوي: العنوان وأزرار التحكم --- *@
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-600/10 p-3 rounded-2xl">
+                    <span class="material-icons-round text-3xl text-blue-700">settings_applications</span>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">@Model.StoreDesc</h2>
+                    <p class="text-sm text-gray-500">إعدادات النظام - كود المخزن (@Model.StoreCode)</p>
+                </div>
+            </div>
+
+            <div class="flex gap-3 w-full sm:w-auto">
+                <button type="submit" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-white rounded-xl shadow-lg transition-all font-medium hover:opacity-90 bg-blue-700">
+                    <span class="material-icons-round text-lg">save</span>
+                    حفظ التغييرات
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+
+            @* --- قسم التاريخ وحالة القفل --- *@
+            <div class="p-6 md:p-8 border-b border-gray-100 bg-gray-50/50">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+
+                    @* إدخال التاريخ *@
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-bold text-gray-700 flex items-center gap-2" asp-for="SysDate">
+                            <span class="material-icons-round text-gray-400 text-base">calendar_today</span>
+                            تاريخ النظام الحالي
+                        </label>
+                        <div class="relative">
+                            <input asp-for="SysDate" asp-format="{0:yyyy-MM-dd}" type="date"
+                                   class="w-full bg-white border border-gray-300 text-gray-900 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 block p-3 pr-11 outline-none" />
+                        </div>
+                    </div>
+
+                    @* زر التبديل لحالة النظام (SysLock) *@
+                    <div class="flex flex-col gap-3">
+                        @* العنوان مع الأيقونة *@
+                        <span class="text-sm font-bold text-gray-700 flex items-center gap-2 px-1">
+                            <span class="material-icons-round text-blue-600 text-lg">sensors</span>
+                            حالة تشغيل المخزن الحالية
+                        </span>
+
+                        @* حاوية المفتاح والحالة *@
+                        <div class="flex items-center justify-between gap-6 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl border border-gray-200 dark:border-gray-700 w-full md:w-fit min-w-[300px]">
+
+                            @* المفتاح (Toggle Switch) *@
+                            <label class="relative inline-flex items-center cursor-pointer group">
+                                <input type="checkbox" id="lockToggle" class="sr-only peer" @(Model.SysLock == "1" ? "checked" : "") onchange="updateLockStatus(this)" />
+
+                                @* جسم المفتاح *@
+                                <div class="w-14 h-7 bg-gray-300 peer-focus:outline-none rounded-full peer
+                        dark:bg-gray-700 peer-checked:bg-green-600 transition-all duration-300
+                        after:content-[''] after:absolute after:top-[4px] after:right-[4px]
+                        after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all
+                        after:shadow-sm peer-checked:after:-translate-x-7">
+                                </div>
+                            </label>
+
+                            @* نص الحالة *@
+                            <div id="statusLabel" class="flex-grow">
+                                @if (Model.SysLock == "0")
+                                {
+                                    <div class="flex items-center gap-2 justify-end">
+                                        <span class="text-sm font-extrabold text-red-600">المخزن مغلق حالياً</span>
+                                        <span class="flex h-3 w-3 relative">
+                                            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                                        </span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="flex items-center gap-2 justify-end">
+                                        <span class="text-sm font-extrabold text-green-600">المخزن مفتوح للعمل</span>
+                                        <span class="flex h-3 w-3 relative">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* --- شبكة الإحصائيات (تسلسل الأرقام) --- *@
+            <div class="p-6 md:p-8">
+                <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <span class="material-icons-round text-blue-700">analytics</span>
+                    تسلسل أرقام المستندات الحالية
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    @* إذن وارد - InNum *@
+                    <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                        <div class="absolute top-0 right-0 w-1.5 h-full bg-blue-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs text-gray-500 font-bold uppercase">إذن وارد</p>
+                                <input asp-for="InNum" class="text-3xl font-black text-gray-900 mt-2 bg-transparent border-none p-0 w-full focus:ring-0" />
+                            </div>
+                            <div class="p-3 bg-blue-50 text-blue-600 rounded-xl"><span class="material-icons-round text-3xl">input</span></div>
+                        </div>
+                    </div>
+
+                    @* إذن صرف - OutNum *@
+                    <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                        <div class="absolute top-0 right-0 w-1.5 h-full bg-orange-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs text-gray-500 font-bold uppercase">إذن صرف</p>
+                                <input asp-for="OutNum" class="text-3xl font-black text-gray-900 mt-2 bg-transparent border-none p-0 w-full focus:ring-0" />
+                            </div>
+                            <div class="p-3 bg-orange-50 text-orange-600 rounded-xl"><span class="material-icons-round text-3xl">output</span></div>
+                        </div>
+                    </div>
+
+                    @* إذن تحويل - ToNum *@
+                    <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                        <div class="absolute top-0 right-0 w-1.5 h-full bg-purple-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs text-gray-500 font-bold uppercase">إذن تحويل</p>
+                                <input asp-for="ToNum" class="text-3xl font-black text-gray-900 mt-2 bg-transparent border-none p-0 w-full focus:ring-0" />
+                            </div>
+                            <div class="p-3 bg-purple-50 text-purple-600 rounded-xl"><span class="material-icons-round text-3xl">sync_alt</span></div>
+                        </div>
+                    </div>
+
+                    @* مرتجع وارد - BackNum *@
+                    <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                        <div class="absolute top-0 right-0 w-1.5 h-full bg-indigo-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs text-gray-500 font-bold uppercase">مرتجع وارد</p>
+                                <input asp-for="BackNum" class="text-3xl font-black text-gray-900 mt-2 bg-transparent border-none p-0 w-full focus:ring-0" />
+                            </div>
+                            <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><span class="material-icons-round text-3xl">assignment_return</span></div>
+                        </div>
+                    </div>
+
+                    @* مرتجع منصرف - BackNum2 *@
+                    <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                        <div class="absolute top-0 right-0 w-1.5 h-full bg-rose-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs text-gray-500 font-bold uppercase">مرتجع منصرف</p>
+                                <input asp-for="BackNum2" class="text-3xl font-black text-gray-900 mt-2 bg-transparent border-none p-0 w-full focus:ring-0" />
+                            </div>
+                            <div class="p-3 bg-rose-50 text-rose-600 rounded-xl"><span class="material-icons-round text-3xl">outbound</span></div>
+                        </div>
+                    </div>
+
+                    @* إذن كهنة - ScrapNum *@
+                    <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                        <div class="absolute top-0 right-0 w-1.5 h-full bg-gray-500"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs text-gray-500 font-bold uppercase">أذون الكهنة</p>
+                                <input asp-for="ScrapNum" class="text-3xl font-black text-gray-900 mt-2 bg-transparent border-none p-0 w-full focus:ring-0" />
+                            </div>
+                            <div class="p-3 bg-gray-100 text-gray-600 rounded-xl"><span class="material-icons-round text-3xl">delete_sweep</span></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            @* --- التذييل --- *@
+            <div class="bg-gray-50 p-5 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
+                <span>توقيت السيرفر: @DateTime.Now.ToString("yyyy/MM/dd HH:mm")</span>
+                <span class="font-bold text-blue-600 flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                    متصل بقاعدة بيانات Oracle
+                </span>
+            </div>
+        </div>
+    </div>
+</form>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // 1. إدارة حالة المفتاح (Toggle Switch) وتحديث الحقل المخفي
+            $('#lockToggle').on('change', function () {
+                const isChecked = $(this).is(':checked');
+                const $valInput = $('#SysLockValue');
+                const $labelDiv = $('#statusLabel');
+
+                if (isChecked) {
+                    $valInput.val("1");
+                    $labelDiv.html(`
+                        <div class="flex items-center gap-2 justify-end">
+                            <span class="text-sm font-extrabold text-green-600">المخزن مفتوح للعمل</span>
+                            <span class="flex h-3 w-3 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                            </span>
+                        </div>`);
+                } else {
+                    $valInput.val("0");
+                    $labelDiv.html(`
+                        <div class="flex items-center gap-2 justify-end">
+                            <span class="text-sm font-extrabold text-red-600">المخزن مغلق حالياً</span>
+                            <span class="flex h-3 w-3 relative">
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                            </span>
+                        </div>`);
+                }
+            });
+
+            // 2. إرسال الفورم عبر AJAX
+            $('form').on('submit', function (e) {
+                e.preventDefault();
+
+                const $form = $(this);
+                const $submitBtn = $form.find('button[type="submit"]');
+                const originalBtnText = $submitBtn.html();
+                const url = $form.attr('action');
+
+                // تحديث قيمة القفل النهائية قبل الإرسال (تأكيد إضافي)
+                const finalLockValue = $('#lockToggle').is(':checked') ? "1" : "0";
+                $('#SysLockValue').val(finalLockValue);
+
+                // تجهيز البيانات
+                const formData = $form.serialize();
+
+                // تغيير حالة الزر إلى "جاري التحميل"
+                $submitBtn.prop('disabled', true).html('<span class="material-icons-round animate-spin">sync</span> جاري الحفظ...');
+
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: formData,
+                    success: function (response) {
+                        if (response.success) {
+                            // استخدام الـ Helper الخاص بك للنجاح ثم عمل تحديث للصفحة
+                            _AlertHelper.showSuccess(response.message).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            // في حالة إرجاع success: false من الـ Controller يدوياً
+                            _AlertHelper.showError(response.message, 'فشل الحفظ');
+                            // إعادة تفعيل الزر للمحاولة مرة أخرى
+                            $submitBtn.prop('disabled', false).html(originalBtnText);
+                        }
+                    },
+                    error: function (xhr) {
+                        // معالجة الأخطاء التي يتم التقاطها بواسطة Middleware (أكواد 400، 500)
+                        let errorMsg = "حدث خطأ أثناء الاتصال بالسيرفر";
+
+                        // محاولة قراءة الرسالة من الـ JSON المرسل من الـ Middleware
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            // في حال كان الـ Middleware يرسل نصاً عادياً
+                            try {
+                                const parsed = JSON.parse(xhr.responseText);
+                                errorMsg = parsed.message || errorMsg;
+                            } catch(e) {
+                                errorMsg = xhr.responseText;
+                            }
+                        }
+
+                        _AlertHelper.showError(errorMsg, 'خطأ في النظام');
+
+                        // إعادة تفعيل الزر للمحاولة مرة أخرى
+                        $submitBtn.prop('disabled', false).html(originalBtnText);
+                    }
+                });
+            });
+        });
+    </script>
+}

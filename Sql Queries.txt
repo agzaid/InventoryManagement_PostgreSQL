@@ -1,0 +1,91 @@
+-- ======================================================
+-- 1. معالجة جدول التصنيفات (ITEM_CATEGORY)
+-- ======================================================
+DECLARE
+  v_start_cat NUMBER;
+BEGIN
+  -- جلب أكبر كود موجود في التصنيفات
+  SELECT NVL(MAX(TO_NUMBER(CATGRY_CODE)), 0) + 1 INTO v_start_cat FROM KWAREHOUSE.ITEM_CATEGORY;
+
+  -- حذف وإنشاء السيكوانس
+  BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE KWAREHOUSE.SEQ_ITEM_CATEGORY_CODE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+  EXECUTE IMMEDIATE 'CREATE SEQUENCE KWAREHOUSE.SEQ_ITEM_CATEGORY_CODE START WITH ' || v_start_cat || ' INCREMENT BY 1 NOCACHE';
+END;
+/
+
+-- إنشاء الـ Trigger الخاص بالتصنيفات
+CREATE OR REPLACE TRIGGER KWAREHOUSE.TRG_ITEM_CATEGORY_ID
+BEFORE INSERT ON KWAREHOUSE.ITEM_CATEGORY
+FOR EACH ROW
+BEGIN
+  IF :NEW.CATGRY_CODE IS NULL OR :NEW.CATGRY_CODE = '0' OR TRIM(:NEW.CATGRY_CODE) IS NULL THEN
+    SELECT KWAREHOUSE.SEQ_ITEM_CATEGORY_CODE.NEXTVAL INTO :NEW.CATGRY_CODE FROM DUAL;
+  END IF;
+END;
+/
+
+-- ======================================================
+-- 2. معالجة جدول الأصناف (ITEMS)
+-- ======================================================
+DECLARE
+  v_start_item NUMBER;
+BEGIN
+  -- جلب أكبر كود موجود في الأصناف (لاحظ استخدام ITEM_CODE)
+  SELECT NVL(MAX(TO_NUMBER(ITEM_CODE)), 0) + 1 INTO v_start_item FROM KWAREHOUSE.ITEMS;
+
+  -- حذف وإنشاء السيكوانس
+  BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE KWAREHOUSE.SEQ_ITEM_CODE'; EXCEPTION WHEN OTHERS THEN NULL; END;
+  EXECUTE IMMEDIATE 'CREATE SEQUENCE KWAREHOUSE.SEQ_ITEM_CODE START WITH ' || v_start_item || ' INCREMENT BY 1 NOCACHE';
+END;
+/
+
+-- إنشاء الـ Trigger الخاص بالأصناف
+
+CREATE OR REPLACE TRIGGER KWAREHOUSE.TRG_ITEM_ID
+BEFORE INSERT ON KWAREHOUSE.ITEMS
+FOR EACH ROW
+BEGIN
+  -- اجبر الـ ItemCode على أخذ قيمة السيكوانس دائماً 
+  -- إذا كانت القيمة القادمة '0' أو فارغة أو طويلة جداً (الـ Guid)
+  IF :NEW.ITEM_CODE IS NULL 
+     OR :NEW.ITEM_CODE = '0' 
+     OR LENGTH(:NEW.ITEM_CODE) > 5 THEN
+     
+    SELECT KWAREHOUSE.SEQ_ITEM_CODE.NEXTVAL INTO :NEW.ITEM_CODE FROM DUAL;
+    
+  END IF;
+END;
+/
+
+
+=============================================================================
+ 					معالجه ال supplier
+=============================================================================
+
+DECLARE
+  v_start_supplier NUMBER;
+BEGIN
+  -- جلب أكبر كود موجود في الموردين (SUPLIER_CODE)
+  SELECT NVL(MAX(SUPLIER_CODE), 0) + 1 INTO v_start_supplier FROM KWAREHOUSE.SUPPLIER;
+
+  -- حذف وإنشاء السيكوانس الخاص بالموردين
+  BEGIN 
+    EXECUTE IMMEDIATE 'DROP SEQUENCE KWAREHOUSE.SEQ_SUPPLIER_CODE'; 
+  EXCEPTION WHEN OTHERS THEN NULL; 
+  END;
+  
+  EXECUTE IMMEDIATE 'CREATE SEQUENCE KWAREHOUSE.SEQ_SUPPLIER_CODE START WITH ' || v_start_supplier || ' INCREMENT BY 1 NOCACHE';
+END;
+/
+
+
+CREATE OR REPLACE TRIGGER KWAREHOUSE.TRG_SUPPLIER_ID
+BEFORE INSERT ON KWAREHOUSE.SUPPLIER
+FOR EACH ROW
+BEGIN
+  -- التحقق إذا كان الكود فارغاً أو يساوي 0 لتوليد قيمة تلقائية
+  IF :NEW.SUPLIER_CODE IS NULL OR :NEW.SUPLIER_CODE = 0 THEN
+     SELECT KWAREHOUSE.SEQ_SUPPLIER_CODE.NEXTVAL INTO :NEW.SUPLIER_CODE FROM DUAL;
+  END IF;
+END;
+/

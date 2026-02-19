@@ -1,0 +1,437 @@
+﻿@* @model Application.ViewModels.InwardRecordViewModel *@
+@{
+    ViewData["Title"] = "تسجيل الوارد إلى المخزن";
+}
+<style>
+    .tab-btn.active {
+        background-color: white;
+        color: #1e40af; /* blue-800 */
+        border-bottom: 2px solid #1e40af;
+    }
+
+    .dark .tab-btn.active {
+        background-color: #0f172a; /* slate-900 */
+        color: #3b82f6; /* blue-500 */
+        border-bottom: 2px solid #3b82f6;
+    }
+
+    .tab-btn {
+        transition: all 0.3s ease;
+        position: relative;
+    }
+        /* تأثير الخط السفلي عند النشاط */
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #1e40af; /* Blue-800 */
+        }
+</style>
+<main class="flex-1 overflow-hidden flex flex-col" dir="rtl">
+    <form asp-action="CreateDeadStock" method="post" id="deadStockForm">
+        <input type="hidden" name="TrType" id="trType" value="7" />
+
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span class="material-icons-outlined text-primary">inventory_2</span>
+                    تسجيل الراكد الى المخزن
+                </h2>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">إنشاء سجل جديد لاستلام البضائع وإضافتها للمخزون</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition-all text-sm font-medium">
+                    <span class="material-icons-outlined text-lg">print</span> طباعة
+                </button>
+                <button type="submit" class="flex items-center gap-2 px-6 py-2 bg-blue-800 hover:bg-blue-900 text-white rounded-lg shadow-md transition-all text-sm font-medium">
+                    <span class="material-icons-outlined text-lg">save</span> حفظ المستند
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-5 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase">المورد</label>
+                    <div class="relative">
+                        <select id="supplierSelect"
+                                name="SuplierCode"
+                                class="searchable-select w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg pr-10 pl-8 py-2.5 text-sm dark:text-white appearance-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer">
+                            <option value="">اختر المورد...</option>
+                            @if (ViewBag.supplier != null)
+                            {
+                                foreach (var sup in ViewBag.supplier)
+                                {
+                                    <option value="@sup.SuplierCode">@sup.SuplierDesc</option>
+                                }
+                            }
+                        </select>
+                        <span id="supplierError" class="text-red-500 text-[10px] hidden">يجب اختيار مورد قبل الحفظ</span>
+                    </div>
+                </div>
+
+                @* <div class="space-y-1.5">
+                    <label  class="block text-xs font-semibold text-slate-500 uppercase">تاريخ الفحص والاستلام</label>
+                    <div class="relative">
+                        <input  type="date" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-sm dark:text-white">
+                        <span class="material-icons-outlined absolute left-3 top-2 text-slate-400 pointer-events-none text-lg">calendar_today</span>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase">تاريخ ورقم أمر التوريد</label>
+                    <div class="flex gap-2">
+                        <input class="w-1/3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:text-white" placeholder="الرقم">
+                        <input type="date" name="DeliverDate" class="w-2/3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm dark:text-white">
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label  class="block text-xs font-semibold text-slate-500 uppercase">رقم الفاتورة</label>
+                    <input class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-sm dark:text-white" name="BillNum" placeholder="ادخل رقم الفاتورة">
+                </div> *@
+            </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-6 h-[600px]">
+            <div class="w-full lg:w-1/3 flex flex-col bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div class="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
+                    <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-3">
+                        <span class="material-icons-outlined text-primary">category</span> دليل الأصناف
+                    </h3>
+                    <div class="relative">
+                        <input type="text" id="itemSearch" class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 rounded-lg text-sm" placeholder="بحث باسم الصنف...">
+                        <span class="material-icons-outlined absolute left-3 top-2 text-slate-400">search</span>
+                    </div>
+                    <div id="item-error-msg" class="hidden text-red-500 text-[11px] font-bold mt-1 flex items-center gap-1">
+                        <span class="material-icons-outlined text-xs">error_outline</span>
+                        <span>يجب إضافة صنف واحد على الأقل</span>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto p-2 custom-scrollbar" id="itemsList">
+                    @if (ViewBag.items != null)
+                    {
+                        foreach (var item in ViewBag.items)
+                        {
+                            <div onclick="addItemToTable('@item.ItemCode', '@item.ItemDesc')"
+                                 class="item-card group p-3 mb-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-500 cursor-pointer transition-all flex justify-between items-center shadow-sm hover:shadow-md"
+                                 data-name="@item.ItemDesc">
+                                <div>
+                                    <div class="text-[10px] text-blue-500 font-mono font-bold">#@item.ItemCode</div>
+                                    <h4 class="font-bold text-sm text-slate-700 dark:text-slate-100">@item.ItemDesc</h4>
+                                </div>
+                                <span class="material-icons-outlined text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">add_circle</span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="p-8 text-center text-slate-400">
+                            <span class="material-icons-outlined text-4xl block mb-2">inventory_2</span>
+                            <p class="text-xs">لا توجد أصناف متاحة</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="w-full lg:w-2/3 flex flex-col gap-4">
+                <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex-1 overflow-hidden flex flex-col">
+                    <div class="flex items-center bg-slate-100 dark:bg-slate-900/50 p-1.5 rounded-2xl w-fit gap-3 mb-6 border border-slate-200 dark:border-slate-800">
+
+                        <button type="button" onclick="switchTab('currentInv')" id="tab-currentInv"
+                                class="tab-btn active px-6 py-3 text-sm font-bold flex items-center gap-2 rounded-xl transition-all duration-300 hover:bg-emerald-50/50">
+                            <span class="material-icons-outlined text-lg">receipt_long</span>
+                            الفاتورة الحالية
+                        </button>
+
+                        <button type="button" onclick="switchTab('todayTrans')" id="tab-todayTrans"
+                                class="tab-btn px-6 py-3 text-sm font-bold flex items-center gap-2 rounded-xl transition-all duration-300 text-slate-500 opacity-60 hover:bg-emerald-50/50">
+                            <span class="material-icons-outlined text-lg">history</span>
+                            معاملات اليوم
+                        </button>
+
+                    </div>
+
+                    <div id="content-currentInv" class="tab-content flex-1 flex flex-col">
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-right" id="tmp_dbgrid">
+                                <thead class="bg-slate-50 dark:bg-slate-900 sticky top-0 text-xs text-slate-500">
+                                    <tr>
+                                        <th class="px-4 py-3 border-b">الترتيب</th>
+                                        <th class="px-4 py-3 border-b">كود</th>
+                                        <th class="px-4 py-3 border-b">اسم الصنف</th>
+                                        <th class="px-4 py-3 border-b text-center">الكمية</th>
+                                        <th class="px-4 py-3 border-b">السعر</th>
+                                        <th class="px-4 py-3 border-b text-center">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y dark:divide-slate-700">
+                                </tbody>
+                            </table>
+                        </div>
+                        @* <div class="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 flex justify-end items-center gap-6">
+                            <div class="text-2xl font-bold text-primary">
+                                <span id="grandTotal">0.00</span> <span class="text-sm font-normal text-slate-500">ج.م</span>
+                            </div>
+                        </div> *@
+                    </div>
+
+                    <div id="content-todayTrans" class="tab-content hidden flex-1 overflow-y-auto">
+                        <table class="w-full text-right text-sm">
+                            <thead class="bg-slate-50 dark:bg-slate-900 sticky top-0 text-slate-500">
+                                <tr>
+                                    <th class="p-4 border-b">الترتيب</th>
+                                    <th class="p-4 border-b">كود المورد</th>
+                                    <th class="p-4 border-b">اسم المورد</th>
+                                    <th class="p-4 border-b">اسم الصنف</th>
+                                    <th class="p-4 border-b">العدد</th>
+                                    <th class="p-4 border-b">التاريخ</th>
+                                    <th class="p-4 border-b text-center">إجراء</th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.TodayTransactions != null)
+                                {
+                                    foreach (var tr in ViewBag.TodayTransactions)
+                                    {
+                                        <tr class="border-b dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                            <td class="p-4 font-mono font-bold text-blue-600">@tr.TrNum</td>
+                                            <td class="p-4">@tr.SupplierCode</td>
+                                            <td class="p-4">@tr.SupplierDesc</td>
+                                            <td class="p-4">@tr.ItemDesc</td>
+                                            <td class="p-4">@tr.ItemQnt</td>
+                                            <td class="p-4">@tr.TrDate2</td>
+                                            <td class="p-4 text-center">
+                                                <button type="button"
+                                                        onclick="deleteTransaction('@tr.TrNum')"
+                                                        class="text-red-500 hover:text-red-700 transition-colors">
+                                                    <span class="material-icons-outlined">delete</span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="p-10 text-center text-slate-400">
+                                            <span class="material-icons-outlined text-4xl block mb-2">find_in_page</span>
+                                            لا توجد معاملات مسجلة اليوم
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</main>
+
+@section Scripts {
+
+    <script>
+         $(document).ready(function() {
+
+
+        $('#deadStockForm').on('submit', function (e) {
+              // Reset styles
+              $('.select2-selection').css('border-color', '#cbd5e1');
+              $('#supplierError').addClass('hidden');
+              $('#itemSearch').removeClass('border-red-500');
+              $('#item-error-msg').addClass('hidden');
+
+              const supplierId = $('#supplierSelect').val();
+              const itemsCount = $('#tmp_dbgrid tbody tr').length;
+              let isValid = true;
+
+              // 1. التحقق من المورد
+              if (!supplierId || supplierId === "") {
+                  $('#supplierError').removeClass('hidden');
+                  $('#supplierSelect').next('.select2-container').find('.select2-selection').css('border', '2px solid #ef4444');
+                  isValid = false;
+              }
+
+              // 2. التحقق من وجود أصناف
+              if (itemsCount === 0) {
+                  $('#itemSearch').addClass('border-red-500');
+                  $('#item-error-msg').removeClass('hidden');
+                  isValid = false;
+              }
+
+              if (!isValid) {
+                  e.preventDefault(); // منع الإرسال إذا وجد خطأ
+                  return false;
+              }
+          });
+
+
+
+          // إخفاء اللون الأحمر فور اختيار مورد
+          $('#supplierSelect').on('change', function() {
+              if ($(this).val()) {
+                  $('#supplierError').addClass('hidden');
+                  $(this).next('.select2-container').find('.select2-selection').css('border', '1px solid #cbd5e1');
+              }
+          });
+
+          // إخفاء رسالة الخطأ عند اختيار مورد
+          $('#supplierSelect').on('change', function() {
+              if ($(this).val()) {
+                  $('#supplierError').addClass('hidden');
+                  $(this).next('.select2-container').css('border', 'none');
+              }
+          });
+                $('#supplierSelect').select2({
+                    placeholder: "بحث عن مورد...",
+                    allowClear: true,
+                    width: '100%',
+                    dir: "rtl" // لدعم اللغة العربية
+                });
+
+                // تحسين شكل المربع ليتناسب مع تصميمك (اختياري)
+                $('.select2-container--default .select2-selection--single').css({
+                    'height': '42px',
+                    'background-color': '#f8fafc', // نفس لون bg-slate-50
+                    'border-color': '#cbd5e1',     // نفس لون border-slate-300
+                    'border-radius': '0.5rem',
+                    'padding-top': '6px'
+                });
+
+
+              $('#itemSearch').on('keyup', function() {
+                  var value = $(this).val().toLowerCase();
+                  $("#itemsList .item-card").filter(function() {
+                      $(this).toggle($(this).data('name').toLowerCase().indexOf(value) > -1)
+                  });
+              });
+
+
+          });
+    </script>
+
+    <script>
+                   window.deleteTransaction = function(trNum) {
+                      _AlertHelper.showConfirm("حذف معاملة", `هل أنت متأكد من حذف هذه المعاملة؟`, "نعم، احذف")
+                      .then((result) => {
+                          if (result.isConfirmed) {
+                              $.ajax({
+                                      url: '@Url.Action("DeleteRecord", "InventoryMovement")',
+                                  type: 'POST',
+                                  // Use 'id' as the key to match the C# parameter name
+                                  data: { id: trNum },
+                                  success: function (response) {
+                                      if (response.success) {
+                                          _AlertHelper.showSuccess(response.message).then(() => {
+                                              // Instead of reload, just remove the row for better UX
+                                              $(`#row-tr-${trNum}`).fadeOut(300, function() {
+                                                  $(this).remove();
+                                              });
+                                          });
+                                      } else {
+                                          _AlertHelper.showError(response.message);
+                                      }
+                                  },
+                                  error: function (xhr) {
+                                      console.log("Error details:", xhr.status, xhr.statusText);
+                                      _AlertHelper.showError("خطأ 404: المسار غير موجود");
+                                  }
+                              });
+                          }
+                      });
+                  };
+             function selectItem(id, name, code) {
+                 document.getElementById('selectedItemId').value = id;
+                 document.getElementById('selectedItemName').value = code + " - " + name;
+             }
+
+          function addItemToTable(itemCode, itemDesc) {
+                 const tableBody = document.querySelector('#tmp_dbgrid tbody');
+                 if (!tableBody) return;
+
+                 let isExist = false;
+                 tableBody.querySelectorAll('tr').forEach(row => {
+                     if (row.cells[1].innerText === itemCode) isExist = true;
+                 });
+
+                 if (isExist) {
+                     _AlertHelper.showWarning("هذا الصنف مضاف مسبقاً");
+                     return;
+                 }
+
+                 const index = tableBody.rows.length; // استخدام العدد الحالي كـ Index
+                 const newRow = `
+                     <tr class="border-b dark:border-slate-700">
+                         <td class="p-3 text-center text-xs text-slate-500">${index + 1}</td>
+                         <td class="p-3 text-xs font-mono font-bold text-blue-600">
+                             ${itemCode}
+                             <input type="hidden" name="Items[${index}].ItemCode" value="${itemCode}" />
+                         </td>
+                         <td class="p-3 text-sm font-semibold text-slate-700 dark:text-slate-200">${itemDesc}</td>
+                         <td class="p-2">
+                             <input type="number" name="Items[${index}].ItemQnt" class="w-20 p-1 text-center border rounded dark:bg-slate-900" value="1" min="1">
+                         </td>
+                         <td class="p-2">
+                             <input type="number" name="Items[${index}].ItemPrice" class="w-24 p-1 text-center border rounded dark:bg-slate-900" value="0" step="0.01">
+                         </td>
+                         <td class="p-3 text-center">
+                             <button type="button" onclick="this.closest('tr').remove(); reorderRows();" class="text-red-400 hover:text-red-600">
+                                 <span class="material-icons-outlined">delete_outline</span>
+                             </button>
+                         </td>
+                     </tr>`;
+
+                 tableBody.insertAdjacentHTML('beforeend', newRow);
+             }
+
+        function reorderRows() {
+                     const rows = document.querySelectorAll('#tmp_dbgrid tbody tr');
+                      rows.forEach((row, index) => {
+                          row.cells[0].innerText = index + 1;
+
+                          // إعادة تعيين الأسماء للمصفوفة لضمان وصولها للـ Controller بشكل سليم
+                          row.querySelector('input[name*=".ItemCode"]').setAttribute('name', `Items[${index}].ItemCode`);
+                          row.querySelector('input[name*=".ItemQnt"]').setAttribute('name', `Items[${index}].ItemQnt`);
+                          row.querySelector('input[name*=".ItemPrice"]').setAttribute('name', `Items[${index}].ItemPrice`);
+                      });
+             }
+         function switchTab(tabId) {
+                 // 1. تبديل المحتوى بتأثير اختفاء وظهور سلس
+                 $('.tab-content').addClass('hidden');
+                 $('#content-' + tabId).hide().removeClass('hidden').fadeIn(500);
+
+                 // 2. تحديث التصميم الأخضر للأزرار
+                 $('.tab-btn').each(function() {
+                     const $btn = $(this);
+                     const isSelected = $btn.attr('id') === 'tab-' + tabId;
+
+                     if (isSelected) {
+                         // الحالة النشطة: خلفية خضراء فاتحة جداً، نص أخضر غامق، وظل أخضر
+                         $btn.addClass('bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 shadow-sm ring-1 ring-emerald-200')
+                             .removeClass('text-slate-500 opacity-60 bg-transparent')
+                             .css({
+                                 'border-bottom': '3px solid #10b981' // Emerald-500
+                             });
+
+                         $btn.find('.material-icons-outlined').css('color', '#059669'); // Emerald-600
+                     } else {
+                         // الحالة غير النشطة
+                         $btn.removeClass('bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 shadow-sm ring-1 ring-emerald-200')
+                             .addClass('text-slate-500 opacity-60 bg-transparent')
+                             .css({
+                                 'border-bottom': '3px solid transparent'
+                             });
+
+                         $btn.find('.material-icons-outlined').css('color', '#64748b');
+                     }
+                 });
+             }
+
+
+    </script>
+}

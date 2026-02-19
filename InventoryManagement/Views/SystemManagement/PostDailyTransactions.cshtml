@@ -1,0 +1,466 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+<div class="max-w-7xl mx-auto w-full font-display" dir="rtl">
+
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div class="flex items-center gap-4">
+            <div class="p-3 rounded-2xl" style="background-color: rgba(15, 76, 129, 0.1);">
+                <span class="material-icons-round text-3xl" style="color: #0f4c81;">account_balance_wallet</span>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">ترحيل الحركة اليومية</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">إغلاق وتدوير حركات المخزون والعمليات اليومية</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <form id="relayProcessForm" asp-action="RunRelayProcess" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" id="btnRunRelay" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm transition text-sm font-medium group">
+                    <span class="material-icons-round group-hover:rotate-180 transition-transform duration-500">sync</span>
+                    <span>ترحيل البيانات</span>
+                </button>
+            </form>
+
+            <div class="text-left px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+                <p class="text-[10px] text-blue-600 dark:text-blue-300 font-bold uppercase">تاريخ اليوم</p>
+                <p class="text-sm font-bold text-blue-800 dark:text-blue-100">@DateTime.Now.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("ar-EG"))</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 dark:border-zinc-700 bg-green-50/30 dark:bg-green-900/10">
+                <h3 class="font-bold text-green-700 dark:text-green-400 flex items-center gap-2">
+                    <span class="material-icons-round">add_circle_outline</span>
+                    حركات الوارد (الإضافة)
+                </h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex justify-between items-center p-4 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-xl hover:shadow-md transition-all group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-1.5 h-10 bg-green-500 rounded-full"></div>
+                        <div>
+                            <span class="block text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-wider">وارد</span>
+                            <span class="font-bold text-gray-700 dark:text-gray-200">الوارد إلى المخزن</span>
+                        </div>
+                    </div>
+                    <span id="dailyInward" class="text-3xl font-black group-hover:scale-110 transition-transform text-gray-900 dark:text-blue-400">0</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-xl hover:shadow-md transition-all group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-1.5 h-10 bg-teal-500 rounded-full"></div>
+                        <div>
+                            <span class="block text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-wider">تحويل داخلي</span>
+                            <span class="font-bold text-gray-700 dark:text-gray-200">المحول إلى المخزن</span>
+                        </div>
+                    </div>
+                    <span id="dailyTransferIn" class="text-3xl font-black group-hover:scale-110 transition-transform text-gray-900 dark:text-blue-400">0</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-xl hover:shadow-md transition-all group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-1.5 h-10 bg-blue-500 rounded-full"></div>
+                        <div>
+                            <span class="block text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-wider">مرتجع</span>
+                            <span class="font-bold text-gray-700 dark:text-gray-200">المرتجع من أصناف منصرفة</span>
+                        </div>
+                    </div>
+                    <span id="dailyReturnToStock" class="text-3xl font-black group-hover:scale-110 transition-transform text-gray-900 dark:text-blue-400">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 dark:border-zinc-700 bg-red-50/30 dark:bg-red-900/10">
+                <h3 class="font-bold text-red-700 dark:text-red-400 flex items-center gap-2">
+                    <span class="material-icons-round">remove_circle_outline</span>
+                    حركات الصرف (الخصم)
+                </h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex justify-between items-center p-4 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-xl hover:shadow-md transition-all group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-1.5 h-10 bg-red-500 rounded-full"></div>
+                        <div>
+                            <span class="block text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-wider">صرف</span>
+                            <span class="font-bold text-gray-700 dark:text-gray-200">المنصرف من المخزن</span>
+                        </div>
+                    </div>
+                    <span id="dailyOutward" class="text-3xl font-black group-hover:scale-110 transition-transform text-gray-900 dark:text-blue-400">0</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-xl hover:shadow-md transition-all group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-1.5 h-10 bg-orange-500 rounded-full"></div>
+                        <div>
+                            <span class="block text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-wider">تحويل خارجي</span>
+                            <span class="font-bold text-gray-700 dark:text-gray-200">المحول من المخزن</span>
+                        </div>
+                    </div>
+                    <span id="dailyTransferOut" class="text-3xl font-black group-hover:scale-110 transition-transform text-gray-900 dark:text-blue-400">0</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-xl hover:shadow-md transition-all group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-1.5 h-10 bg-yellow-500 rounded-full"></div>
+                        <div>
+                            <span class="block text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-wider">مرتجع للمورد</span>
+                            <span class="font-bold text-gray-700 dark:text-gray-200">المرتجع من أصناف واردة</span>
+                        </div>
+                    </div>
+                    <span id="dailyReturnToSupplier" class="text-3xl font-black group-hover:scale-110 transition-transform text-gray-900 dark:text-blue-400">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-8">
+        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2">
+            <span class="material-icons-round" style="color: #0f4c81;">rocket_launch</span>
+            العمليات والإجراءات المتاحة
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <a href="#" class="group relative bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 hover:border-blue-500 transition-all duration-300">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600">
+                        <span class="material-icons-round text-2xl">trending_up</span>
+                    </div>
+                    <span class="material-icons-round text-gray-300 group-hover:text-blue-600 transition-all -rotate-180">arrow_forward_ios</span>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-2">الحركة اليومية</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">عرض تفاصيل جميع الحركات التي تمت خلال اليوم.</p>
+            </a>
+
+            <a href="#" class="group relative bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 hover:border-purple-500 transition-all duration-300">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl text-purple-600">
+                        <span class="material-icons-round text-2xl">calculate</span>
+                    </div>
+                    <span class="material-icons-round text-gray-300 group-hover:text-purple-600 transition-all -rotate-180">arrow_forward_ios</span>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-2">حساب الأرصدة - يومي</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">تحديث وحساب أرصدة المخازن بناءً على حركات اليوم.</p>
+            </a>
+
+            <a href="#" id="btnMonthlyConsumption" class="group relative bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 hover:border-amber-500 transition-all duration-300">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl text-amber-600">
+                        <span class="material-icons-round text-2xl">pie_chart</span>
+                    </div>
+                    <span class="material-icons-round text-gray-300 group-hover:text-amber-600 transition-all -rotate-180">arrow_forward_ios</span>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-2">الاستهلاك الشهري</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">تقرير تحليل معدلات الاستهلاك للأصناف خلال الشهر.</p>
+            </a>
+
+        </div>
+    </div>
+</div>
+
+<div id="monthlyConsumptionModal" class="hidden fixed inset-0 z-50">
+    <div id="monthlyConsumptionBackdrop" class="absolute inset-0 bg-black/50"></div>
+    <div class="relative flex items-center justify-center min-h-screen p-4">
+        <div class="w-full max-w-4xl bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-zinc-700">
+                <div>
+                    <div class="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase">الاستهلاك الشهري</div>
+                    <div id="monthlyConsumptionTitle" class="text-lg font-bold text-gray-900 dark:text-white"></div>
+                </div>
+                <button id="btnCloseMonthlyConsumption" type="button" class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800">
+                    <span class="material-icons-round text-gray-600 dark:text-gray-300">close</span>
+                </button>
+            </div>
+
+            <div class="p-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+                    <div class="flex items-center gap-2">
+                        <button id="btnPrevMonth" type="button" class="px-3 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 text-sm font-bold">
+                            السابق
+                        </button>
+                        <button id="btnNextMonth" type="button" class="px-3 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800 text-sm font-bold">
+                            التالي
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800">
+                            <div class="text-[10px] text-amber-700 dark:text-amber-300 font-bold uppercase">إجمالي الاستهلاك</div>
+                            <div id="monthlyTotalConsumption" class="text-lg font-black text-amber-900 dark:text-amber-100">0</div>
+                        </div>
+                        <div class="px-4 py-2 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700">
+                            <div class="text-[10px] text-gray-500 font-bold uppercase">عدد الأصناف</div>
+                            <div id="monthlyItemsCount" class="text-lg font-black text-gray-900 dark:text-gray-100">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-2xl p-4">
+                        <div class="text-sm font-bold text-gray-900 dark:text-white mb-3">أعلى الأصناف استهلاكاً</div>
+                        <div class="overflow-auto max-h-72">
+                            <table class="w-full text-sm">
+                                <thead class="text-gray-500 dark:text-gray-400">
+                                    <tr>
+                                        <th class="text-right py-2">الصنف</th>
+                                        <th class="text-left py-2">الكمية</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monthlyTopItemsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-2xl p-4">
+                        <div class="text-sm font-bold text-gray-900 dark:text-white mb-3">رسم بياني</div>
+                        <canvas id="monthlyConsumptionChart" height="220"></canvas>
+                    </div>
+                </div>
+
+                <div id="monthlyConsumptionLoading" class="hidden mt-4 text-sm text-gray-500 dark:text-gray-400">جاري التحميل...</div>
+                <div id="monthlyConsumptionEmpty" class="hidden mt-4 text-sm text-gray-500 dark:text-gray-400">لا توجد بيانات لهذا الشهر.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            loadDailyInvTransSummary();
+
+            let monthlyYear = new Date().getFullYear();
+            let monthlyMonth = new Date().getMonth() + 1;
+
+            $('#relayProcessForm').on('submit', function (e) {
+                e.preventDefault();
+
+                const $form = $(this);
+                const $submitBtn = $('#btnRunRelay');
+                const originalBtnHtml = $submitBtn.html();
+                const url = $form.attr('action');
+
+                // 1. Confirmation Dialog
+                Swal.fire({
+                    title: 'تأكيد عملية الترحيل',
+                    text: "هل أنت متأكد من ترحيل حركة اليوم؟ سيتم تدوير الأرصدة وحذف الحركات الحالية.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0f4c81',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'نعم، ترحيل الآن',
+                    cancelButtonText: 'إلغاء',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+
+                        // 2. Disable button and show loading state
+                        $submitBtn.prop('disabled', true)
+                            .addClass('opacity-70 cursor-wait')
+                            .html('<span class="material-icons-round animate-spin text-sm">sync</span> جاري الترحيل...');
+
+                        // 3. AJAX Call
+                        $.ajax({
+                            type: "POST",
+                            url: url,
+                            data: $form.serialize(),
+                            success: function (response) {
+                                if (response.success) {
+                                    _AlertHelper.showSuccess(response.message, 'نجاح العملية').then(() => {
+                                        // Reload to update the UI counters to 0
+                                        location.reload();
+                                    });
+                                } else {
+                                    _AlertHelper.showError(response.message, 'فشل الترحيل');
+                                    resetButton($submitBtn, originalBtnHtml);
+                                }
+                            },
+                            error: function (xhr) {
+                                let errorMsg = "حدث خطأ غير متوقع في النظام";
+
+                                // Handle structured error from middleware
+                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                    errorMsg = xhr.responseJSON.message;
+                                }
+
+                                _AlertHelper.showError(errorMsg, 'خطأ فني');
+                                resetButton($submitBtn, originalBtnHtml);
+                            }
+                        });
+                    }
+                });
+            });
+
+            function resetButton($btn, html) {
+                $btn.prop('disabled', false)
+                    .removeClass('opacity-70 cursor-wait')
+                    .html(html);
+            }
+
+            function loadDailyInvTransSummary() {
+                $.ajax({
+                    url: '/SystemManagement/GetDailyInvTransSummaryToday',
+                    type: 'GET',
+                    success: function (response) {
+                        if (response && response.success && response.data) {
+                            $('#dailyInward').text(response.data.inward ?? 0);
+                            $('#dailyTransferIn').text(response.data.transferIn ?? 0);
+                            $('#dailyReturnToStock').text(response.data.returnToStock ?? 0);
+                            $('#dailyOutward').text(response.data.outward ?? 0);
+                            $('#dailyTransferOut').text(response.data.transferOut ?? 0);
+                            $('#dailyReturnToSupplier').text(response.data.returnToSupplier ?? 0);
+                        }
+                    },
+                    error: function () {
+                        // keep zeros
+                    }
+                });
+            }
+
+            $('#btnMonthlyConsumption').on('click', function (e) {
+                e.preventDefault();
+                openMonthlyConsumptionModal();
+            });
+
+            $('#btnCloseMonthlyConsumption, #monthlyConsumptionBackdrop').on('click', function () {
+                closeMonthlyConsumptionModal();
+            });
+
+            $('#btnPrevMonth').on('click', function () {
+                monthlyMonth -= 1;
+                if (monthlyMonth <= 0) {
+                    monthlyMonth = 12;
+                    monthlyYear -= 1;
+                }
+                loadMonthlyConsumption();
+            });
+
+            $('#btnNextMonth').on('click', function () {
+                monthlyMonth += 1;
+                if (monthlyMonth >= 13) {
+                    monthlyMonth = 1;
+                    monthlyYear += 1;
+                }
+                loadMonthlyConsumption();
+            });
+
+            function openMonthlyConsumptionModal() {
+                $('#monthlyConsumptionModal').removeClass('hidden');
+                loadMonthlyConsumption();
+            }
+
+            function closeMonthlyConsumptionModal() {
+                $('#monthlyConsumptionModal').addClass('hidden');
+            }
+
+            function setMonthlyUiLoading(isLoading) {
+                if (isLoading) {
+                    $('#monthlyConsumptionLoading').removeClass('hidden');
+                } else {
+                    $('#monthlyConsumptionLoading').addClass('hidden');
+                }
+            }
+
+            function formatMonthTitle(year, month) {
+                const dt = new Date(year, month - 1, 1);
+                return dt.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long' });
+            }
+
+            function loadMonthlyConsumption() {
+                $('#monthlyConsumptionTitle').text(formatMonthTitle(monthlyYear, monthlyMonth));
+                $('#monthlyConsumptionEmpty').addClass('hidden');
+                setMonthlyUiLoading(true);
+
+                $.ajax({
+                    url: `/SystemManagement/GetMonthlyConsumptionSummary?year=${monthlyYear}&month=${monthlyMonth}&top=10`,
+                    type: 'GET',
+                    success: function (response) {
+                        setMonthlyUiLoading(false);
+                        if (!response || !response.success || !response.data) {
+                            $('#monthlyConsumptionEmpty').removeClass('hidden');
+                            return;
+                        }
+
+                        const data = response.data;
+                        const topItems = data.topItems || [];
+
+                        $('#monthlyTotalConsumption').text(data.totalConsumptionQnt ?? 0);
+                        $('#monthlyItemsCount').text(data.itemsCount ?? 0);
+
+                        const $body = $('#monthlyTopItemsBody');
+                        $body.empty();
+
+                        if (topItems.length === 0) {
+                            $('#monthlyConsumptionEmpty').removeClass('hidden');
+                            drawMonthlyChart([]);
+                            return;
+                        }
+
+                        topItems.forEach(it => {
+                            const name = it.itemDesc || it.itemCode || '';
+                            const qty = it.consumptionQnt ?? 0;
+                            $body.append(`<tr class="border-t border-gray-100 dark:border-zinc-800"><td class="py-2 text-right text-gray-900 dark:text-gray-100">${escapeHtml(name)}</td><td class="py-2 text-left font-bold text-gray-900 dark:text-gray-100">${qty}</td></tr>`);
+                        });
+
+                        drawMonthlyChart(topItems);
+                    },
+                    error: function () {
+                        setMonthlyUiLoading(false);
+                        $('#monthlyConsumptionEmpty').removeClass('hidden');
+                    }
+                });
+            }
+
+            function escapeHtml(text) {
+                if (text === null || text === undefined) return '';
+                return String(text)
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#039;');
+            }
+
+            function drawMonthlyChart(items) {
+                const canvas = document.getElementById('monthlyConsumptionChart');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+
+                const width = canvas.width;
+                const height = canvas.height;
+
+                ctx.clearRect(0, 0, width, height);
+
+                const data = (items || []).slice(0, 10);
+                if (data.length === 0) {
+                    ctx.fillStyle = '#9ca3af';
+                    ctx.font = '14px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('لا توجد بيانات لعرض الرسم', width / 2, height / 2);
+                    return;
+                }
+
+                const maxVal = Math.max(...data.map(x => Number(x.consumptionQnt ?? 0)), 1);
+
+                const padding = 20;
+                const chartW = width - padding * 2;
+                const chartH = height - padding * 2;
+                const barGap = 8;
+                const barW = (chartW - barGap * (data.length - 1)) / data.length;
+
+                data.forEach((it, idx) => {
+                    const val = Number(it.consumptionQnt ?? 0);
+                    const barH = (val / maxVal) * chartH;
+                    const x = padding + idx * (barW + barGap);
+                    const y = padding + (chartH - barH);
+
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.fillRect(x, y, barW, barH);
+                });
+            }
+        });
+    </script>
+}

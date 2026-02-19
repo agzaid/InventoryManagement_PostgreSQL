@@ -1,0 +1,253 @@
+﻿@* File: Views/Shared/_Sidebar.cshtml (With JavaScript Toggle) *@
+<aside class="flex w-64 flex-col border-r border-[#dbe0e6] bg-white dark:bg-[#1e293b] dark:border-[#334155]">
+    <div class="flex h-16 items-center gap-3 px-6 border-b border-[#f0f2f4] dark:border-[#334155]">
+        <div class="flex items-center justify-center size-8 rounded bg-primary text-white">
+            <span class="material-symbols-outlined text-[20px]">currency_exchange</span>
+        </div>
+        <h1 class="text-lg font-bold tracking-tight text-[#111418] dark:text-white">EGX Admin</h1>
+    </div>
+    <button id="langSwitcher" class="flex items-center justify-center p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-400">
+        <span class="material-symbols-outlined text-[20px]">language</span>
+        <span class="text-xs font-bold mr-1 uppercase">
+            @(System.Threading.Thread.CurrentThread.CurrentCulture.Name.StartsWith("ar") ? "EN" : "AR")
+        </span>
+    </button>
+    <div class="flex flex-col gap-2 p-4 flex-1 overflow-y-auto">
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-white" href="@Url.Action("Index", "Home")">
+            <span class="material-symbols-outlined">dashboard</span>
+            <p class="text-sm font-medium leading-normal">Dashboard</p>
+        </a>
+
+   @*      <div class="flex flex-col gap-1">
+
+            <div id="inventory-toggle"
+                 tabindex="0"
+                 onclick="toggleDropdown('inventory-submenu', 'inventory-icon')"
+                 class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg
+                        text-[#111418] dark:text-slate-300 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]
+                        transition-colors cursor-pointer
+                        focus:outline-none focus:ring-0 select-none"
+                 title="Toggle System Administration Menu">
+
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'wght' 400, 'FILL' 0;">settings</span>
+                    <p class="text-sm font-medium leading-normal">@Localizer["SystemManagement"]</p>
+                    @* <p class="text-sm font-medium leading-normal">@Localizer["Save"]</p> *@
+              @*  </div>
+                <span id="inventory-icon" class="material-symbols-outlined text-sm">expand_more</span>
+            </div>
+
+            <div id="inventory-submenu" class="pl-4 flex flex-col gap-1">
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] transition-colors" asp-action="index" asp-controller="SystemManagement">
+                    <p class="text-sm font-normal leading-normal pl-4">@Localizer["ManageSystemUsers"]</p>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] transition-colors" asp-action="ConfigureSystemSettings" asp-controller="SystemManagement">
+                    <p class="text-sm font-normal leading-normal pl-4">@Localizer["ConfigureSystemSettings"]</p>
+                </a>
+                <hr />
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] transition-colors" asp-action="PostDailyTransactions" asp-controller="SystemManagement">
+                    <p class="text-sm font-normal leading-normal pl-4">@Localizer["PostDailyTransactions"]</p> 
+                </a>
+
+            </div>
+        </div> *@
+        <div class="flex flex-col gap-1">
+            <div tabindex="0"
+                 onclick="document.getElementById('inventory-submenu').classList.toggle('hidden')"
+                 class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg
+                text-[#111418] dark:text-slate-300 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]
+                transition-colors cursor-pointer"
+                 title="Toggle System Administration Menu">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined">settings</span>
+                    <p class="text-sm font-medium">@Localizer["SystemManagement"]</p>
+                </div>
+                <span class="material-symbols-outlined">expand_more</span>
+            </div>
+
+            <!-- Submenu -->
+            <div id="inventory-submenu" class="pl-4 flex flex-col gap-1 hidden">
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]" asp-action="Index" asp-controller="SystemManagement">
+                    <p class="text-sm font-normal pl-4">@Localizer["ManageSystemUsers"]</p>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]" asp-action="ConfigureSystemSettings" asp-controller="SystemManagement">
+                    <p class="text-sm font-normal pl-4">@Localizer["ConfigureSystemSettings"]</p>
+                </a>
+                <hr />
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] transition-colors" asp-action="PostDailyTransactions" asp-controller="SystemManagement">
+                    <p class="text-sm font-normal leading-normal pl-4">@Localizer["PostDailyTransactions"]</p>
+                </a>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <div tabindex="0"
+                 onclick="document.getElementById('item-submenu').classList.toggle('hidden')"
+                 class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg
+                text-[#111418] dark:text-slate-300 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]
+                transition-colors cursor-pointer">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined">settings</span>
+                    <p class="text-sm font-medium">@Localizer["MainItems"]</p>
+                </div>
+                <span class="material-symbols-outlined">expand_more</span>
+            </div>
+
+            <div id="item-submenu" class="pl-4 flex flex-col gap-1 hidden">
+                <div class="flex flex-col gap-1">
+                    <div tabindex="0"
+                         onclick="document.getElementById('items-submenu').classList.toggle('hidden')"
+                         class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg
+                text-[#111418] dark:text-slate-300 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]
+                transition-colors cursor-pointer"
+                         title="قائمة الأكواد">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined">inventory_2</span>
+                            <p class="text-sm font-medium">@Localizer["ItemCodes"]</p>
+                        </div>
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </div>
+
+                    <div id="items-submenu" class="pl-4 flex flex-col gap-1 hidden border-r border-gray-100 dark:border-slate-700 mr-2">
+                        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]"
+                           asp-action="MainCategoryClassification" asp-controller="MainItems">
+                            <p class="text-sm font-normal pl-4">@Localizer["MainCategoryClassification"]</p>
+                        </a>
+
+                        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]"
+                           asp-action="SubCategoryClassification" asp-controller="MainItems">
+                            <p class="text-sm font-normal pl-4">@Localizer["SubcategoryClassification"]</p>
+                        </a>
+                    </div>
+                </div>
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]" asp-action="SupplierCodes" asp-controller="MainItems">
+                    <p class="text-sm font-normal pl-4">@Localizer["SupplierCodes"]</p>
+                </a>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <div tabindex="0"
+                 onclick="document.getElementById('balance-submenu').classList.toggle('hidden')"
+                 class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg
+                text-[#111418] dark:text-slate-300 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]
+                transition-colors cursor-pointer"
+                 title="Toggle System Administration Menu">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined">settings</span>
+                    <p class="text-sm font-medium">@Localizer["ItemBalances"]</p>
+                </div>
+                <span class="material-symbols-outlined">expand_more</span>
+            </div>
+
+            <!-- Submenu -->
+            <div id="balance-submenu" class="pl-4 flex flex-col gap-1 hidden">
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]" asp-action="CurrentBalance" asp-controller="itemBalance">
+                    <p class="text-sm font-normal pl-4">@Localizer["CurrnetBalance"]</p>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]" asp-action="Inventory" asp-controller="itemBalance">
+                    <p class="text-sm font-normal pl-4">@Localizer["Inventory"]</p>
+                </a>
+                <hr />
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] transition-colors" asp-action="PostDailyTransactions" asp-controller="itemBalance">
+                    <p class="text-sm font-normal leading-normal pl-4">@Localizer["Reports"]</p>
+                </a>
+            </div>
+        </div>
+        <div class="flex flex-col gap-1">
+            <div tabindex="0"
+                 onclick="document.getElementById('movement-submenu').classList.toggle('hidden')"
+                 class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg
+                text-[#111418] dark:text-slate-300 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]
+                transition-colors cursor-pointer"
+                 title="Toggle System Administration Menu">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined">settings</span>
+                    <p class="text-sm font-medium">@Localizer["InventoryMovement"]</p>
+                </div>
+                <span class="material-symbols-outlined">expand_more</span>
+            </div>
+
+            <!-- Submenu -->
+            <div id="movement-submenu" class="pl-4 flex flex-col gap-1 hidden">
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]"
+                   asp-action="Recordgoodsreceivedintothewarehouse" asp-controller="InventoryMovement">
+                    <p class="text-sm font-normal pl-4">@Localizer["Recordgoodsreceivedintothewarehouse"]</p>
+                </a>
+
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]"
+                   asp-action="Recordgoodsissuedfromthewarehouse" asp-controller="InventoryMovement">
+                    <p class="text-sm font-normal pl-4">@Localizer["Recordgoodsissuedfromthewarehouse"]</p>
+                </a>
+
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] transition-colors"
+                   asp-action="Recordtransfersbetweenwarehouses" asp-controller="InventoryMovement">
+                    <p class="text-sm font-normal leading-normal pl-4">@Localizer["Recordtransfersbetweenwarehouses"]</p>
+                </a>
+
+                <hr class="my-1 border-slate-100 dark:border-slate-800" />
+
+                <div class="flex flex-col gap-1">
+                    <div tabindex="0"
+                         onclick="document.getElementById('movement-items-codes-submenu').classList.toggle('hidden')"
+                         class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-[#111418] dark:text-slate-300 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] transition-colors cursor-pointer">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-blue-600">inventory_2</span>
+                            <p class="text-sm font-medium">@Localizer["RecordReturns"]</p>
+                        </div>
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </div>
+
+                    <div id="movement-items-codes-submenu" class="pl-4 flex flex-col gap-1 hidden border-r border-gray-100 dark:border-slate-700 mr-2">
+                        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]"
+                           asp-action="IncomingItemsReturns" asp-controller="InventoryMovement">
+                            <p class="text-sm font-normal pl-4">@Localizer["IncomingItemsReturns"]</p>
+                        </a>
+
+                        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]"
+                           asp-action="IssuedItemsReturns" asp-controller="InventoryMovement">
+                            <p class="text-sm font-normal pl-4">@Localizer["IssuedItemsReturns"]</p>
+                        </a>
+                    </div>
+                </div>
+                <hr class="my-1 border-slate-100 dark:border-slate-800" />
+
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] transition-colors"
+                   asp-action="DeadStockEntry" asp-controller="InventoryMovement">
+                    <p class="text-sm font-normal leading-normal pl-4">@Localizer["DeadStockEntry"]</p>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] transition-colors"
+                   asp-action="SearchAndInquiry" asp-controller="InventoryMovement">
+                    <p class="text-sm font-normal leading-normal pl-4">@Localizer["SearchAndInquiry"]</p>
+                </a>
+            </div>
+        </div>
+
+        @* <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#111418] dark:text-slate-300 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] transition-colors" href="#">
+            <span class="material-symbols-outlined">summarize</span>
+            <p class="text-sm font-medium leading-normal">Reports</p>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#111418] dark:text-slate-300 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] transition-colors" href="#">
+            <span class="material-symbols-outlined">group</span>
+            <p class="text-sm font-medium leading-normal">Users</p>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#111418] dark:text-slate-300 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] transition-colors" href="#">
+            <span class="material-symbols-outlined">history</span>
+            <p class="text-sm font-medium leading-normal">Audit Logs</p>
+        </a>
+        <div class="my-2 border-t border-[#f0f2f4] dark:border-[#334155]"></div>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#111418] dark:text-slate-300 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] transition-colors" href="#">
+            <span class="material-symbols-outlined">settings</span>
+            <p class="text-sm font-medium leading-normal">Settings</p>
+        </a> *@
+    </div>
+    <div class="p-4 border-t border-[#f0f2f4] dark:border-[#334155]">
+        <div class="flex items-center gap-3">
+            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-9" data-alt="User avatar profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA3TvoRE1684zUCfnfaqtRhrauXKostdPXhbMYy9wsBz47Hrg7JtXW03nQWgZrIR1o2_Rgzieer_89NDoxj_YOgBl70PVpRksIW1sg6riaI9rG0E-ZxLPAC6Y9FSh-Pa0VQ2GbXrP_DMEGyc-TpkuPBvs5UCULk_17BZAm-4HNJH9zBRgt-qet5H69qZ86VYCyxvkHniIsKTBNJyYEC95Yajs8vZkLWVJWMCYBq6NQzbUFHaeKxtXNhhpHblt6NNWuPlT0rsMC4U01X");'></div>
+            <div class="flex flex-col">
+                <p class="text-sm font-medium text-[#111418] dark:text-white">Admin User</p>
+                <p class="text-xs text-[#617589] dark:text-slate-400">admin@egx.com.eg</p>
+            </div>
+        </div>
+    </div>
+</aside>

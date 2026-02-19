@@ -1,0 +1,254 @@
+﻿@model List<InventoryManagement.Models.InventoryViewModel>
+@{
+    ViewData["Title"] = "جرد المخزن";
+    var selectedViewType = (ViewBag.SelectedViewType ?? "specific").ToString().ToLower();
+    var searchTermValue = (ViewBag.SearchTerm ?? string.Empty).ToString();
+    var selectedWarehouse = ViewBag.WarehouseId;
+}
+
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8" dir="rtl">
+
+    <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">جرد المخزن</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">عرض ومراجعة أرصدة الأصناف في المخازن</p>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="window.print()" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-all">
+                <span class="material-icons-outlined text-lg ml-2">print</span>
+                طباعة التقرير
+            </button>
+            <a asp-action="ExportToExcel" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-[#1e293b] hover:bg-gray-50 transition-all">
+                <span class="material-icons-outlined text-lg ml-2">file_download</span>
+                تصدير Excel
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-[#1e293b] rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-6">
+        <form id="inventoryFilterForm" method="get" asp-action="Inventory" class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+            <div class="md:col-span-4 lg:col-span-3">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">اختر المخزن</label>
+                <select name="warehouseId" id="warehouseSelect" class="block w-full border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-slate-900 dark:text-white py-2.5 text-sm">
+                    <option value="">كل المخازن</option>
+                </select>
+            </div>
+
+            <div class="md:col-span-5 lg:col-span-4">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">نوع العرض</label>
+                <div class="flex gap-4 p-1 bg-gray-100 dark:bg-slate-900 rounded-lg">
+                    <label class="relative flex-1 cursor-pointer text-center">
+                        <input type="radio" name="viewType" value="specific" class="sr-only peer" @(selectedViewType == "specific" ? "checked" : "") />
+                        <div class="py-2 text-sm font-medium text-gray-500 rounded-md peer-checked:bg-white dark:peer-checked:bg-blue-600 peer-checked:text-blue-600 dark:peer-checked:text-white shadow-sm transition-all">
+                            جرد محدد
+                        </div>
+                    </label>
+                    <label class="relative flex-1 cursor-pointer text-center">
+                        <input type="radio" name="viewType" value="all" class="sr-only peer" @(selectedViewType == "all" ? "checked" : "") />
+                        <div class="py-2 text-sm font-medium text-gray-500 rounded-md peer-checked:bg-white dark:peer-checked:bg-blue-600 peer-checked:text-blue-600 dark:peer-checked:text-white shadow-sm transition-all">
+                            كل الأصناف
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="md:col-span-3 lg:col-span-5">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">بحث سريع</label>
+                <div class="relative">
+                    <span class="material-icons-outlined absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400">search</span>
+                    <input type="text" name="searchTerm" id="searchTerm" value="@searchTermValue" class="block w-full pr-10 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-slate-900 dark:text-white py-2.5 text-sm" placeholder="ابحث بكود الصنف أو الاسم...">
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="bg-white dark:bg-[#1e293b] rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="overflow-x-auto custom-scrollbar">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700" id="inventoryTable">
+                <thead class="bg-gray-50 dark:bg-slate-900/50">
+                    <tr>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">كود الصنف</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-1/2">اسم الصنف</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">الرصيد الحالي</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">آخر تحديث</th>
+                        <th class="px-6 py-4"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700" id="inventoryBody">
+                    @* initial server-rendered rows (fallback) *@
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors group">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:underline">
+                                    @item.ItemCode
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    @item.ItemName
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    @if (item.CurrentBalance <= 0)
+                                    {
+                                        <span class="inline-block px-3 py-1 rounded-full text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 font-bold">
+                                            @item.CurrentBalance
+                                            <span class="text-[10px] block font-normal">تحذير: رصيد منخفض</span>
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="font-semibold text-gray-900 dark:text-white">@item.CurrentBalance</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    @item.LastAuditDate.ToString("dd/MM/yyyy")
+                                </td>
+                                <td class="px-6 py-4 text-right text-sm">
+                                    <button class="text-gray-400 hover:text-blue-600" onclick="viewDetails('@item.ItemCode')">
+                                        <span class="material-icons-outlined">more_vert</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="p-10 text-center text-slate-400">لا توجد بيانات لعرضها</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-gray-50 dark:bg-slate-800/50 px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            <div id="paginationInfo" class="text-sm text-gray-700 dark:text-gray-300"></div>
+            <div id="paginationControls" class="inline-flex shadow-sm rounded-md"></div>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    <script>
+        function viewDetails(code) {
+            // simple redirect to details or open modal
+            if (typeof _AlertHelper !== 'undefined') {
+                _AlertHelper.showWarning('عرض تفاصيل للصنف: ' + code);
+            } else {
+                alert('عرض تفاصيل للصنف: ' + code);
+            }
+        }
+
+        $(function () {
+            var $form = $('#inventoryFilterForm');
+            var $search = $('#searchTerm');
+            var pageSize = 20;
+            var currentPage = 1;
+            var debounceTimer = null;
+
+            function getFilters() {
+                return {
+                    viewType: $form.find('input[name="viewType"]:checked').val() || 'specific',
+                    searchTerm: $search.val() || '',
+                    warehouseId: $('#warehouseSelect').val() || '',
+                    page: currentPage,
+                    pageSize: pageSize
+                };
+            }
+
+            function renderRows(items) {
+                var $body = $('#inventoryBody');
+                $body.empty();
+                if (!items || items.length === 0) {
+                    $body.append('<tr><td colspan="5" class="p-10 text-center text-slate-400">لا توجد بيانات لعرضها</td></tr>');
+                    return;
+                }
+
+                items.forEach(function (it) {
+                    var balHtml = it.currentBalance <= 0
+                        ? '<span class="inline-block px-3 py-1 rounded-full text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 font-bold">' + it.currentBalance + '<span class="text-[10px] block font-normal">تحذير: رصيد منخفض</span></span>'
+                        : '<span class="font-semibold text-gray-900 dark:text-white">' + it.currentBalance + '</span>';
+
+                    var row = '<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors group">' +
+                        '<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:underline">' + (it.itemCode || '') + '</td>' +
+                        '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">' + (it.itemName || '') + '</td>' +
+                        '<td class="px-6 py-4 whitespace-nowrap text-sm">' + balHtml + '</td>' +
+                        '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">' + (it.lastAuditDate || '') + '</td>' +
+                        '<td class="px-6 py-4 text-right text-sm"><button class="text-gray-400 hover:text-blue-600" onclick="viewDetails(\'' + (it.itemCode || '') + '\')"><span class="material-icons-outlined">more_vert</span></button></td>' +
+                        '</tr>';
+                    $body.append(row);
+                });
+            }
+
+            function renderPagination(totalCount) {
+                var totalPages = Math.ceil(totalCount / pageSize) || 1;
+                var $controls = $('#paginationControls');
+                $controls.empty();
+
+                var prevDisabled = currentPage === 1 ? 'opacity-50 pointer-events-none' : '';
+                var nextDisabled = currentPage === totalPages ? 'opacity-50 pointer-events-none' : '';
+
+                var prevBtn = '<button id="pagePrev" class="px-3 py-2 border bg-white rounded-l-md ' + prevDisabled + '">' +
+                    '<span class="material-icons-outlined text-sm">chevron_left</span></button>';
+                var nextBtn = '<button id="pageNext" class="px-3 py-2 border bg-white rounded-r-md ' + nextDisabled + '">' +
+                    '<span class="material-icons-outlined text-sm">chevron_right</span></button>';
+
+                var pageInfo = '<div class="px-4 py-2 border-y border-gray-300 dark:border-gray-600 bg-blue-600 text-white text-sm font-medium">' + currentPage + ' / ' + totalPages + '</div>';
+
+                $controls.append(prevBtn);
+                $controls.append(pageInfo);
+                $controls.append(nextBtn);
+
+                $('#paginationInfo').text('إظهار ' + ((currentPage - 1) * pageSize + 1) + ' إلى ' + Math.min(currentPage * pageSize, totalCount) + ' من ' + totalCount + ' سجل');
+
+                $('#pagePrev').on('click', function () {
+                    if (currentPage > 1) { currentPage--; loadInventory(); }
+                });
+                $('#pageNext').on('click', function () {
+                    if (currentPage < totalPages) { currentPage++; loadInventory(); }
+                });
+            }
+
+            function loadInventory() {
+                var f = getFilters();
+                $.ajax({
+                    url: '@Url.Action("GetInventoryData","ItemBalance")',
+                    data: f,
+                    type: 'GET',
+                    success: function (res) {
+                        if (res && res.success) {
+                            renderRows(res.items);
+                            renderPagination(res.totalCount);
+                        } else {
+                            renderRows([]);
+                            $('#paginationInfo').text('');
+                            $('#paginationControls').empty();
+                        }
+                    },
+                    error: function () {
+                        renderRows([]);
+                        $('#paginationInfo').text('حدث خطأ في التحميل');
+                        $('#paginationControls').empty();
+                    }
+                });
+            }
+
+            // wire events
+            $form.find('input[name="viewType"]').on('change', function () { currentPage = 1; loadInventory(); });
+
+            $search.on('keyup', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () { currentPage = 1; loadInventory(); }, 300);
+            });
+
+            // restore warehouse select if provided
+            var selectedWarehouse = '@(selectedWarehouse ?? "")';
+            if (selectedWarehouse) {
+                $('#warehouseSelect').val(selectedWarehouse);
+            }
+
+            // initial load
+            loadInventory();
+        });
+    </script>
+}

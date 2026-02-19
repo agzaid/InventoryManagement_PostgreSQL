@@ -1,0 +1,351 @@
+﻿@model IEnumerable<Application.Interfaces.Models.SupplierDto>
+@{
+    ViewData["Title"] = "إدارة الموردين";
+}
+
+<main class="flex-1 container mx-auto p-4 lg:p-8 space-y-8" dir="rtl">
+    @* الهيدر *@
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                <span class="material-icons-outlined text-primary">groups</span>
+                إدارة الموردين
+            </h2>
+        </div>
+        <button onclick="openSupplierModal()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md transition-all">
+            <span class="material-icons-outlined text-lg">add</span>
+            <span>إضافة مورد جديد</span>
+        </button>
+    </header>
+
+    @* أدوات البحث - أضفنا ID للمدخل *@
+    <div class="bg-white dark:bg-[#1E293B] p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col lg:flex-row gap-4">
+        <div class="flex-1 relative">
+            <label class="block text-xs font-medium text-slate-500 mb-1">بحث بالاسم / الكود</label>
+            <div class="relative">
+                <span class="material-icons-outlined absolute top-1/2 -translate-y-1/2 right-3 text-slate-400 text-lg">search</span>
+                <input id="supplierSearch" class="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg py-2 pr-10 pl-3 text-sm focus:ring-1 focus:ring-blue-500" placeholder="اكتب للبحث..." type="text" />
+            </div>
+        </div>
+    </div>
+
+    @* جدول البيانات - أضفنا ID للـ tbody *@
+    <div class="bg-white dark:bg-[#1E293B] rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-[600px]">
+        <div class="overflow-auto custom-scrollbar flex-1">
+            <table class="w-full text-right text-sm border-collapse">
+                <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shadow-sm">
+                    <tr>
+                        <th class="px-6 py-4 font-bold text-slate-600 dark:text-slate-300 w-24 text-center">الكود</th>
+                        <th class="px-6 py-4 font-bold text-slate-600 dark:text-slate-300 min-w-[200px]">اسم المورد</th>
+                        <th class="px-6 py-4 font-bold text-slate-600 dark:text-slate-300">التليفون</th>
+                        <th class="px-6 py-4 font-bold text-slate-600 dark:text-slate-300">العنوان / النشاط</th>
+                        <th class="px-6 py-4 font-bold text-slate-600 dark:text-slate-300 w-32 text-center">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="supplierTableBody" class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                    @* سيتم تحميل الصفوف هنا عبر AJAX *@
+                </tbody>
+            </table>
+        </div>
+
+        @* منطقة الترقيم - بتصميم مطابق للـ Styles الجديدة *@
+        <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <div class="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                عرض <span id="showingCount" class="text-blue-600 font-bold">0</span> من أصل <span id="totalCountDisplay" class="font-bold text-slate-700 dark:text-slate-200">0</span> مورد
+            </div>
+            <div class="flex gap-2" id="paginationButtons">
+                @* سيتم رسم الأزرار هنا *@
+            </div>
+        </div>
+    </div>
+</main>
+
+@* المودال *@
+<div id="supplierModal" class="fixed inset-0 z-[60] hidden overflow-y-auto">
+    <div class="fixed inset-0 bg-black/50 transition-opacity" onclick="closeSupplierModal()"></div>
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative bg-white dark:bg-[#1E293B] rounded-xl shadow-2xl w-full max-w-2xl p-6 text-right">
+            <h3 class="text-xl font-bold border-b border-slate-200 dark:border-slate-700 pb-3 mb-6 text-slate-800 dark:text-white">
+                إضافة / تعديل مورد
+            </h3>
+
+            <form id="supplierForm" class="space-y-4">
+                <input type="hidden" name="SuplierCode" id="SuplierCode" />
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">اسم المورد</label>
+                        <input type="text" name="SuplierDesc"
+                               class="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 transition-all"
+                               placeholder="مثال: شركة النيل للتوريدات" required />
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">النشاط التجاري</label>
+                        <input type="text" name="SuplierActivity"
+                               class="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 transition-all"
+                               placeholder="مثال: توريد مواد مكتبية" />
+                    </div>
+
+                    <div class="space-y-1 md:col-span-2">
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">العنوان بالتفصيل</label>
+                        <input type="text" name="SuplierAddress"
+                               class="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 transition-all"
+                               placeholder="المدينة، الحي، اسم الشارع..." />
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">رقم التليفون</label>
+                        <div class="relative">
+                            <span class="material-icons-outlined absolute right-3 top-2.5 text-slate-400 text-sm">phone</span>
+                            <input type="tel" name="SuplierTel"
+                                   class="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 pr-10 focus:ring-2 focus:ring-blue-500 transition-all"
+                                   placeholder="02XXXXXXXX" />
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">رقم الفاكس</label>
+                        <input type="text" name="SuplierFax"
+                               class="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 transition-all" />
+                    </div>
+
+                    <div class="space-y-1 md:col-span-2">
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">البريد الإلكتروني</label>
+                        <div class="relative">
+                            <span class="material-icons-outlined absolute right-3 top-2.5 text-slate-400 text-sm">email</span>
+                            <input type="email" name="SuplierEmail"
+                                   class="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 pr-10 focus:ring-2 focus:ring-blue-500 transition-all"
+                                   placeholder="example@domain.com" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" onclick="closeSupplierModal()"
+                            class="px-5 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                        إلغاء
+                    </button>
+                    <button type="submit"
+                            class="px-8 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md shadow-blue-200 dark:shadow-none transition-all flex items-center gap-2">
+                        <span class="material-icons-outlined text-sm">save</span>
+                        حفظ البيانات
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+             let currentPage = 1;
+
+             $(document).ready(function () {
+                 loadTable(1); // تحميل الجدول عند فتح الصفحة
+
+                 // بحث عند الكتابة (مع Delay)
+                 let searchTimer;
+                 $('#supplierSearch').on('keyup', function () {
+                     clearTimeout(searchTimer);
+                     searchTimer = setTimeout(() => loadTable(1), 500);
+                 });
+
+                 // معالجة حفظ الفورم
+                 $('#supplierForm').on('submit', function (e) {
+                     e.preventDefault();
+                     saveSupplier();
+                 });
+             });
+
+        function loadTable(page) {
+                 currentPage = page;
+                 const searchText = $('#supplierSearch').val();
+                 $('#supplierTableBody').css('opacity', '0.5');
+
+                 $.ajax({
+                     url: '@Url.Action("GetSupplierTable", "MainItems")',
+                     type: 'GET',
+                     data: {
+                         page: page,
+                         search: searchText,
+                         category: "" // لضمان مطابقة بارامترات الـ Controller
+                     },
+                     success: function (htmlResponse) {
+                              $('#supplierTableBody').html(htmlResponse).css('opacity', '1');
+                              const totalPages = $('#hdnTotalPages').val() || 1;
+                              const totalCount = $('#hdnTotalCount').val() || 0;
+                              $('#totalCountDisplay').text(totalCount);
+                              $('#showingCount').text($('#supplierTableBody tr.supplier-row').length);
+
+                              renderPaginationButtons(parseInt(totalPages), page);
+                     },
+                     error: function (xhr) {
+                         console.error("Error details:", xhr.responseText);
+                         $('#supplierTableBody').css('opacity', '1').html('<tr><td colspan="5" class="text-center p-4 text-red-500">حدث خطأ في تحميل البيانات</td></tr>');
+                     }
+                 });
+             }
+
+          function renderPaginationButtons(totalPages, current) {
+                 const container = $('#paginationButtons').empty();
+                 if (totalPages <= 1) return;
+
+                 // 1. زر السابق (Previous)
+                 if (current > 1) {
+                     appendPaginationBtn("chevron_right", current - 1, false); // اليمين لأننا RTL
+                 }
+
+                 // 2. تحديد النطاق (Logic لظهور النقاط ...)
+                 const delta = 1; // عدد الصفحات قبل وبعد الحالية
+                 const left = current - delta;
+                 const right = current + delta;
+                 const range = [];
+                 const rangeWithDots = [];
+                 let l;
+
+                 for (let i = 1; i <= totalPages; i++) {
+                     if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+                         range.push(i);
+                     }
+                 }
+
+                 for (let i of range) {
+                     if (l) {
+                         if (i - l === 2) {
+                             rangeWithDots.push(l + 1);
+                         } else if (i - l !== 1) {
+                             rangeWithDots.push('...');
+                         }
+                     }
+                     rangeWithDots.push(i);
+                     l = i;
+                 }
+
+                 // 3. رسم الأزرار بناءً على المصفوفة الناتجة
+                 rangeWithDots.forEach(i => {
+                     if (i === '...') {
+                         $(`<span class="px-2 text-slate-400 text-xs">...</span>`).appendTo(container);
+                     } else {
+                         appendPaginationBtn(i, i, i === current);
+                     }
+                 });
+
+                 // 4. زر التالي (Next)
+                 if (current < totalPages) {
+                     appendPaginationBtn("chevron_left", current + 1, false); // اليسار لأننا RTL
+                 }
+             }
+         function appendPaginationBtn(text, page, isActive) {
+                 const isIcon = isNaN(text) && text !== '...';
+                 const content = isIcon ? `<span class="material-icons-outlined text-base leading-none">${text}</span>` : text;
+
+                 const activeClass = isActive
+                     ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                     : "bg-white dark:bg-slate-900 text-slate-600 hover:bg-blue-50 hover:text-blue-600 border-slate-200 dark:border-slate-700 shadow-xs";
+
+                 $(`<button class="flex items-center justify-center h-8 px-3 rounded-lg border text-xs font-bold transition-all min-w-[32px] ${activeClass}">${content}</button>`)
+                     .on('click', function() {
+                         if (!isActive) {
+                             loadTable(page);
+                             // اختياري: العودة لأعلى الجدول عند تغيير الصفحة
+                             document.querySelector('.overflow-auto').scrollTo({ top: 0, behavior: 'smooth' });
+                         }
+                     }).appendTo('#paginationButtons');
+             }
+   function openSupplierModal() {
+            $('#supplierForm')[0].reset();
+            $('#SuplierCode').val(''); // تصفير الكود ضروري جداً للتفرقة بين الإضافة والتعديل
+            $('#supplierModal h3').text('إضافة مورد جديد');
+            $('#supplierModal').removeClass('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+             function closeSupplierModal() {
+                 $('#supplierModal').addClass('hidden');
+                 document.body.style.overflow = 'auto';
+             }
+
+      function saveSupplier() {
+            const code = $('#SuplierCode').val();
+            const formData = $('#supplierForm').serialize();
+
+            // تحديد الأكشن بناءً على وجود الكود
+            const url = code ? '@Url.Action("UpdateSupplier", "MainItems")' : '@Url.Action("CreateSupplier", "MainItems")';
+
+            // إظهار Loading بسيط على الزر
+            const submitBtn = $('#supplierForm button[type="submit"]');
+            const originalText = submitBtn.html();
+            submitBtn.prop('disabled', true).html('<span class="material-icons-outlined animate-spin text-sm">sync</span> جاري الحفظ...');
+
+            $.post(url, formData, function (res) {
+                if (res.success) {
+                    closeSupplierModal();
+                    loadTable(currentPage);
+                    _AlertHelper.showSuccess(res.message || "تم حفظ البيانات بنجاح");
+                } else {
+                    _AlertHelper.showError(res.message || "فشلت عملية الحفظ");
+                }
+            }).fail(function() {
+                _AlertHelper.showError("حدث خطأ في الاتصال بالخادم");
+            }).always(function() {
+                submitBtn.prop('disabled', false).html(originalText);
+            });
+        }
+
+             // دالة التعديل (يتم استدعاؤها من داخل صفوف الجدول)
+     window.editSupplier = function(btn) {
+            const row = $(btn).closest('tr');
+
+            // تأكد من أن الصف في الجدول يحتوي على هذه الـ data attributes
+            // مثل: <tr data-code="item.SuplierCode" data-desc="item.SuplierDesc" ...>
+
+            $('#SuplierCode').val(row.data('code')); // Hidden Input
+            $('input[name="SuplierDesc"]').val(row.data('desc'));
+            $('input[name="SuplierActivity"]').val(row.data('activity'));
+            $('input[name="SuplierAddress"]').val(row.data('address'));
+            $('input[name="SuplierTel"]').val(row.data('tel'));
+            $('input[name="SuplierFax"]').val(row.data('fax'));
+            $('input[name="SuplierEmail"]').val(row.data('email'));
+
+            // تغيير عنوان المودال ليعرف المستخدم أنه في وضع التعديل
+            $('#supplierModal h3').text('تعديل بيانات المورد: ' + row.data('desc'));
+
+            $('#supplierModal').removeClass('hidden');
+            document.body.style.overflow = 'hidden';
+        };
+
+    window.deleteSupplier = function(code, name) {
+            Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: `سيتم حذف المورد: ${name}. لا يمكن التراجع عن هذه الخطوة!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444', // أحمر
+                cancelButtonColor: '#64748b', // رمادي
+                confirmButtonText: 'نعم، احذف الآن',
+                cancelButtonText: 'إلغاء'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteSupplier", "MainItems")',
+                        type: 'POST',
+                        data: { id: code },
+                        success: function (res) {
+                            if (res.success) {
+                                _AlertHelper.showSuccess(res.message || "تم الحذف بنجاح");
+                                loadTable(currentPage); // إعادة تحميل الجدول
+                            } else {
+                                _AlertHelper.showError(res.message || "فشلت عملية الحذف");
+                            }
+                        },
+                        error: function () {
+                            _AlertHelper.showError("حدث خطأ أثناء محاولة الاتصال بالخادم");
+                        }
+                    });
+                }
+            });
+        };
+    </script>
+}

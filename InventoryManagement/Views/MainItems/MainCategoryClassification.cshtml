@@ -1,0 +1,368 @@
+﻿@model List<Application.Interfaces.Models.ItemCategoryDto>
+@{
+    ViewData["Title"] = "التصنيفات الرئيسية";
+}
+
+<div class="md:flex md:items-center md:justify-between mb-8">
+    <div class="flex-1 min-w-0">
+        <h2 class="text-2xl font-bold text-[#111418] dark:text-white">التصنيفات الرئيسية</h2>
+        <p class="mt-1 text-sm text-[#617589]">إدارة وتعديل التصنيفات الأساسية للمنتجات.</p>
+    </div>
+    <div class="mt-4 flex md:mt-0 gap-3">
+        @* <button onclick="window.print()" class="inline-flex items-center px-4 py-2 border border-[#f0f2f4] dark:border-[#334155] rounded-lg bg-white dark:bg-[#1e293b] text-sm font-medium">
+            <span class="material-symbols-outlined ml-2 text-lg">print</span> طباعة
+        </button> *@
+        <button onclick="toggleModal('categoryModal')" class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-primary hover:bg-opacity-90">
+            <span class="material-symbols-outlined ml-2 text-lg">add</span>
+            إضافة تصنيف جديد
+        </button>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 gap-8">
+    <div class="lg:col-span-2">
+        <div class="bg-white dark:bg-[#1e293b] shadow rounded-xl border border-[#f0f2f4] dark:border-[#334155] overflow-hidden flex flex-col h-full">
+
+            <div class="p-4 border-b border-[#f0f2f4] dark:border-[#334155] flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#f8f9fa] dark:bg-[#1e293b]">
+                <div class="relative w-full sm:w-64">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <span class="material-symbols-outlined text-gray-400 text-lg">search</span>
+                    </div>
+                    <input type="text" id="tableSearch" placeholder="بحث باسم التصنيف..."
+                           class="block w-full pr-10 border-none bg-white dark:bg-[#0f172a] rounded-lg h-9 text-xs focus:ring-2 focus:ring-primary shadow-sm" />
+                </div>
+                
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full table-fixed divide-y divide-[#f0f2f4] dark:divide-[#334155]">
+                    <thead class="bg-gray-50 dark:bg-[#0f172a]">
+                        <tr>
+                            <th class="px-6 py-3 text-right text-xs font-black text-[#617589] uppercase tracking-wider w-24">الكود</th>
+
+                            <th class="px-6 py-3 text-right text-xs font-black text-[#617589] uppercase tracking-wider">اسم التصنيف الرئيسي</th>
+
+                            <th class="px-6 py-3 text-center text-xs font-black text-[#617589] uppercase tracking-wider w-32">الحالة</th>
+
+                            <th class="px-6 py-3 w-28"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="categoryTableBody" class="divide-y divide-[#f0f2f4] dark:divide-[#334155] bg-white dark:bg-[#1e293b]">
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr class="hover:bg-gray-50 dark:hover:bg-[#334155]/20 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-primary w-24">
+                                         @item.CatgryCode
+                                    </td>
+
+                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                        <span class="inline-block px-3 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-base font-bold">
+                                            @item.CatgryDesc
+                                        </span>
+                                    </td>
+
+                                    <td class="px-6 py-4 whitespace-nowrap text-center w-32">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                            نشط
+                                        </span>
+                                    </td>
+
+                                    <td class="px-6 py-4 whitespace-nowrap text-left w-28">
+                                        <div class="flex justify-end gap-1">
+                                            <button onclick="openEditModal('@item.CatgryCode', '@item.CatgryDesc')"
+                                                    class="p-1 text-primary hover:bg-blue-50 rounded-md transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">edit</span>
+                                            </button>
+
+                                            <button onclick="deleteCategory('@item.CatgryCode')"
+                                                    class="p-1 text-red-500 hover:bg-red-50 rounded-md transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="px-6 py-12 text-center text-[#617589]">لا توجد تصنيفات مضافة حالياً.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-gray-50 dark:bg-[#0f172a] px-4 py-3 border-t border-[#f0f2f4] dark:border-[#334155] mt-auto">
+                <div class="flex items-center justify-between">
+                    <p class="text-xs text-[#617589]">عرض @(Model?.Count ?? 0) نتائج</p>
+                    <div class="flex gap-1">
+                        <button class="p-1 rounded border bg-white dark:bg-[#1e293b] dark:border-[#334155] text-gray-400">
+                            <span class="material-symbols-outlined text-sm">chevron_right</span>
+                        </button>
+                        <button class="p-1 rounded border bg-white dark:bg-[#1e293b] dark:border-[#334155] text-gray-400">
+                            <span class="material-symbols-outlined text-sm">chevron_left</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="categoryModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+    <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-xl bg-white dark:bg-[#1e293b] text-right shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center justify-between border-b border-[#f0f2f4] dark:border-[#334155] pb-3 mb-6">
+                    <h3 class="text-lg font-bold text-[#111418] dark:text-white">بيانات التصنيف الجديد</h3>
+                    <button onclick="toggleModal('categoryModal')" class="text-gray-400 hover:text-gray-500">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <form id="createCategoryForm" asp-action="Create" method="POST" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-[#617589] mb-1">اسم التصنيف</label>
+                        <div class="relative">
+                            <input name="CatgryDesc" type="text" placeholder="مثال: أدوات مكتبية" required
+                                   class="block w-full pr-10 border-none bg-[#f0f2f4] dark:bg-[#0f172a] rounded-lg h-11 text-sm focus:ring-2 focus:ring-primary" />
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <span class="material-symbols-outlined text-gray-400">label</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg flex items-center gap-2 mt-4 text-xs text-blue-700 dark:text-blue-300">
+                        <span class="material-symbols-outlined text-sm">info</span>
+                        سيتم إضافة هذا التصنيف للقائمة الرئيسية فور الحفظ.
+                    </div>
+
+                    <div class="mt-6 flex flex-row-reverse gap-3">
+                        <button type="submit" class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-green-600 hover:bg-green-700">
+                            <span class="material-symbols-outlined ml-1 text-lg">save</span> حفظ البيانات
+                        </button>
+                        <button type="button" onclick="toggleModal('categoryModal')" class="flex-1 px-4 py-2 border border-[#f0f2f4] text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-[#334155]">
+                            إلغاء
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="editCategoryModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+    <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-xl bg-white dark:bg-[#1e293b] text-right shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center justify-between border-b border-[#f0f2f4] dark:border-[#334155] pb-3 mb-6">
+                    <h3 class="text-lg font-bold text-[#111418] dark:text-white">تعديل بيانات التصنيف</h3>
+                    <button onclick="toggleModal('editCategoryModal')" class="text-gray-400 hover:text-gray-500">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <form asp-action="Edit" id="editCategoryForm" method="POST" class="space-y-4">
+                    @* Hidden ID field *@
+                    <input type="hidden" id="edit_CatgryCode" name="CatgryCode" />
+
+                    <div>
+                        <label class="block text-sm font-bold text-[#617589] mb-1">اسم التصنيف</label>
+                        <div class="relative">
+                            <input id="edit_CatgryDesc" name="CatgryDesc" type="text" required
+                                   class="block w-full pr-10 border-none bg-[#f0f2f4] dark:bg-[#0f172a] rounded-lg h-11 text-sm focus:ring-2 focus:ring-primary" />
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <span class="material-symbols-outlined text-gray-400">label</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex flex-row-reverse gap-3">
+                        <button type="submit" class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-primary hover:bg-opacity-90">
+                            <span class="material-symbols-outlined ml-1 text-lg">save</span> حفظ التعديلات
+                        </button>
+                        <button type="button" onclick="toggleModal('editCategoryModal')" class="flex-1 px-4 py-2 border border-[#f0f2f4] text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-[#334155]">
+                            إلغاء
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // 1. Generic Modal Toggle using jQuery
+            window.toggleModal = function(modalId) {
+                const $modal = $('#' + modalId);
+                if ($modal.length) {
+                    $modal.toggleClass('hidden');
+
+                    // Toggle body scroll
+                    if (!$modal.hasClass('hidden')) {
+                        $('body').css('overflow', 'hidden');
+                    } else {
+                        $('body').css('overflow', 'auto');
+                    }
+                }
+            };
+
+            // 2. Open Edit Modal and Fill Data
+            window.openEditModal = function(code, desc) {
+                // Using .val() to set input values
+                $('#edit_CatgryCode').val(code);
+                $('#edit_CatgryDesc').val(desc);
+                toggleModal('editCategoryModal');
+            };
+
+            // 3. Delete Logic using AJAX
+            window.deleteCategory = function(catCode) {
+                _AlertHelper.showConfirm("هل أنت متأكد؟", "سيتم حذف هذا التصنيف نهائياً", "نعم، احذف")
+                .then((result) => {
+                    if (result.isConfirmed) {
+                        _AlertHelper.showToast("جاري الحذف...", "info");
+
+                        $.ajax({
+                            url: '@Url.Action("Delete", "MainItems")',
+                            type: 'POST',
+                            // Sending data as a standard form-encoded object
+                            data: { id: catCode },
+                            success: function (response) {
+                                if (response.success) {
+                                    _AlertHelper.showSuccess(response.message).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    _AlertHelper.showError(response.message, 'فشل الحذف');
+                                }
+                            },
+                            error: function (xhr) {
+                                let errorMsg = "حدث خطأ أثناء الاتصال بالسيرفر";
+                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                    errorMsg = xhr.responseJSON.message;
+                                }
+                                _AlertHelper.showError(errorMsg, 'خطأ');
+                            }
+                        });
+                    }
+                });
+            };
+
+            // 4. Close on Escape Key using jQuery event delegation
+            $(document).on('keydown', function(event) {
+                if (event.key === "Escape") {
+                    $('#categoryModal, #editCategoryModal').each(function() {
+                        if (!$(this).hasClass('hidden')) {
+                            toggleModal($(this).attr('id'));
+                        }
+                    });
+                }
+            });
+
+      $("#tableSearch").on("keyup", function () {
+            // 1. Get the value from the search input and convert to lowercase
+            var value = $(this).val().toLowerCase();
+
+            // 2. Filter the rows in the table body
+      $("#categoryTableBody tr").filter(function () {
+                // Check if the text inside the row contains the search value
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+            });
+
+            // 3. Optional: Show "No results" row if everything is hidden
+            var visibleRows = $("#categoryTableBody tr:visible").length;
+            if (visibleRows === 0) {
+                if ($("#noResultsRow").length === 0) {
+                    $("#categoryTableBody").append('<tr id="noResultsRow"><td colspan="4" class="px-6 py-12 text-center text-[#617589]">لا توجد نتائج مطابقة للبحث.</td></tr>');
+                }
+            } else {
+                $("#noResultsRow").remove();
+            }
+            });
+        });
+
+                // Handle Create Form Submission
+      $('#createCategoryForm').on('submit', function (e) {
+            e.preventDefault();
+
+            // Make sure the key 'CatgryDesc' matches the controller parameter name
+            const formData = {
+                  CatgryDesc: $(this).find('input[name="CatgryDesc"]').val()
+            };
+
+            _AlertHelper.showToast("جاري الحفظ...", "info");
+
+            $.ajax({
+                url: '@Url.Action("Create", "MainItems")',
+                type: 'POST',
+                data: formData, // Sends { CatgryDesc: "Value" }
+                success: function (response) {
+                    if (response.success) {
+                        // This runs if the try block succeeds
+                        _AlertHelper.showSuccess(response.message).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        // This runs if a BadRequestException was caught
+                        // It shows the specific error (e.g., "Item Category name already in use")
+                        _AlertHelper.showError(response.message, "تنبيه");
+                    }
+                },
+                error: function (xhr) {
+                    // This runs only if the server is down or returns a 500 error
+                    _AlertHelper.showError("تعذر الاتصال بالسيرفر، يرجى المحاولة لاحقاً");
+                }
+            });
+        });
+
+                // Handle Edit Form Submission via AJAX
+        $('#editCategoryForm').on('submit', function (e) {
+            e.preventDefault();
+
+            // 1. Collect data
+            const formData = {
+                CatgryCode: $('#edit_CatgryCode').val(),
+                CatgryDesc: $('#edit_CatgryDesc').val()
+            };
+
+            // 2. Show loading state
+            _AlertHelper.showToast("جاري حفظ التعديلات...", "info");
+
+            // 3. Send AJAX request
+            $.ajax({
+                url: '@Url.Action("Edit", "MainItems")',
+                type: 'POST',
+                data: formData,
+                success: function (response) {
+                    if (response.success) {
+                        // Close modal and show success message
+                        toggleModal('editCategoryModal');
+                        _AlertHelper.showSuccess(response.message).then(() => {
+                            location.reload(); // Refresh to show updated text
+                        });
+                    } else {
+                        _AlertHelper.showError(response.message, 'فشل التعديل');
+                    }
+                },
+                error: function (xhr) {
+                    let errorMsg = "حدث خطأ أثناء الاتصال بالسيرفر";
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    _AlertHelper.showError(errorMsg, 'خطأ');
+                }
+            });
+        });
+
+
+
+
+    </script>
+}

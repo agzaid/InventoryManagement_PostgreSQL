@@ -1,0 +1,25 @@
+﻿@model Domain.Entities.Department
+
+@{
+    ViewData["Title"] = "Delete Department";
+}
+
+<h2>Delete Department</h2>
+
+<h4 class="text-danger">Are you sure you want to delete this?</h4>
+
+<dl class="row">
+    <dt class="col-sm-3">Department Code</dt>
+    <dd class="col-sm-9">@Model.DepCode</dd>
+
+    <dt class="col-sm-3">Description</dt>
+    <dd class="col-sm-9">@Model.DepDesc</dd>
+</dl>
+
+<form asp-action="DeleteConfirmed" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="DepCode" value="@Model.DepCode" />
+
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

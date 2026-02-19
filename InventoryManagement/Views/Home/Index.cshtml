@@ -1,0 +1,482 @@
+﻿@* File: Views/Home/Index.cshtml *@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_Layout"; // Explicitly uses the new layout
+}
+
+@* 
+<h1>@Localizer["HomeTitle"]</h1> *@
+
+<div class="mx-auto max-w-7xl flex flex-col gap-6">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div class="flex flex-col gap-1">
+
+            <h1 class="text-[#111418] dark:text-white text-3xl font-black leading-tight tracking-[-0.033em]">Dashboard</h1>
+            <p class="text-[#617589] dark:text-slate-400 text-sm font-normal">Overview of asset performance, stock levels, and daily operations.</p>
+        </div>
+       @*  <div class="flex items-center gap-3">
+            <button class="flex items-center gap-2 rounded-lg bg-white dark:bg-[#1e293b] border border-[#dbe0e6] dark:border-[#334155] px-4 py-2 text-sm font-bold text-[#111418] dark:text-white hover:bg-gray-50 dark:hover:bg-[#334155] transition-colors shadow-sm">
+                <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                <span>Add Item</span>
+            </button>
+            <button class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-blue-600 transition-colors shadow-sm">
+                <span class="material-symbols-outlined text-[18px]">assignment_returned</span>
+                <span>Checkout Asset</span>
+            </button>
+        </div> *@
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="flex flex-col gap-3 rounded-xl bg-white dark:bg-[#1e293b] p-5 shadow-sm border border-[#e5e7eb] dark:border-[#334155]">
+            <div class="flex items-center justify-between">
+                <p class="text-[#617589] dark:text-slate-400 text-sm font-medium">Total Assets</p>
+                <span class="material-symbols-outlined text-primary bg-primary/10 p-1.5 rounded-lg text-[20px]">inventory</span>
+            </div>
+            <div>
+                <p id="totalAssetsCount" class="text-[#111418] dark:text-white text-2xl font-bold">--</p>
+                <div class="flex items-center gap-1 mt-1">
+                    <span class="material-symbols-outlined text-[#078838] text-[16px]">trending_up</span>
+                    <p class="text-[#078838] text-xs font-medium">Total items in inventory</p>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-col gap-3 rounded-xl bg-white dark:bg-[#1e293b] p-5 shadow-sm border border-[#e5e7eb] dark:border-[#334155]">
+            <div class="flex items-center justify-between">
+                <p class="text-[#617589] dark:text-slate-400 text-sm font-medium">Low Stock Items</p>
+                <span class="material-symbols-outlined text-orange-500 bg-orange-100 dark:bg-orange-900/30 p-1.5 rounded-lg text-[20px]">warning</span>
+            </div>
+            <div>
+                <p id="lowStockCount" class="text-[#111418] dark:text-white text-2xl font-bold">--</p>
+                <div class="flex items-center gap-1 mt-1">
+                    <span class="material-symbols-outlined text-orange-600 text-[16px]">priority_high</span>
+                    <p class="text-orange-600 text-xs font-medium">Action required</p>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-col gap-3 rounded-xl bg-white dark:bg-[#1e293b] p-5 shadow-sm border border-[#e5e7eb] dark:border-[#334155]">
+            <div class="flex items-center justify-between">
+                <p class="text-[#617589] dark:text-slate-400 text-sm font-medium">Total Sub Category</p>
+                <span class="material-symbols-outlined text-purple-500 bg-purple-100 dark:bg-purple-900/30 p-1.5 rounded-lg text-[20px]">person_check</span>
+            </div>
+            <div>
+                <p id="totalSubCategoryCount" class="text-[#111418] dark:text-white text-2xl font-bold">--</p>
+                <div class="flex items-center gap-1 mt-1">
+                    <span class="material-symbols-outlined text-[#617589] text-[16px]">category</span>
+                    <p class="text-[#617589] text-xs font-medium">Item categories</p>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-col gap-3 rounded-xl bg-white dark:bg-[#1e293b] p-5 shadow-sm border border-[#e5e7eb] dark:border-[#334155]">
+            <div class="flex items-center justify-between">
+                <p class="text-[#617589] dark:text-slate-400 text-sm font-medium">Total Supplier</p>
+                <span class="material-symbols-outlined text-blue-500 bg-blue-100 dark:bg-blue-900/30 p-1.5 rounded-lg text-[20px]">local_shipping</span>
+            </div>
+            <div>
+                <p id="totalSupplierCount" class="text-[#111418] dark:text-white text-2xl font-bold">--</p>
+                <div class="flex items-center gap-1 mt-1">
+                    <span class="material-symbols-outlined text-[#078838] text-[16px]">store</span>
+                    <p class="text-[#078838] text-xs font-medium">Active suppliers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="rounded-xl bg-white dark:bg-[#1e293b] shadow-sm border border-[#e5e7eb] dark:border-[#334155] overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-[#f0f2f4] dark:border-[#334155]">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-orange-500 text-[20px]">warning</span>
+                <h3 class="text-[#111418] dark:text-white text-base font-bold">Low Stock Items</h3>
+            </div>
+            <button id="viewAllLowStockBtn" onclick="openLowStockModal()" class="text-primary text-sm font-bold hover:underline cursor-pointer">View All</button>
+        </div>
+        <div id="lowStockItemsContainer" class="p-6">
+            <div id="lowStockLoading" class="flex items-center justify-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+            <div id="lowStockEmpty" class="hidden text-center py-8">
+                <span class="material-symbols-outlined text-green-500 text-[48px]">check_circle</span>
+                <p class="text-[#617589] dark:text-slate-400 mt-2">All items are well stocked!</p>
+            </div>
+            <div id="lowStockItems" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            </div>
+        </div>
+    </div>
+
+
+    <div class="rounded-xl bg-white dark:bg-[#1e293b] shadow-sm border border-[#e5e7eb] dark:border-[#334155] overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-[#f0f2f4] dark:border-[#334155]">
+            <h3 class="text-[#111418] dark:text-white text-base font-bold">Recent Activity</h3>
+            <button class="text-primary text-sm font-bold hover:underline">View All</button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-[#111418] dark:text-slate-200">
+                <thead class="bg-[#f8f9fa] dark:bg-[#0f172a] text-[#617589] dark:text-slate-400 font-medium border-b border-[#e5e7eb] dark:border-[#334155]">
+                    <tr>
+                        <th class="px-6 py-3">Tr #</th>
+                        <th class="px-6 py-3">Item</th>
+                        <th class="px-6 py-3">Party</th>
+                        <th class="px-6 py-3">Date</th>
+                        <th class="px-6 py-3">Type</th>
+                        <th class="px-6 py-3 text-right">Qty</th>
+                    </tr>
+                </thead>
+                <tbody id="recentActivityBody" class="divide-y divide-[#f0f2f4] dark:divide-[#334155]">
+                    <tr id="recentActivityLoading">
+                        <td colspan="6" class="px-6 py-8">
+                            <div class="flex items-center justify-center">
+                                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="recentActivityEmpty" class="hidden">
+                        <td colspan="6" class="px-6 py-10 text-center text-[#617589] dark:text-slate-400">No activity today.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 rounded-xl bg-white dark:bg-[#1e293b] p-6 shadow-sm border border-[#e5e7eb] dark:border-[#334155]">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h3 class="text-[#111418] dark:text-white text-base font-bold">Inventory Valuation Trends</h3>
+                    <p class="text-[#617589] dark:text-slate-400 text-sm">Last 6 Months</p>
+                </div>
+                <h3 class="text-primary text-2xl font-bold tracking-tight">EGP 4.2M</h3>
+            </div>
+            <div class="w-full h-[240px] flex flex-col justify-end">
+                <svg class="w-full h-full overflow-visible" fill="none" preserveaspectratio="none" viewbox="0 0 472 150">
+                    <defs>
+                        <lineargradient gradientunits="userSpaceOnUse" id="paint0_linear" x1="236" x2="236" y1="0" y2="150">
+                            <stop stop-color="#137fec" stop-opacity="0.2"></stop>
+                            <stop offset="1" stop-color="#137fec" stop-opacity="0"></stop>
+                        </lineargradient>
+                    </defs>
+                    <path d="M0 109C18 109 18 21 36 21C54 21 54 41 72 41C90 41 90 93 108 93C127 93 127 33 145 33C163 33 163 101 181 101C199 101 199 61 217 61C236 61 236 45 254 45C272 45 272 121 290 121C308 121 308 149 326 149C344 149 344 1 363 1C381 1 381 81 399 81C417 81 417 129 435 129C453 129 453 25 472 25V150H0V109Z" fill="url(#paint0_linear)"></path>
+                    <path d="M0 109C18 109 18 21 36 21C54 21 54 41 72 41C90 41 90 93 108 93C127 93 127 33 145 33C163 33 163 101 181 101C199 101 199 61 217 61C236 61 236 45 254 45C272 45 272 121 290 121C308 121 308 149 326 149C344 149 344 1 363 1C381 1 381 81 399 81C417 81 417 129 435 129C453 129 453 25 472 25" stroke="#137fec" stroke-linecap="round" stroke-width="3"></path>
+                </svg>
+                <div class="flex justify-between mt-4 px-2">
+                    <span class="text-xs font-bold text-[#617589] dark:text-slate-500">May</span>
+                    <span class="text-xs font-bold text-[#617589] dark:text-slate-500">Jun</span>
+                    <span class="text-xs font-bold text-[#617589] dark:text-slate-500">Jul</span>
+                    <span class="text-xs font-bold text-[#617589] dark:text-slate-500">Aug</span>
+                    <span class="text-xs font-bold text-[#617589] dark:text-slate-500">Sep</span>
+                    <span class="text-xs font-bold text-[#617589] dark:text-slate-500">Oct</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="rounded-xl bg-white dark:bg-[#1e293b] p-6 shadow-sm border border-[#e5e7eb] dark:border-[#334155]">
+            <div class="mb-6">
+                <h3 class="text-[#111418] dark:text-white text-base font-bold">Asset Categories</h3>
+                <p class="text-[#617589] dark:text-slate-400 text-sm">Distribution by type</p>
+            </div>
+            <div id="categoryDistributionContainer" class="flex flex-col gap-4">
+                <div class="flex items-center justify-center py-8">
+                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div id="lowStockModal" class="fixed inset-0 z-50 hidden">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" onclick="closeLowStockModal()"></div>
+    <div class="fixed inset-4 md:inset-10 lg:inset-20 bg-white dark:bg-[#1e293b] rounded-xl shadow-2xl flex flex-col overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-[#e5e7eb] dark:border-[#334155]">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-orange-500 text-[24px]">warning</span>
+                <h2 class="text-[#111418] dark:text-white text-xl font-bold">All Low Stock Items</h2>
+                <span id="modalItemCount" class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-sm font-semibold px-2 py-0.5 rounded-full"></span>
+            </div>
+            <button onclick="closeLowStockModal()" class="text-[#617589] hover:text-[#111418] dark:hover:text-white transition-colors p-1">
+                <span class="material-symbols-outlined text-[24px]">close</span>
+            </button>
+        </div>
+        <div class="flex-1 overflow-auto p-6">
+            <div id="modalLoading" class="flex items-center justify-center py-16">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+            </div>
+            <div id="modalEmpty" class="hidden text-center py-16">
+                <span class="material-symbols-outlined text-green-500 text-[64px]">check_circle</span>
+                <p class="text-[#617589] dark:text-slate-400 mt-4 text-lg">All items are well stocked!</p>
+            </div>
+            <div id="modalTableContainer" class="hidden">
+                <table class="w-full text-left text-sm text-[#111418] dark:text-slate-200">
+                    <thead class="bg-[#f8f9fa] dark:bg-[#0f172a] text-[#617589] dark:text-slate-400 font-medium sticky top-0">
+                        <tr>
+                            <th class="px-4 py-3 rounded-tl-lg">Item Code</th>
+                            <th class="px-4 py-3">Item Name</th>
+                            <th class="px-4 py-3">Category</th>
+                            <th class="px-4 py-3 text-center">Open Balance</th>
+                            <th class="px-4 py-3 text-center">Current Balance</th>
+                            <th class="px-4 py-3 text-center">Reorder Qty</th>
+                            <th class="px-4 py-3 rounded-tr-lg">Last Movement</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalTableBody" class="divide-y divide-[#f0f2f4] dark:divide-[#334155]">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        loadDashboardStats();
+        loadCategoryDistribution();
+        loadLowStockCount();
+        loadLowStockItems();
+        loadRecentActivityToday();
+    });
+
+    async function loadCategoryDistribution() {
+        const container = document.getElementById('categoryDistributionContainer');
+        const colors = ['bg-primary', 'bg-blue-400', 'bg-cyan-400', 'bg-indigo-300', 'bg-purple-400', 'bg-pink-400', 'bg-amber-400', 'bg-emerald-400'];
+        
+        try {
+            const response = await fetch('/Home/GetCategoryDistribution');
+            const result = await response.json();
+            
+            if (result.success && result.data && result.data.length > 0) {
+                const topCategories = result.data.slice(0, 6);
+                container.innerHTML = topCategories.map((cat, idx) => `
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="font-medium text-[#111418] dark:text-slate-200">${cat.categoryName}</span>
+                            <span class="text-[#617589]">${cat.percentage}%</span>
+                        </div>
+                        <div class="h-2 w-full rounded-full bg-[#f0f2f4] dark:bg-[#334155]">
+                            <div class="h-full rounded-full ${colors[idx % colors.length]}" style="width: ${cat.percentage}%;"></div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<p class="text-[#617589] dark:text-slate-400 text-sm text-center py-4">No categories found</p>';
+            }
+        } catch (error) {
+            console.error('Error loading category distribution:', error);
+            container.innerHTML = '<p class="text-[#617589] dark:text-slate-400 text-sm text-center py-4">Failed to load categories</p>';
+        }
+    }
+
+    async function loadDashboardStats() {
+        try {
+            const response = await fetch('/Home/GetDashboardStats');
+            const result = await response.json();
+            if (result.success && result.data) {
+                document.getElementById('totalAssetsCount').textContent = result.data.totalAssets.toLocaleString();
+                document.getElementById('totalSubCategoryCount').textContent = result.data.totalSubCategory.toLocaleString();
+                document.getElementById('totalSupplierCount').textContent = result.data.totalSupplier.toLocaleString();
+            }
+        } catch (error) {
+            console.error('Error loading dashboard stats:', error);
+        }
+    }
+
+    async function loadLowStockCount() {
+        try {
+            const response = await fetch('/Home/GetLowStockCount?threshold=20');
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('lowStockCount').textContent = result.count;
+            }
+        } catch (error) {
+            console.error('Error loading low stock count:', error);
+            document.getElementById('lowStockCount').textContent = '0';
+        }
+    }
+
+    async function loadLowStockItems() {
+        const loadingEl = document.getElementById('lowStockLoading');
+        const emptyEl = document.getElementById('lowStockEmpty');
+        const itemsEl = document.getElementById('lowStockItems');
+
+        try {
+            const response = await fetch('/Home/GetLowStockItems?threshold=20&limit=5');
+            const result = await response.json();
+
+            loadingEl.classList.add('hidden');
+
+            if (result.success && result.data && result.data.length > 0) {
+                itemsEl.classList.remove('hidden');
+                itemsEl.innerHTML = result.data.map(item => `
+                    <div class="flex flex-col gap-3 rounded-lg bg-[#f8f9fa] dark:bg-[#0f172a] p-4 border border-[#e5e7eb] dark:border-[#334155]">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[#111418] dark:text-white text-sm font-semibold truncate" title="${item.itemDesc}">${item.itemDesc}</p>
+                                <p class="text-[#617589] dark:text-slate-400 text-xs mt-0.5">${item.categoryName}</p>
+                            </div>
+                            <span class="material-symbols-outlined text-orange-500 text-[18px] flex-shrink-0 ml-2">warning</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-[#617589] dark:text-slate-400">Current Stock</p>
+                                <p class="text-lg font-bold ${item.currentBalance <= 5 ? 'text-red-600' : 'text-orange-500'}">${item.currentBalance}</p>
+                            </div>
+                            ${item.reorderQuantity ? `
+                            <div class="text-right">
+                                <p class="text-xs text-[#617589] dark:text-slate-400">Reorder Qty</p>
+                                <p class="text-sm font-medium text-[#111418] dark:text-white">${item.reorderQuantity}</p>
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="w-full bg-[#e5e7eb] dark:bg-[#334155] rounded-full h-1.5">
+                            <div class="h-1.5 rounded-full ${item.currentBalance <= 5 ? 'bg-red-500' : 'bg-orange-500'}" style="width: ${Math.min((item.currentBalance / 20) * 100, 100)}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                emptyEl.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error('Error loading low stock items:', error);
+            loadingEl.classList.add('hidden');
+            emptyEl.classList.remove('hidden');
+        }
+    }
+
+    function openLowStockModal() {
+        const modal = document.getElementById('lowStockModal');
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        loadAllLowStockItems();
+    }
+
+    function closeLowStockModal() {
+        const modal = document.getElementById('lowStockModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    async function loadAllLowStockItems() {
+        const loadingEl = document.getElementById('modalLoading');
+        const emptyEl = document.getElementById('modalEmpty');
+        const tableContainer = document.getElementById('modalTableContainer');
+        const tableBody = document.getElementById('modalTableBody');
+        const itemCountEl = document.getElementById('modalItemCount');
+
+        loadingEl.classList.remove('hidden');
+        emptyEl.classList.add('hidden');
+        tableContainer.classList.add('hidden');
+
+        try {
+            const response = await fetch('/Home/GetAllLowStockItems?threshold=20');
+            const result = await response.json();
+
+            loadingEl.classList.add('hidden');
+
+            if (result.success && result.data && result.data.length > 0) {
+                itemCountEl.textContent = result.data.length + ' items';
+                tableContainer.classList.remove('hidden');
+                tableBody.innerHTML = result.data.map(item => {
+                    const lastMovement = item.lastMovementDate 
+                        ? new Date(item.lastMovementDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                        : 'N/A';
+                    const balanceClass = item.currentBalance <= 5 ? 'text-red-600 bg-red-100 dark:bg-red-900/30' : 'text-orange-600 bg-orange-100 dark:bg-orange-900/30';
+                    
+                    return `
+                        <tr class="hover:bg-gray-50 dark:hover:bg-[#0f172a]/50 transition-colors">
+                            <td class="px-4 py-3 font-medium">${item.itemCode}</td>
+                            <td class="px-4 py-3">
+                                <div class="max-w-[200px]">
+                                    <p class="truncate font-medium" title="${item.itemDesc}">${item.itemDesc}</p>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-[#617589] dark:text-slate-400">${item.categoryName}</td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="font-medium">${item.openBalance}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="inline-flex items-center justify-center min-w-[40px] px-2 py-1 rounded-full text-sm font-bold ${balanceClass}">
+                                    ${item.currentBalance}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-center text-[#617589] dark:text-slate-400">
+                                ${item.reorderQuantity ?? '-'}
+                            </td>
+                            <td class="px-4 py-3 text-[#617589] dark:text-slate-400">${lastMovement}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                itemCountEl.textContent = '0 items';
+                emptyEl.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error('Error loading all low stock items:', error);
+            loadingEl.classList.add('hidden');
+            emptyEl.classList.remove('hidden');
+            itemCountEl.textContent = '0 items';
+        }
+    }
+
+    async function loadRecentActivityToday() {
+        const body = document.getElementById('recentActivityBody');
+        const loadingRow = document.getElementById('recentActivityLoading');
+        const emptyRow = document.getElementById('recentActivityEmpty');
+
+        try {
+            const response = await fetch('/Home/GetRecentActivityToday?limit=10');
+            const result = await response.json();
+
+            loadingRow.classList.add('hidden');
+
+            if (result.success && result.data && result.data.length > 0) {
+                emptyRow.classList.add('hidden');
+
+                // Remove any previously rendered rows (keep loading/empty placeholders)
+                Array.from(body.querySelectorAll('tr[data-recent-row="1"]')).forEach(r => r.remove());
+
+                const typeBadge = (trType, trTypeName) => {
+                    const base = 'inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold';
+                    switch (trType) {
+                        case 1: return `<span class="${base} bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"><span class="h-1.5 w-1.5 rounded-full bg-green-600"></span>${trTypeName}</span>`;
+                        case 2: return `<span class="${base} bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"><span class="h-1.5 w-1.5 rounded-full bg-red-600"></span>${trTypeName}</span>`;
+                        case 3: return `<span class="${base} bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"><span class="h-1.5 w-1.5 rounded-full bg-orange-600"></span>${trTypeName}</span>`;
+                        case 4: return `<span class="${base} bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"><span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>${trTypeName}</span>`;
+                        default: return `<span class="${base} bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"><span class="h-1.5 w-1.5 rounded-full bg-gray-500"></span>${trTypeName}</span>`;
+                    }
+                };
+
+                result.data.forEach(item => {
+                    const dateText = item.trDate ? new Date(item.trDate).toLocaleString() : '';
+                    const row = document.createElement('tr');
+                    row.setAttribute('data-recent-row', '1');
+                    row.className = 'hover:bg-gray-50 dark:hover:bg-[#1e293b]/50 transition-colors';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 font-medium">${item.trNum}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="font-medium">${item.itemDesc ?? item.itemCode}</span>
+                                <span class="text-xs text-[#617589] dark:text-slate-400">${item.itemCode ?? ''}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-[#617589] dark:text-slate-400">${item.party ?? ''}</td>
+                        <td class="px-6 py-4 text-[#617589] dark:text-slate-400">${dateText}</td>
+                        <td class="px-6 py-4">${typeBadge(item.trType, item.trTypeName)}</td>
+                        <td class="px-6 py-4 text-right font-semibold">${item.itemQnt ?? 0}</td>
+                    `;
+                    body.appendChild(row);
+                });
+            } else {
+                emptyRow.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error('Error loading recent activity:', error);
+            loadingRow.classList.add('hidden');
+            emptyRow.classList.remove('hidden');
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeLowStockModal();
+        }
+    });
+</script>
+}

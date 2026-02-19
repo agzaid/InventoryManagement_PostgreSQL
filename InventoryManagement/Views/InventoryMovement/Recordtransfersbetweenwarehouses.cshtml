@@ -1,0 +1,459 @@
+﻿@{
+    ViewData["Title"] = "تحويل المخزون بين المستودعات";
+}
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #CBD5E1;
+        border-radius: 20px;
+    }
+
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #4B5563;
+    }
+</style>
+
+<main class="flex-grow p-4 mx-auto w-full" dir="rtl">
+    <form asp-action="CreateTransfer" method="post" id="transferForm" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <input type="hidden" name="TrType" id="trType" value="3" />
+        <div class="col-span-1 lg:col-span-12 flex justify-between items-center mb-2">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <span class="material-icons-outlined text-primary dark:text-blue-400">compare_arrows</span>
+                    تسجيل التحويل بين المخازن
+                </h2>
+            </div>
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition-all text-sm font-medium">
+                    <span class="material-icons-outlined text-lg">print</span> طباعة
+                </button>
+                <button type="submit" class="flex items-center gap-2 px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg shadow-md transition-all text-sm font-medium">
+                    <span class="material-icons-outlined text-lg">save</span> حفظ التحويل
+                </button>
+            </div>
+        </div>
+
+        @* --- Sidebar: Settings & Item List --- *@
+        <div class="col-span-1 lg:col-span-4 flex flex-col gap-6">
+        @* Transfer Data Form *@
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+            <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                بيانات التحويل
+            </h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المخزن المحول إليه</label>
+                    <div class="relative">
+                        <select id="warehouseSelect" name="ToStoreCode" dir="rtl" class="block w-full rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white sm:text-sm">
+                            <option></option>
+                            <option value="1">مخزن وسط البلد</option>
+                            <option value="3">مخزن الإسكندرية</option>
+                        </select>
+                    </div>
+                    <div id="warehouse-error-msg" class="hidden text-red-500 text-[11px] font-bold mt-1 flex items-center gap-1">
+                        <span class="material-icons-outlined text-xs">error_outline</span>
+                        <span>يجب اختيار المخزن المحول إليه</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Item Directory Table *@
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 flex-grow flex flex-col">
+            <div class="col-span-1 lg:col-span-4 flex flex-col bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden h-[720px]">
+                @* Search Header *@
+                <div class="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
+                    <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-3">
+                        <span class="material-icons-outlined text-blue-600">category</span> دليل الأصناف
+                    </h3>
+                    <div class="relative">
+                        @* Added id and onkeyup to trigger search *@
+                        <input type="text" id="itemSearch" onkeyup="filterItems()"
+                               class="w-full pl-4 pr-10 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:ring-primary focus:border-primary text-gray-900 dark:text-white"
+                               placeholder="بحث باسم الصنف...">
+                        <span class="material-icons-outlined absolute right-3 top-2 text-slate-400">search</span>
+                    </div>
+
+                    @* Error Message for Validation *@
+                    <div id="item-error-msg" class="hidden text-red-500 text-[11px] font-bold mt-1 flex items-center gap-1">
+                        <span class="material-icons-outlined text-xs">error_outline</span>
+                        <span>يجب إضافة صنف واحد على الأقل للتحويل</span>
+                    </div>
+                </div>
+
+                @* Items List Container *@
+                <div class="flex-1 overflow-y-auto p-3 custom-scrollbar" id="itemsList">
+                    @if (ViewBag.items != null)
+                    {
+                        foreach (var item in ViewBag.items)
+                        {
+                            <div onclick="addItemToTable('@item.ItemCode', '@item.ItemDesc')"
+                                 class="item-card group p-3 mb-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-500 cursor-pointer transition-all flex justify-between items-center"
+                                 data-name="@item.ItemDesc"
+                                 data-code="@item.ItemCode">
+                                <div>
+                                    <div class="text-[10px] text-blue-500 font-mono font-bold">#@item.ItemCode</div>
+                                    <h4 class="font-bold text-sm text-slate-700 dark:text-slate-100">@item.ItemDesc</h4>
+                                </div>
+                                <span class="material-icons-outlined text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">add_circle</span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-10 text-slate-400 text-sm">
+                            لا توجد أصناف متاحة
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        </div>
+
+        @* --- Main Content: Outgoing/Incoming Tables --- *@
+        <div class="col-span-1 lg:col-span-8 flex flex-col gap-6">
+
+            @* Upper Div: Tabs (Current Outgoing vs. Today's History) *@
+            <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col h-[450px] overflow-hidden">
+
+                <div class="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
+                    <div class="flex items-center bg-slate-200/50 dark:bg-slate-900 p-1 rounded-2xl w-fit gap-2 border border-slate-200 dark:border-slate-800">
+                        <button type="button" onclick="switchTab('currentInv')" id="tab-currentInv"
+                                class="tab-btn active px-5 py-2 text-sm font-bold flex items-center gap-2 rounded-xl transition-all duration-300 bg-white dark:bg-slate-800 shadow-sm text-blue-600">
+                            <span class="material-icons-outlined text-lg">receipt_long</span>
+                            الأصناف الصادرة (صادر)
+                        </button>
+
+                        <button type="button" onclick="switchTab('todayTrans')" id="tab-todayTrans"
+                                class="tab-btn px-5 py-2 text-sm font-bold flex items-center gap-2 rounded-xl transition-all duration-300 text-slate-500 hover:text-slate-700 dark:text-slate-400">
+                            <span class="material-icons-outlined text-lg">history</span>
+                            معاملات اليوم
+                        </button>
+                    </div>
+                    <span class="text-xs font-medium text-slate-400 px-3 py-1 bg-slate-100 dark:bg-slate-900 rounded-full">التحويل الحالي</span>
+                </div>
+
+                <div id="content-currentInv" class="tab-content flex-1 flex flex-col overflow-hidden">
+                    <div class="overflow-y-auto flex-1 custom-scrollbar">
+                        <table class="w-full text-right" id="tmp_dbgrid">
+                            <thead class="bg-slate-50 dark:bg-slate-900 sticky top-0 text-xs text-slate-500 z-10">
+                                <tr>
+                                    <th class="px-4 py-3 border-b">الترتيب</th>
+                                    <th class="px-4 py-3 border-b">كود</th>
+                                    <th class="px-4 py-3 border-b">اسم الصنف</th>
+                                    <th class="px-4 py-3 border-b text-center w-24">الكمية</th>
+                                    <th class="px-4 py-3 border-b text-center">إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="outgoingTableBody" class="divide-y dark:divide-slate-700">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="content-todayTrans" class="tab-content hidden flex-1 flex flex-col overflow-hidden">
+                    <div class="overflow-y-auto flex-1 custom-scrollbar">
+                        <table class="w-full text-right text-sm">
+                            <thead class="bg-slate-50 dark:bg-slate-900 sticky top-0 text-slate-500 z-10">
+                                <tr>
+                                    <th class="p-4 border-b">الترتيب</th>
+                                    <th class="p-4 border-b">اسم المورد</th>
+                                    <th class="p-4 border-b">اسم الصنف</th>
+                                    <th class="p-4 border-b">العدد</th>
+                                    <th class="p-4 border-b text-center">إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y dark:divide-slate-700">
+                                @if (ViewBag.todayTransactions != null)
+                                {
+                                    foreach (var tr in ViewBag.TodayTransactions)
+                                    {
+                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                                            <td class="p-4 font-bold text-blue-600">@tr.TrNum</td>
+                                            <td class="p-4">@tr.SupplierDesc</td>
+                                            <td class="p-4">@tr.ItemDesc</td>
+                                            <td class="p-4">@tr.ItemQnt</td>
+                                            <td class="p-4 text-center">
+                                                <button type="button" onclick="deleteTransaction('@tr.TrNum')" class="text-red-500 hover:text-red-700">
+                                                    <span class="material-icons-outlined">delete</span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            @* Lower Div: Incoming (وارد) - Always Visible *@
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col h-[350px] overflow-hidden">
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-t-xl flex justify-between items-center">
+                    <h3 class="font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                        <span class="w-2 h-6 bg-red-600 rounded-full"></span>
+                        الأصناف المحولة من مخازن أخرى (وارد)
+                    </h3>
+                </div>
+                <div class="flex-grow overflow-auto custom-scrollbar">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm text-right">
+                        <thead class="bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-4 py-3 border-b">رقم التحويل</th>
+                                <th class="px-4 py-3 border-b">اسم الصنف</th>
+                                <th class="px-4 py-3 border-b">المخزن المحول منه</th>
+                                <th class="px-4 py-3 border-b w-24">الكمية</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            @* Content for Incoming items *@
+                            <tr>
+                                <td colspan="4" class="p-10 text-center text-slate-400">لا يوجد أصناف واردة حالياً</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</main>
+
+@section Scripts {
+
+    <script>
+        $(document).ready(function() {
+             $('#warehouseSelect').select2({
+                        placeholder: "اختر المخزن...",
+                        allowClear: true,
+                        dir: "rtl",
+                        width: '100%'
+                    });
+             $('input[name="disbursementType"]').on('change', function() {
+                  const val = $(this).val();
+
+                  if (val === 'dept') {
+                      $('#deptContainer').removeClass('hidden').fadeIn(300);
+                      $('#empContainer').addClass('hidden');
+
+                      // تصفير الموظف
+                      $('#empSelect').val(null).trigger('change');
+                  } else {
+                      $('#empContainer').removeClass('hidden').fadeIn(300);
+                      $('#deptContainer').addClass('hidden');
+
+                      // تصفير الإدارة
+                      $('#deptSelect').val(null).trigger('change');
+                  }
+              });
+
+              // تهيئة Select2 للحقول الجديدة
+              $('#deptSelect, #empSelect').select2({
+                  width: '100%',
+                  dir: "rtl"
+              });
+                    $('#deptSelect, #empSelect').on('change', function() {
+                    if ($(this).val()) {
+                        hideError();
+                    }
+                });
+
+             $('#transferForm').on('submit', function (e) {
+                  // Reset styles
+                  $('.select2-selection').css('border-color', '#cbd5e1');
+                  $('#itemSearch').removeClass('border-red-500');
+                  $('#item-error-msg, #warehouse-error-msg').addClass('hidden');
+
+                  const warehouseValue = $('#warehouseSelect').val();
+                  const itemsCount = $('#outgoingTableBody tr').length;
+
+                  let isValid = true;
+
+                  // 1. Validate Warehouse - must select destination warehouse
+                  if (!warehouseValue) {
+                      $('#warehouseSelect').next('.select2-container').find('.select2-selection').css('border', '2px solid #ef4444');
+                      $('#warehouse-error-msg').removeClass('hidden');
+                      isValid = false;
+                  }
+
+                  // 2. Validate Items - at least one item required
+                  if (itemsCount === 0) {
+                      $('#itemSearch').addClass('border-red-500');
+                      $('#item-error-msg').removeClass('hidden');
+                      isValid = false;
+                  }
+
+                  if (!isValid) {
+                      e.preventDefault();
+                      return false;
+                  }
+                  return true;
+              });
+
+              // Clear warehouse error when selected
+              $('#warehouseSelect').on('change', function() {
+                  if ($(this).val()) {
+                      $(this).next('.select2-container').find('.select2-selection').css('border-color', '#cbd5e1');
+                      $('#warehouse-error-msg').addClass('hidden');
+                  }
+              });
+
+
+
+                    $('#itemSearch').on('keyup', function() {
+                        var value = $(this).val().toLowerCase();
+                        $("#itemsList .item-card").filter(function() {
+                            $(this).toggle($(this).data('name').toLowerCase().indexOf(value) > -1)
+                        });
+                    });
+
+
+                });
+    </script>
+
+    <script>
+      function switchTab(tabId) {
+            // Toggle Content
+            $('.tab-content').addClass('hidden');
+            $('#content-' + tabId).removeClass('hidden');
+
+            // Toggle Button Styles
+            $('.tab-btn').removeClass('active bg-white dark:bg-slate-800 shadow-sm text-blue-600').addClass('text-slate-500');
+            $('#tab-' + tabId).addClass('active bg-white dark:bg-slate-800 shadow-sm text-blue-600').removeClass('text-slate-500');
+        }
+        function addItemToTable(itemCode, itemDesc) {
+            const tableBody = document.getElementById('outgoingTableBody');
+            if (!tableBody) return;
+
+            // Check for duplicates
+            let isExist = false;
+            tableBody.querySelectorAll('tr').forEach(row => {
+                const codeCell = row.querySelector('input[name$=".ItemCode"]');
+                if (codeCell && codeCell.value === itemCode) isExist = true;
+            });
+
+            if (isExist) {
+                if (typeof _AlertHelper !== 'undefined') {
+                    _AlertHelper.showWarning("هذا الصنف مضاف مسبقاً");
+                } else {
+                    alert("هذا الصنف مضاف مسبقاً");
+                }
+                return;
+            }
+
+            // Clear error message
+            $('#itemSearch').removeClass('border-red-500');
+            $('#item-error-msg').addClass('hidden');
+
+            const index = tableBody.rows.length;
+            const newRow = `
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    <td class="px-4 py-3 text-gray-500">-</td>
+                    <td class="px-4 py-3 text-center text-xs text-gray-500">${index + 1}</td>
+                    <td class="px-4 py-3">
+                        <span class="font-semibold text-gray-800 dark:text-white">${itemDesc}</span>
+                        <span class="text-xs text-blue-500 font-mono block">#${itemCode}</span>
+                        <input type="hidden" name="Items[${index}].ItemCode" value="${itemCode}" />
+                        <input type="hidden" name="Items[${index}].ItemPrice" value="0" />
+                    </td>
+                    <td class="px-4 py-3 text-gray-600 dark:text-gray-400">-</td>
+                    <td class="px-4 py-3">
+                        <input type="number" name="Items[${index}].ItemQnt" 
+                               class="w-20 p-1.5 text-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white" 
+                               value="1" min="1">
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <button type="button" onclick="removeRow(this)" class="text-red-500 hover:text-red-700 transition-colors">
+                            <span class="material-icons-outlined">delete_outline</span>
+                        </button>
+                    </td>
+                </tr>`;
+
+            tableBody.insertAdjacentHTML('beforeend', newRow);
+            reorderRows();
+        }
+
+        function removeRow(btn) {
+            btn.closest('tr').remove();
+            reorderRows();
+        }
+
+        function reorderRows() {
+            const rows = document.querySelectorAll('#outgoingTableBody tr');
+            rows.forEach((row, index) => {
+                // Update serial number
+                row.cells[1].innerText = index + 1;
+
+                // Update input names for proper form binding
+                const itemCodeInput = row.querySelector('input[name*=".ItemCode"]');
+                const itemQntInput = row.querySelector('input[name*=".ItemQnt"]');
+                if (itemCodeInput) itemCodeInput.setAttribute('name', `Items[${index}].ItemCode`);
+                if (itemQntInput) itemQntInput.setAttribute('name', `Items[${index}].ItemQnt`);
+            });
+        }
+
+        function filterItems() {
+            const input = document.getElementById('itemSearch');
+            const filter = input.value.toLowerCase().trim();
+            const itemsList = document.getElementById('itemsList');
+            const cards = itemsList.getElementsByClassName('item-card');
+
+            // 3. Loop through cards and hide those that don't match
+            for (let i = 0; i < cards.length; i++) {
+                const itemName = cards[i].getAttribute('data-name').toLowerCase();
+                const itemCode = cards[i].getAttribute('data-code').toLowerCase();
+
+                if (itemName.includes(filter) || itemCode.includes(filter)) {
+                    cards[i].style.display = ""; // Show
+                    // Optional: Add a highlight effect
+                    cards[i].classList.remove('hidden');
+                } else {
+                    cards[i].style.display = "none"; // Hide
+                }
+            }
+        }
+
+        function deleteTransaction(trNum) {
+            if (!confirm('هل أنت متأكد من حذف هذه المعاملة؟')) {
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("DeleteRecord", "InventoryMovement")',
+                type: 'POST',
+                data: { id: trNum },
+                success: function(response) {
+                    if (response.success) {
+                        if (typeof _AlertHelper !== 'undefined') {
+                            _AlertHelper.showSuccess(response.message);
+                        }
+                        location.reload();
+                    } else {
+                        if (typeof _AlertHelper !== 'undefined') {
+                            _AlertHelper.showError(response.message);
+                        } else {
+                            alert(response.message);
+                        }
+                    }
+                },
+                error: function() {
+                    if (typeof _AlertHelper !== 'undefined') {
+                        _AlertHelper.showError('حدث خطأ أثناء الحذف');
+                    } else {
+                        alert('حدث خطأ أثناء الحذف');
+                    }
+                }
+            });
+        }
+
+    </script>
+}

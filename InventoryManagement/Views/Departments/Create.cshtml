@@ -1,0 +1,48 @@
+﻿@model Application.Interfaces.Models.DepartmentDto
+
+@{
+    ViewData["Title"] = "Create Department";
+}
+
+<h2>Create Department</h2>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        <label asp-for="DepCode"></label>
+        <input asp-for="DepCode" class="form-control" />
+        <span asp-validation-for="DepCode" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="DepDesc"></label>
+        <input asp-for="DepDesc" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="SectorCode"></label>
+        <input asp-for="SectorCode" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="GeneralManeg"></label>
+        <input asp-for="GeneralManeg" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ManegSupCode"></label>
+        <input asp-for="ManegSupCode" class="form-control" />
+    </div>
+
+    <br />
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

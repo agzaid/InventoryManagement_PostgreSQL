@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Core/">
+    <Project Path="Application.Interfaces/Application.Interfaces.csproj" Id="2829f92b-2262-4c1f-9e90-f4e52ce6a26b" />
+    <Project Path="Application/Application.csproj" />
+    <Project Path="Domain/Domain.csproj" />
+  </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="Identity/Identity.csproj" />
+    <Project Path="Infrastructure/Infrastructure.csproj" />
+    <Project Path="Persistance/Persistance.csproj" />
+  </Folder>
+  <Folder Name="/Presentation/">
+    <Project Path="InventoryManagement/InventoryManagement.csproj" />
+  </Folder>
+</Solution>

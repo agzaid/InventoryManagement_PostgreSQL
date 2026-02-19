@@ -1,0 +1,982 @@
+﻿@model Application.Interfaces.Models.SysMangementIndexDto
+
+@{
+    ViewData["Title"] = "إدارة المستخدمين - نظام إدارة المخزون";
+}
+
+@* 1. Assets & Configurations *@
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    primary: "#0ea5e9",
+                    secondary: "#64748b",
+                    accent: "#f59e0b",
+                    "background-light": "#f8fafc",
+                    "background-dark": "#0f172a",
+                    "surface-light": "#ffffff",
+                    "surface-dark": "#1e293b",
+                    "border-light": "#e2e8f0",
+                    "border-dark": "#334155",
+                },
+                fontFamily: {
+                    sans: ["Cairo", "sans-serif"],
+                    display: ["Cairo", "sans-serif"],
+                },
+            },
+        },
+    };
+</script>
+
+<style type="text/tailwindcss">
+    @@layer utilities {
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .ltr-text {
+            direction: ltr;
+            text-align: left;
+        }
+    }
+</style>
+
+<div class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-200 font-sans min-h-screen flex flex-col transition-colors duration-300">
+
+    <main class="flex-1 mx-auto w-full flex flex-col gap-6">
+
+        @* --- TOP SECTION: Permissions Management --- *@
+        <section class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark shadow-sm">
+            <div class="flex flex-col gap-6">
+                <div>
+                    <h2 class="text-lg font-bold mb-2 flex items-center gap-2 text-slate-900 dark:text-white">
+                        <span class="material-icons-round text-accent">admin_panel_settings</span>
+                        إدارة الصلاحيات التفصيلية
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">اختر الصلاحيات المطلوبة من كل قسم لتحديد الوصول بدقة للمستخدم المختار.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6" dir="ltr">
+                    @* Daily Movement Module *@
+                    <div class="flex flex-col h-full rounded-xl overflow-hidden border border-border-light dark:border-border-dark bg-slate-50/50 dark:bg-slate-800/20">
+                        <div class="bg-amber-100 dark:bg-amber-900/30 px-4 py-3 border-b border-amber-200 dark:border-amber-800/50">
+                            <h3 class="font-bold text-amber-800 dark:text-amber-200 flex items-center gap-2">
+                                <span class="material-icons-round text-lg">event_note</span> الحركة اليومية
+                            </h3>
+                        </div>
+                        <div class="p-4 flex flex-col">
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog01" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">تسجيل حركة الوارد</span>
+                            </label>
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog02" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">تسجيل حركة المنصرف</span>
+                            </label>
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog03" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">تسجيل حركة التحويل</span>
+                            </label>
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog11" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">تسجيل المرتجعات</span>
+                            </label>
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog12" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">استعلام وبحث البيانات</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    @* Inventory Module *@
+                    <div class="flex flex-col h-full rounded-xl overflow-hidden border border-border-light dark:border-border-dark bg-slate-50/50 dark:bg-slate-800/20">
+                        <div class="bg-blue-100 dark:bg-blue-900/30 px-4 py-3 border-b border-blue-200 dark:border-blue-800/50">
+                            <h3 class="font-bold text-blue-800 dark:text-blue-200 flex items-center gap-2">
+                                <span class="material-icons-round text-lg">warehouse</span> أرصدة المخزن
+                            </h3>
+                        </div>
+                        <div class="p-4 flex flex-col">
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog13" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">تسجيل ارصده الفتح</span>
+                            </label>
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog14" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">الأرصدة الحالية</span>
+                            </label>
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog21" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">كارت الصنف</span>
+                            </label>
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog22" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">جرد المخزن</span>
+                            </label>
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog23" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">تقارير الارصده والاستهلاك</span>
+                            </label>
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog24" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">جرد كل المخازن</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    @* System Codes Module *@
+                    <div class="flex flex-col h-full rounded-xl overflow-hidden border border-border-light dark:border-border-dark bg-slate-50/50 dark:bg-slate-800/20">
+                        <div class="bg-purple-100 dark:bg-purple-900/30 px-4 py-3 border-b border-purple-200 dark:border-purple-800/50">
+                            <h3 class="font-bold text-purple-800 dark:text-purple-200 flex items-center gap-2">
+                                <span class="material-icons-round text-lg">qr_code</span> أكواد النظام
+                            </h3>
+                        </div>
+                        <div class="p-4 flex flex-col">
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog25" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">أكواد الأصناف</span>
+                            </label>
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog29" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">أكواد الموردين</span>
+                            </label>
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog31" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">ادارات البورصه</span>
+                            </label>
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog32" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">العاملين بالبورصه</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    @* Admin Module *@
+                    <div class="flex flex-col h-full rounded-xl overflow-hidden border border-border-light dark:border-border-dark bg-slate-50/50 dark:bg-slate-800/20">
+                        <div class="bg-red-100 dark:bg-red-900/30 px-4 py-3 border-b border-red-200 dark:border-red-800/50">
+                            <h3 class="font-bold text-red-800 dark:text-red-200 flex items-center gap-2">
+                                <span class="material-icons-round text-lg">settings_suggest</span> إدارة النظام
+                            </h3>
+                        </div>
+                        <div class="p-4 flex flex-col gap-3">
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog33" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">صلاحيات المستخدمين</span>
+                            </label>
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog34" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">تهيئه اعدادات النظام</span>
+                            </label>
+                            <label class="flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+                                <input class="w-4 h-4 text-primary border-slate-300 focus:ring-primary focus:ring-2" id="Prog35" type="checkbox" disabled />
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary">ترحيل الحركه اليوميه</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                @* Search & Action Bar *@
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4 border-t border-border-light dark:border-border-dark">
+                    <div class="relative flex-1">
+                        <span class="material-icons-round absolute right-3 top-3 text-slate-400">search</span>
+                        <input id="userSearchInput" 
+                               class="pr-10 pl-4 py-2.5 rounded-lg border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 text-sm w-full focus:ring-primary focus:border-primary shadow-sm"
+                               placeholder="بحث باسم الموظف أو اسم المستخدم..."
+                               type="text" />
+                    </div>
+                    <div class="flex items-center gap-3">
+                        @* ADD USER BUTTON *@
+                        <button onclick="openAddModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 px-6 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2">
+                            <span class="material-icons-round text-lg">person_add</span>
+                            إضافة مستخدم
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        @* --- BOTTOM SECTION: Table & Stats --- *@
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+
+            @* User List Table *@
+            <section class="lg:col-span-9 flex flex-col gap-6">
+                <div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden flex-1">
+                    <div class="px-6 py-4 border-b border-border-light dark:border-border-dark flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
+                        <h3 class="font-bold text-slate-700 dark:text-slate-200">نتائج البحث</h3>
+                        <span class="text-xs px-2 py-1 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">@Model.invUserDto.Count() نتيجة</span>
+                    </div>
+                    <div class="overflow-x-auto" style="cursor:pointer">
+                        <table class="w-full text-right">
+                            <thead class="bg-slate-50 dark:bg-slate-800 border-b border-border-light dark:border-border-dark">
+                                <tr>
+                                    <th class="py-4 px-6 font-semibold text-sm text-slate-600 dark:text-slate-300 w-24">الكود</th>
+                                    <th class="py-4 px-6 font-semibold text-sm text-slate-600 dark:text-slate-300">اسم الموظف</th>
+                                    <th class="py-4 px-6 font-semibold text-sm text-slate-600 dark:text-slate-300 ltr-text">اسم المستخدم</th>
+                                    <th class="py-4 px-6 font-semibold text-sm text-slate-600 dark:text-slate-300">الدور</th>
+                                    <th class="py-4 px-6 font-semibold text-sm text-slate-600 dark:text-slate-300">الحالة</th>
+                                    <th class="py-4 px-6 font-semibold text-sm text-slate-600 dark:text-slate-300 text-center">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border-light dark:divide-border-dark">
+                                @* Find your foreach loop in the table body *@
+                                @foreach (var user in Model.invUserDto)
+                                {
+                                    <tr class=" user-row hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                                        <td class="py-3 px-6 text-sm font-bold text-red-500 dark:text-red-400">@user.UserCode</td>
+                                        <td class="py-3 px-6">
+                                            <div class="flex items-center gap-3">
+                                                <div class="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300">
+                                                    @(string.IsNullOrEmpty(user.FullNameArabic) ? "?" : user.FullNameArabic.Substring(0, 1))
+                                                </div>
+                                                <div class="search-name text-sm font-medium text-slate-900 dark:text-white">@user.FullNameArabic</div>
+                                            </div>
+                                        </td>
+                                        <td class="search-username py-3 px-6 text-sm text-slate-600 dark:text-slate-300 font-mono ltr-text">@user.UserName</td>
+                                        <td class="py-3 px-6">
+                                            @if (user.Prog01 == "1")
+                                            {
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">مدير نظام</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">مستخدم عادي</span>
+                                            }
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            @if (user.Prog29 == "1")
+                                            {
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> نشط
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> غير نشط
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="py-3 px-6 text-center">
+                                            <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button onclick="event.stopPropagation(); openEditModal('@user.UserCode')" class="text-slate-400 hover:text-primary transition-colors"><span class="material-icons-round text-lg">edit</span></button>
+                                                <button onclick="event.stopPropagation(); deleteUser('@user.UserCode')" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-icons-round text-lg">delete</span></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    @* Pagination Logic placeholder *@
+                    <div class="bg-slate-50 dark:bg-slate-800 border-t border-border-light dark:border-border-dark px-6 py-4 flex items-center justify-between">
+                        <span class="text-xs text-slate-500 dark:text-slate-400">عرض @Model.invUserDto.Count() موظف</span>
+                        <div class="flex items-center gap-1">
+                            <button class="px-3 py-1 rounded bg-primary text-white text-xs font-bold shadow-sm">1</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            @* Right Sidebar: Quick Stats *@
+            <aside class="lg:col-span-3 space-y-6">
+                <div class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark shadow-sm">
+                    <h3 class="text-md font-bold mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                        <span class="material-icons-round text-primary">analytics</span> إحصائيات سريعة
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-2 rounded-lg">
+                                    <span class="material-icons-round text-lg">people</span>
+                                </div>
+                                <span class="text-sm text-slate-600 dark:text-slate-300">إجمالي</span>
+                            </div>
+                            <span class="font-bold text-slate-900 dark:text-white">@Model.invUserDto.Count()</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-2 rounded-lg">
+                                    <span class="material-icons-round text-lg">verified_user</span>
+                                </div>
+                                <span class="text-sm text-slate-600 dark:text-slate-300">نشط</span>
+                            </div>
+                            <span class="font-bold text-slate-900 dark:text-white">@Model.invUserDto.Count(u => u.Prog29 == "1")</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            @* --- EDIT USER MODAL --- *@
+            <div id="userModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <div class="flex items-center justify-center min-h-screen p-4 text-center sm:block sm:p-0">
+                    <div class="fixed inset-0 bg-slate-900/75 transition-opacity" aria-hidden="true" onclick="toggleModal()"></div>
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                    <div class="inline-block align-middle bg-surface-light dark:bg-surface-dark rounded-2xl text-right overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-2xl sm:w-full border border-border-light dark:border-border-dark">
+
+                        <div class="px-6 py-4 border-b border-border-light dark:border-border-dark flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white" id="modalTitle">إضافة مستخدم جديد</h3>
+                            <button type="button" onclick="toggleModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                <span class="material-icons-round">close</span>
+                            </button>
+                        </div>
+
+                        <form id="userForm" class="p-6 space-y-6">
+                            <input type="hidden" id="userId" />
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">اختيار الموظف</label>
+                                    <select id="FullNameInput" asp-for="UserForm.UserCode" class="w-full rounded-lg border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary">
+                                        <option value="">-- اختر الموظف من القائمة --</option>
+                                    </select>
+                                    <span asp-validation-for="UserForm.UserCode"></span>
+
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">اسم المستخدم</label>
+                                    <input asp-for="UserForm.UserName" type="text" id="userNameInput" class="w-full rounded-lg border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary ltr-text" placeholder="ضع اسم مختصر">
+                                    <span asp-validation-for =UserForm.UserName"></span>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">كلمة المرور</label>
+                                    <input id="userPasswordInput" asp-for="UserForm.UserPasswd" class="w-full rounded-lg border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary">
+                                    <span asp-validation-for=UserForm.UserPasswd"></span>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الدور</label>
+                                    <select id="userRoleSelect" class="w-full rounded-lg border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary">
+                                        <option value="0">مستخدم عادي</option>
+                                        <option value="1">مدير نظام</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الحالة</label>
+                                    <select id="userStatusSelect" class="w-full rounded-lg border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary">
+                                        <option value="1">نشط</option>
+                                        <option value="0">غير نشط</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <hr class="border-border-light dark:border-border-dark" />
+
+                            <div class="space-y-4">
+                                <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm flex items-center gap-2">
+                                    <span class="material-icons-round text-primary text-base">verified_user</span>
+                                    صلاحيات الوصول
+                                </h4>
+
+                                <div dir="ltr" class="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-72 overflow-y-auto p-3 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/30 dark:bg-slate-800/10">
+
+                                    <div class="space-y-2">
+                                        <span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                            <span class="material-icons-round text-sm">event_note</span> الحركة اليومية
+                                        </span>
+                                        <div class="flex flex-col gap-2 pr-2">
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal01" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">تسجيل حركة الوارد</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal02" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">تسجيل حركة المنصرف</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal03" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">تسجيل حركة التحويل</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal11" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">تسجيل المرتجعات</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal12" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">استعلام وبحث البيانات</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                                            <span class="material-icons-round text-sm">warehouse</span> أرصدة المخزن
+                                        </span>
+                                        <div class="flex flex-col gap-2 pr-2">
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal13" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">تسجيل أرصدة الفتح</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal14" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">الأرصدة الحالية</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal21" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">كارت الصنف</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal22" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">جرد المخزن</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal23" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">تقارير الأرصدة</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal24" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">جرد كل المخازن</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <span class="text-xs font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                                            <span class="material-icons-round text-sm">qr_code</span> أكواد النظام
+                                        </span>
+                                        <div class="flex flex-col gap-2 pr-2">
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal25" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">أكواد الأصناف</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal29" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">أكواد الموردين</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal31" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">إدارات البورصة</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal32" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">العاملين بالبورصة</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <span class="text-xs font-bold text-red-600 dark:text-red-400 flex items-center gap-1">
+                                            <span class="material-icons-round text-sm">settings_suggest</span> إدارة النظام
+                                        </span>
+                                        <div class="flex flex-col gap-2 pr-2">
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal33" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">صلاحيات المستخدمين</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal34" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">تهيئة إعدادات النظام</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModal35" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">ترحيل الحركة اليومية</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="pt-4 flex gap-3">
+                                <button type="submit" class="flex-1 bg-primary hover:bg-sky-600 text-white py-2.5 rounded-lg font-bold transition-colors shadow-lg shadow-primary/20">حفظ البيانات</button>
+                                <button type="button" onclick="toggleModal()" class="flex-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 py-2.5 rounded-lg font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">إلغاء</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            @* Edit user Modal *@
+            <div id="userModalEdit" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <div class="flex items-center justify-center min-h-screen p-4 text-center sm:block sm:p-0">
+                    <div class="fixed inset-0 bg-slate-900/75 transition-opacity" aria-hidden="true" onclick="closeEditModal()"></div>
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                    <div class="inline-block align-middle bg-surface-light dark:bg-surface-dark rounded-2xl text-right overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-2xl sm:w-full border border-border-light dark:border-border-dark">
+
+                        <div class="px-6 py-4 border-b border-border-light dark:border-border-dark flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white" id="modalTitleEdit">إضافة مستخدم جديد</h3>
+                            <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                <span class="material-icons-round">close</span>
+                            </button>
+                        </div>
+
+                        <form id="userFormEdit" class="p-6 space-y-6">
+                            <input type="hidden" id="userIdEdit" />
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">اسم الموظف (بالكامل)</label>
+                                    <input type="text" id="FullNameInputEdit" class="w-full rounded-lg border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary" disabled placeholder="أدخل الاسم الرباعي">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">اسم المستخدم</label>
+                                    <input type="text" id="userNameInputEdit" asp-for="UserForm.UserName" class="w-full rounded-lg border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary ltr-text" placeholder="username">
+                                    <span asp-validation-for="UserForm.UserName"></span>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">كلمة المرور</label>
+                                    <input id="userPasswordInputEdit" asp-for="UserForm.UserPasswd" class="w-full rounded-lg border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary">
+                                    <span asp-validation-for="UserForm.UserPasswd"></span>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الدور</label>
+                                    <select id="userRoleSelectEdit" class="w-full rounded-lg border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary">
+                                        <option value="0">مستخدم عادي</option>
+                                        <option value="1">مدير نظام</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">الحالة</label>
+                                    <select id="userStatusSelectEdit" class="w-full rounded-lg border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary">
+                                        <option value="1">نشط</option>
+                                        <option value="0">غير نشط</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <hr class="border-border-light dark:border-border-dark" />
+
+                            <div class="space-y-4">
+                                <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm flex items-center gap-2">
+                                    <span class="material-icons-round text-primary text-base">verified_user</span>
+                                    صلاحيات الوصول
+                                </h4>
+
+                                <div dir="ltr" class="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-72 overflow-y-auto p-3 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/30 dark:bg-slate-800/10">
+
+                                    <div class="space-y-2">
+                                        <span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                            <span class="material-icons-round text-sm">event_note</span> الحركة اليومية
+                                        </span>
+                                        <div class="flex flex-col gap-2 pr-2">
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit01" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">تسجيل حركة الوارد</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit02" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">تسجيل حركة المنصرف</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit03" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">تسجيل حركة التحويل</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit11" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">تسجيل المرتجعات</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit12" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">استعلام وبحث البيانات</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                                            <span class="material-icons-round text-sm">warehouse</span> أرصدة المخزن
+                                        </span>
+                                        <div class="flex flex-col gap-2 pr-2">
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit13" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">تسجيل أرصدة الفتح</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit14" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">الأرصدة الحالية</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit21" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">كارت الصنف</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit22" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">جرد المخزن</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit23" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">تقارير الأرصدة</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit24" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">جرد كل المخازن</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <span class="text-xs font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                                            <span class="material-icons-round text-sm">qr_code</span> أكواد النظام
+                                        </span>
+                                        <div class="flex flex-col gap-2 pr-2">
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit25" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">أكواد الأصناف</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit29" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">أكواد الموردين</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit31" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">إدارات البورصة</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit32" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">العاملين بالبورصة</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <span class="text-xs font-bold text-red-600 dark:text-red-400 flex items-center gap-1">
+                                            <span class="material-icons-round text-sm">settings_suggest</span> إدارة النظام
+                                        </span>
+                                        <div class="flex flex-col gap-2 pr-2">
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit33" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">صلاحيات المستخدمين</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit34" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">تهيئة إعدادات النظام</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                <input id="ProgModalEdit35" type="checkbox" class="rounded text-primary focus:ring-primary w-4 h-4" />
+                                                <span class="text-xs text-slate-600 dark:text-slate-400 group-hover:text-primary">ترحيل الحركة اليومية</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="pt-4 flex gap-3">
+                                <button type="submit" class="flex-1 bg-primary hover:bg-sky-600 text-white py-2.5 rounded-lg font-bold transition-colors shadow-lg shadow-primary/20">حفظ البيانات</button>
+                                <button type="button" onclick="closeEditModal()" class="flex-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 py-2.5 rounded-lg font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">إلغاء</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section scripts {
+<partial name="_ValidationScriptsPartial">
+    <script>
+                     // 1. Serialize Model to JS Object
+                     const usersData = @Html.Raw(Json.Serialize(Model.invUserDto));
+                     const egxEployee = @Html.Raw(Json.Serialize(Model.EgxEmployeeDto));
+
+                     $(document).ready(function() {
+
+                         const nameSelect = $('#FullNameInput');
+
+                                 egxEployee.forEach(user => {
+                             nameSelect.append(new Option(user.empName, user.empCode));
+                         });
+
+                         // اختياري: عند اختيار موظف، قم بتعبئة اسم المستخدم تلقائياً
+                         nameSelect.on('change', function() {
+                             const selectedCode = $(this).val();
+                             const user = egxEployee.find(u => u.empCode == selectedCode);
+                             //if (user) {
+                                // $('#userNameInput').val(user.empName);
+                                 // يمكنك تعبئة أي حقول أخرى هنا
+                             //}
+                         });
+
+                        $("#userSearchInput").on("keyup", function () {
+                         // 1. Get the value from the search box and convert to lowercase
+                         var value = $(this).val().toLowerCase().trim();
+
+                         // 2. Loop through every table row in the tbody
+                         $("tbody tr").filter(function () {
+                             // 3. Get text from Name and Username cells
+                             var nameText = $(this).find(".search-name").text().toLowerCase();
+                             var usernameText = $(this).find(".search-username").text().toLowerCase();
+
+                             // 4. Check if the search value exists in either column
+                             // toggle(true) shows the row, toggle(false) hides it
+                             $(this).toggle(
+                                 nameText.indexOf(value) > -1 ||
+                                 usernameText.indexOf(value) > -1
+                             );
+                         });
+                     });
+                         // Using event delegation for efficiency
+                         // Listen for clicks on table rows
+                         $('table tbody').on('click', 'tr', function() {
+                             debugger;
+                             // 1. Find the UserCode (assuming it is in the first column)
+                             const userCode = $(this).find('td:first').text().trim();
+
+                             // 2. Locate the user object in your serialized data
+                             const user = usersData.find(u => u.userCode == userCode);
+
+                             if (user) {
+                                 // 3. UI: Highlight the selected row
+                                 $('tr').removeClass('bg-blue-50 dark:bg-blue-900/20 border-r-4 border-primary');
+                                 $(this).addClass('bg-blue-50 dark:bg-blue-900/20 border-r-4 border-primary');
+
+                                 // 4. Update all checkboxes that represent permissions
+                                 // We target input[id^="Prog"] which finds any ID starting with "Prog"
+                                 $('input[id^="Prog"]').each(function() {
+                                     const propName = $(this).attr('id'); // e.g., "Prog11"
+
+                                     // Fetch the value from the user object (checking for case variations)
+                                     const val = user[propName] || user[propName.toLowerCase()];
+
+                                     // Set the checked state (if val is "1" it's true, otherwise false)
+                                     $(this).prop('checked', val === "1");
+                                 });
+
+                                 console.log("Permissions loaded for: " + user.FullNameArabic);
+                             }
+                         });
+
+               $('#userForm').on('submit', function (e) {
+                     e.preventDefault(); // Stop page reload
+                     debugger;
+                             if (!$(this).valid()) {
+                                         // If the form is NOT valid, stop here.
+                                         // The error messages will automatically appear in your <span> tags.
+                                         return false;
+                                     }
+                     const getCheckValue = (id) => {
+                         const isChecked = $(`#${id}`).prop('checked');
+                         console.log(`Checking ID: ${id}, Result: ${isChecked}`); // This will show in your browser console (F12)
+                         return isChecked ? "1" : "0";
+                     };
+
+                     const userData = {
+                         // Basic Info
+                         UserCode: parseInt($('#userCode').val()) || 0,
+                         UserName: $('#userNameInput').val(),
+                         UserPasswd: $('#userPasswordInput').val(),
+                         FullNameArabic: $('#FullNameInput').val(), // Maps to the Arabic name
+
+                         // Group 1: Transactions
+                         Prog01: getCheckValue('ProgModal01'),
+                         Prog02: getCheckValue('ProgModal02'),
+                         Prog03: getCheckValue('ProgModal03'),
+                         Prog11: getCheckValue('ProgModal11'),
+                         Prog12: getCheckValue('ProgModal12'),
+
+                         // Group 2: Warehouse Balances
+                         Prog13: getCheckValue('ProgModal13'),
+                         Prog14: getCheckValue('ProgModal14'),
+                         Prog21: getCheckValue('ProgModal21'),
+                         Prog22: getCheckValue('ProgModal22'),
+                         Prog23: getCheckValue('ProgModal23'),
+                         Prog24: getCheckValue('ProgModal24'),
+
+                         // Group 3: System Codes
+                         Prog25: getCheckValue('ProgModal25'),
+                         Prog29: getCheckValue('ProgModal29'), // Suppliers
+                         Prog31: getCheckValue('ProgModal31'),
+                         Prog32: getCheckValue('ProgModal32'),
+
+                         // Group 4: System Management
+                         Prog33: getCheckValue('ProgModal33'),
+                         Prog34: getCheckValue('ProgModal34'),
+                         Prog35: getCheckValue('ProgModal35')
+                     };
+                 _AlertHelper.showLoading()
+
+                     // 3. AJAX Call
+                     $.ajax({
+                         url: '@Url.Action("SaveUser", "SystemManagement")', // Change 'Users' to your actual Controller name
+                         type: 'POST',
+                         contentType: 'application/json; charset=utf-8',
+                         dataType:'json',
+                         data: JSON.stringify(userData),
+                         success: function (response) {
+                             if (response.success) {
+                                 _AlertHelper.showSuccess(response.message).then(() => {
+                                         location.reload(); 
+                                             });
+                             } else {
+                                 _AlertHelper.showError(response.message,"Error");
+                             }
+                         },
+                         error: function () {
+                              _AlertHelper.showError("حدث خطأ أثناء الاتصال بالسيرفر، يرجى المحاولة مرة أخرى",'خطأ في الاتصال');
+                         }
+                     });
+                 });
+
+       $('#userFormEdit').on('submit', function (e) {
+                 e.preventDefault(); // منع الصفحة من التحديث (Reload)
+                 debugger; // للتأكد من وصول البيانات بشكل صحيح
+                      if (!$(this).valid()) {
+                                              // If the form is NOT valid, stop here.
+                                              // The error messages will automatically appear in your <span> tags.
+                                              return false;
+                                          }
+                 const getCheckValue = (id) => {
+                         const isChecked = $(`#${id}`).prop('checked');
+                         console.log(`Checking ID: ${id}, Result: ${isChecked}`); // This will show in your browser console (F12)
+                         return isChecked ? "1" : "0";
+                     };
+                 // 1. تجميع البيانات الأساسية
+                 const updatedData = {
+                     UserCode: parseInt($('#userIdEdit').val()) || 0,
+                     UserName: $('#userNameInputEdit').val(),
+                     UserPasswd: $('#userPasswordInputEdit').val(),
+                     // بما أن FullNameInputEdit أصبح Dropdown، نأخذ النص المختار
+                     FullNameArabic: $('#FullNameInputEdit').val(),
+
+                       // Group 1: Transactions
+                         Prog01: getCheckValue('ProgModalEdit01'),
+                         Prog02: getCheckValue('ProgModalEdit02'),
+                         Prog03: getCheckValue('ProgModalEdit03'),
+                         Prog11: getCheckValue('ProgModalEdit11'),
+                         Prog12: getCheckValue('ProgModalEdit12'),
+
+                         // Group 2: Warehouse Balances
+                         Prog13: getCheckValue('ProgModalEdit13'),
+                         Prog14: getCheckValue('ProgModalEdit14'),
+                         Prog21: getCheckValue('ProgModalEdit21'),
+                         Prog22: getCheckValue('ProgModalEdit22'),
+                         Prog23: getCheckValue('ProgModalEdit23'),
+                         Prog24: getCheckValue('ProgModalEdit24'),
+
+                         // Group 3: System Codes
+                         Prog25: getCheckValue('ProgModalEdit25'),
+                         Prog29: getCheckValue('ProgModalEdit29'), // Suppliers
+                         Prog31: getCheckValue('ProgModalEdit31'),
+                         Prog32: getCheckValue('ProgModalEdit32'),
+
+                         // Group 4: System Management
+                         Prog33: getCheckValue('ProgModalEdit33'),
+                         Prog34: getCheckValue('ProgModalEdit34'),
+                         Prog35: getCheckValue('ProgModalEdit35')
+                 };
+
+                 // 2. تجميع صلاحيات الـ Prog ديناميكياً من الـ Checkboxes
+                 $('input[type="checkbox"][id^="ProgModalEdit"]').each(function() {
+                     const idNumber = this.id.replace('ProgModalEdit', '');
+                     // نقوم بإضافة الخاصية للكائن: مثلاً Prog11 = "1"
+                     updatedData['Prog' + idNumber] = $(this).prop('checked') ? "1" : "0";
+                 });
+           
+                 _AlertHelper.showLoading()
+                 // 3. إرسال طلب AJAX للتعديل
+                 $.ajax({
+                     url: '@Url.Action("UpdateUser", "SystemManagement")', // تأكد أن الميثود في الـ Controller اسمها UpdateUser
+                     type: 'POST',
+                     contentType: 'application/json; charset=utf-8',
+                     dataType: 'json',
+                     data: JSON.stringify(updatedData),
+                     success: function (response) {
+                         if (response.success) {
+                     _AlertHelper.showSuccess(response.message).then(() => {
+                         location.reload(); // تحديث الصفحة لرؤية التغييرات في الجدول
+                     });
+                         } else {
+                             _AlertHelper.showError(response.message,'خطأ في الاتصال');
+                         }
+                     },
+                     error: function () {
+                         _AlertHelper.showError("حدث خطأ أثناء الاتصال بالسيرفر، يرجى المحاولة مرة أخرى",'خطأ في الاتصال');
+                     }
+                 });
+             });
+
+                     });
+       function deleteUser(userCode) {
+
+            _AlertHelper.showConfirm("هل أنت متأكد؟", "سيتم حذف هذا المستخدم نهائياً", "نعم، احذف")
+
+            .then((result) => {
+                if (result.isConfirmed) {
+                    _AlertHelper.showToast("جاري الحذف...", "info");
+
+                    $.ajax({
+                        url: '@Url.Action("Delete", "SystemManagement")',
+                        type: 'POST',
+                        contentType: 'application/json; charset=utf-8',
+                        data: JSON.stringify({ UserCode: userCode }), // Use the parameter passed to function
+                        success: function (response) {
+                            if (response.success) {
+                                _AlertHelper.showSuccess(response.message).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                // This handles manual 'success: false' from controller
+                                _AlertHelper.showError(response.message, 'فشل الحذف');
+                            }
+                        },
+                        error: function (xhr) {
+                            // This handles errors caught by Middleware (400, 500 status codes)
+                            var errorMsg = "حدث خطأ أثناء الاتصال بالسيرفر";
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                            _AlertHelper.showError(errorMsg, 'خطأ');
+                        }
+                    });
+                }
+            });
+        }
+                           // --- TOGGLE MODAL ---
+        function toggleModal() {
+                  $('#userModal').toggleClass('hidden');
+                           }
+
+        function openEditModal(userCode) {
+                    debugger;
+                    // 1. تحديد بيانات المستخدم من المصفوفة الموجودة مسبقاً
+                    // ملاحظة: نستخدم == للمقارنة لأن userCode قد يأتي كـ string من الـ HTML
+                    const user = usersData.find(u => u.userCode == userCode);
+
+                    if (user) {
+                        // 2. تحديث عنوان المودال وتعبئة الحقول الأساسية
+                        $('#modalTitleEdit').text('تعديل بيانات المستخدم: ' + user.fullNameArabic);
+                        $('#userIdEdit').val(user.userCode);
+                        $('#FullNameInputEdit').val(user.fullNameArabic);
+                        $('#userNameInputEdit').val(user.userName);
+                        $('#userPasswordInputEdit').val(user.userPasswd); // تعبئة كلمة المرور إن وجدت
+
+                        // 3. تعبئة القوائم المنسدلة (الدور والحالة)
+                        $('#userRoleSelectEdit').val(user.prog01); // 1 لمدير، 0 لمستخدم
+                        $('#userStatusSelectEdit').val(user.prog29); // 1 لنشط، 0 لغير نشط
+
+                        // 4. تعبئة الـ Checkboxes الخاصة بالتعديل (التي تبدأ بـ ProgModalEdit)
+                        $('input[type="checkbox"][id^="ProgModalEdit"]').each(function() {
+                            // استخراج الرقم من الـ ID (مثلاً ProgModalEdit11 يعطينا 11)
+                            const idNumber = this.id.replace('ProgModalEdit', '');
+                            const propertyName = 'prog' + idNumber; // تصبح prog11
+
+                            // ضبط حالة الاختيار (Checked) إذا كانت القيمة "1"
+                            $(this).prop('checked', user[propertyName] === "1");
+                        });
+
+                        // 5. إظهار مودال التعديل
+                        $('#userModalEdit').removeClass('hidden');
+                    } else {
+                        alert("عذراً، لم يتم العثور على بيانات المستخدم.");
+                    }
+                }
+               function closeEditModal() {
+                  $('#userModalEdit').addClass('hidden');
+                 }
+               function openAddModal() {
+                         $('#modalTitle').text('إضافة مستخدم جديد');
+                         $('#userForm')[0].reset(); // Clear form
+                         $('#userId').val('');      // Clear ID
+                         $('#userModal').removeClass('hidden');
+                     }
+    </script>
+}

@@ -1,0 +1,23 @@
+﻿<header class="flex h-16 items-center justify-between border-b border-[#f0f2f4] dark:border-[#334155] bg-white dark:bg-[#1e293b] px-6 py-3">
+    <div class="flex items-center gap-4 text-[#111418] dark:text-white">
+        <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Inventory Management</h2>
+    </div>
+    <div class="flex items-center gap-6">
+        @* <label class="hidden md:flex flex-col min-w-40 w-96 !h-10">
+            <div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-[#f0f2f4] dark:bg-[#0f172a] overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-shadow">
+                <div class="text-[#617589] flex items-center justify-center pl-4">
+                    <span class="material-symbols-outlined text-[20px]">search</span>
+                </div>
+                <input class="w-full flex-1 border-none bg-transparent px-3 text-sm font-normal text-[#111418] dark:text-white placeholder-[#617589] focus:outline-none focus:ring-0" placeholder="Search assets by tag, name, or category..." />
+            </div>
+        </label> *@
+        @* <button class="relative flex items-center justify-center rounded-full size-10 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] text-[#111418] dark:text-white transition-colors">
+            <span class="material-symbols-outlined text-[24px]">notifications</span>
+            <span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white dark:border-[#1e293b]"></span>
+        </button> *@
+        <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" onclick="document.documentElement.classList.toggle('dark')">
+            <span class="material-icons-round dark:hidden">dark_mode</span>
+            <span class="material-icons-round hidden dark:block">light_mode</span>
+        </button>
+    </div>
+</header>

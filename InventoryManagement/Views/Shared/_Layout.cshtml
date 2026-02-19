@@ -1,0 +1,264 @@
+﻿@using Microsoft.AspNetCore.Localization
+@{
+    var culture = Context.Features.Get<IRequestCultureFeature>();
+    var isRtl = culture?.RequestCulture.UICulture.TextInfo.IsRightToLeft ?? false;
+}
+<!DOCTYPE html>
+<html lang="@culture?.RequestCulture.UICulture.Name"
+      dir="@(isRtl ? "rtl" : "ltr")">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - EGX Inventory Dashboard</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <link href="https://www.telerik.com/services/reporting/styles/telerikReportViewer-19.3.26.121.css" rel="stylesheet" />
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <script>
+        // Dark mode persistence - runs before page renders to prevent flash
+        (function() {
+            const darkMode = localStorage.getItem('darkMode');
+            if (darkMode === 'true') {
+                document.documentElement.classList.add('dark');
+            } else if (darkMode === 'false') {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #94a3b8;
+            }
+
+        html[dir="rtl"] body {
+            direction: rtl;
+            text-align: right;
+        }
+
+        html[dir="rtl"] .text-left {
+            text-align: right !important;
+        }
+
+        html[dir="rtl"] .float-start {
+            float: right !important;
+        }
+        /* Targeting the class ASP.NET Core automatically applies to the span */
+        .field-validation-error {
+            color: #ef4444 !important; /* Tailwind's red-500 */
+            font-size: 0.75rem; /* text-xs */
+            margin-top: 0.25rem; /* mt-1 */
+            display: block; /* block */
+            font-weight: 500;
+        }
+
+        /* Optional: Make the input border red when invalid */
+        .input-validation-error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 1px #ef4444 !important;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white">
+    <div class="flex h-screen w-full overflow-hidden">
+
+        @await Html.PartialAsync("_Sidebar")
+
+        <main class="flex flex-1 flex-col overflow-hidden bg-background-light dark:bg-background-dark">
+            <header class="flex h-16 items-center justify-between border-b border-[#f0f2f4] dark:border-[#334155] bg-white dark:bg-[#1e293b] px-6 py-3">
+                <div class="flex items-center gap-4 text-[#111418] dark:text-white">
+                    <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Inventory Management</h2>
+                </div>
+                <div class="flex items-center gap-6">
+                    @* <label class="hidden md:flex flex-col min-w-40 w-96 !h-10">
+                        <div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-[#f0f2f4] dark:bg-[#0f172a] overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-shadow">
+                            <div class="text-[#617589] flex items-center justify-center pl-4">
+                                <span class="material-symbols-outlined text-[20px]">search</span>
+                            </div>
+                            <input class="w-full flex-1 border-none bg-transparent px-3 text-sm font-normal text-[#111418] dark:text-white placeholder-[#617589] focus:outline-none focus:ring-0" placeholder="Search assets by tag, name, or category..." />
+                        </div>
+                    </label>
+                    <button class="relative flex items-center justify-center rounded-full size-10 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] text-[#111418] dark:text-white transition-colors">
+                        <span class="material-symbols-outlined text-[24px]">notifications</span>
+                        <span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white dark:border-[#1e293b]"></span>
+                    </button> *@
+                    <button id="darkModeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <span class="material-icons-round dark:hidden">dark_mode</span>
+                        <span class="material-icons-round hidden dark:block">light_mode</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-6 md:p-8 lg:px-12">
+                @RenderBody()
+                @if (ViewBag.ErrorMessage != null)
+                {
+                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            Swal.fire({
+                                title: 'Oops!',
+                                text: '@Html.Raw(ViewBag.ErrorMessage)',
+                                icon: 'error',
+                                confirmButtonColor: '#e31e24', // Your Mega Power primary color
+                                confirmButtonText: 'Understood'
+                            });
+                        });
+                    </script>
+                }
+            </div>
+
+        </main>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="~/js/default.js"></script>
+    <script>
+        $(document).ready(function() {
+            // --- Dark Mode Toggle with localStorage persistence ---
+            $('#darkModeToggle').on('click', function() {
+                document.documentElement.classList.toggle('dark');
+                const isDark = document.documentElement.classList.contains('dark');
+                localStorage.setItem('darkMode', isDark);
+            });
+
+            // --- Initialization: Set the initial state on page load ---
+            const $submenu = $('#inventory-submenu');
+            const $icon = $('#inventory-icon');
+
+            // Ensure the menu starts collapsed (add the 'hidden' class)
+            // .addClass('hidden') is safe to call even if the class is already present.
+            $submenu.addClass('hidden');
+
+            // Ensure the icon starts as 'expand_more' (collapsed state)
+            $icon.text('expand_more');
+
+            // --- Event Listener: Handle click event ---
+            $('#inventory-toggle').on('click', function() {
+                // Toggle the visibility of the submenu by toggling the 'hidden' class
+                $submenu.toggleClass('hidden');
+
+                // Check if the submenu is currently visible (does NOT have the 'hidden' class)
+                if ($submenu.is(':visible')) {
+                    // Expanded state
+                    $icon.text('expand_less');
+                } else {
+                    // Collapsed state
+                    $icon.text('expand_more');
+                }
+            });
+        });
+    </script>
+    <script>
+        $(document).on('click', '#langSwitcher', function (e) {
+            e.preventDefault();
+
+            // 1. Use Razor to get the correct URL regardless of PathBase
+            const actionUrl = '@Url.Action("SetLanguage", "Language")';
+
+            // 2. Get current culture from the server (short name)
+            const currentCulture = '@System.Threading.Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName';
+
+            // 3. Toggle between 'ar' and 'en' to match your route constraints
+            const newCulture = (currentCulture === 'ar') ? 'en' : 'ar';
+
+            // 4. Full path including /inventory/en/...
+            const returnUrl = window.location.pathname + window.location.search;
+
+            console.log("Redirecting to:", actionUrl);
+            console.log("Current Path:", returnUrl);
+
+            const $form = $('<form>', {
+                action: actionUrl,
+                method: 'POST'
+            }).append($('<input>', { type: 'hidden', name: 'culture', value: newCulture }))
+              .append($('<input>', { type: 'hidden', name: 'returnUrl', value: returnUrl }));
+
+            $('body').append($form);
+            $form.submit();
+        });
+    </script>
+    <script>
+         $(document).ready(function () {
+            // 1. Get the current URL path (e.g., /Home/Index)
+            var currentPath = window.location.pathname;
+
+            // 2. Loop through every link in the sidebar
+            $('aside a').each(function () {
+                var linkHref = $(this).attr('href');
+
+                // 3. Check if the current path matches the link's href
+                if (currentPath === linkHref || (currentPath === '/' && linkHref.includes('/Home/Index'))) {
+
+                    // Highlight the active link
+                    $(this).addClass('bg-primary text-white').removeClass('text-[#111418] dark:text-slate-300 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]');
+
+                    // 4. Handle Submenus: If the link is inside a hidden menu, open it
+                    var parentSubmenu = $(this).closest('[id$="-submenu"]');
+                    if (parentSubmenu.length > 0) {
+                        parentSubmenu.removeClass('hidden');
+
+                        // Optional: Highlight the parent category button for better UX
+                        var parentToggle = parentSubmenu.prev('[tabindex="0"]');
+                        parentToggle.addClass('bg-slate-100 dark:bg-slate-800');
+                    }
+
+                    // 5. Handle Nested Submenus (e.g., Items -> Item Codes -> Main Category)
+                    $(this).parents('.hidden').removeClass('hidden');
+                }
+            });
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
