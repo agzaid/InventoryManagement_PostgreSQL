@@ -5,5 +5,6 @@ namespace Domain.Entities
     {
         public string BranchCode { get; set; }
         public string BranchDesc { get; set; }
+        public string BranchDescArabic { get; set; }
     }
 }

@@ -1,14 +1,11 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Persistance
 {
     public class InventoryManagementDbContext : AuditableDbContext
     {
-        public InventoryManagementDbContext(DbContextOptions<InventoryManagementDbContext> options):base(options)
+        public InventoryManagementDbContext(DbContextOptions<InventoryManagementDbContext> options) : base(options)
         {
         }
         public DbSet<Department> Departments { get; set; }
@@ -31,8 +28,6 @@ namespace Persistance
         {
             base.OnModelCreating(modelBuilder);
 
-            // Default schema
-            modelBuilder.HasDefaultSchema("KWAREHOUSE");
 
             modelBuilder.Entity<Department>(entity =>
             {
@@ -51,10 +46,17 @@ namespace Persistance
             });
             modelBuilder.Entity<Branch>(entity =>
             {
-                entity.ToTable("BRANCHES");
+                entity.ToTable("branches", "kwarehouse");
+
                 entity.HasKey(e => e.BranchCode);
-                entity.Property(e => e.BranchCode).HasColumnName("BRANCH_CODE");
-                entity.Property(e => e.BranchDesc).HasColumnName("BRANCH_DESC");
+
+                entity.Property(e => e.BranchCode)
+                    .HasColumnName("branch_code")
+                    .HasColumnType("character")
+                    .IsRequired();
+
+                entity.Property(e => e.BranchDesc)
+                    .HasColumnName("branch_desc");
             });
             modelBuilder.Entity<EmpEgx>(entity =>
             {
@@ -233,13 +235,22 @@ namespace Persistance
                 entity.Property(e => e.CardSerial).HasColumnName("CARD_SERIAL");
             });
 
-            // ITEM_CATEGORY
+            // 1. Define the sequence again
+            modelBuilder.HasSequence<int>("seq_item_category_code")
+                        .StartsAt(1)
+                        .IncrementsBy(1);
+
             modelBuilder.Entity<ItemCategory>(entity =>
             {
-                entity.ToTable("ITEM_CATEGORY");
+                entity.ToTable("item_category"); // Ensure this matches your actual table name
                 entity.HasKey(e => e.CatgryCode);
-                entity.Property(e => e.CatgryCode).HasColumnName("CATGRY_CODE");
-                entity.Property(e => e.CatgryDesc).HasColumnName("CATGRY_DESC");
+
+                entity.Property(e => e.CatgryCode)
+                .HasColumnName("catgry_code");
+
+                // Add this line specifically to map the description column correctly
+                entity.Property(e => e.CatgryDesc)
+                      .HasColumnName("catgry_desc");
             });
 
             // MONTHLY_BALANCE
@@ -328,17 +339,28 @@ namespace Persistance
                 entity.Property(e => e.MsgDesc).HasColumnName("MSG_DESC");
             });
 
-            modelBuilder.HasSequence<long>("SEQ_ITEM_CATEGORY_CODE");
+           
 
-            modelBuilder.Entity<ItemCategory>(entity =>
+            modelBuilder.HasDefaultSchema("KWAREHOUSE");
+
+            foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
-                entity.HasKey(e => e.CatgryCode);
+                // Lowercase the Table Name
+                var tableName = entity.GetTableName();
+                if (!string.IsNullOrEmpty(tableName))
+                    entity.SetTableName(tableName.ToLower());
 
-                // Tell EF to use the sequence for this property
-                entity.Property(e => e.CatgryCode)
-                      .HasDefaultValueSql("SEQ_ITEM_CATEGORY_CODE.NEXTVAL")
-                      .ValueGeneratedOnAdd();
-            });
+                // Lowercase the Schema Name
+                var schema = entity.GetSchema();
+                if (!string.IsNullOrEmpty(schema))
+                    entity.SetSchema(schema.ToLower());
+
+                // Lowercase all Column Names
+                foreach (var property in entity.GetProperties())
+                {
+                    property.SetColumnName(property.GetColumnName().ToLower());
+                }
+            }
         }
 
     }
