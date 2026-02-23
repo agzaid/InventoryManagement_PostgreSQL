@@ -2,7 +2,7 @@
 using Application.Interfaces.Models;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Oracle.ManagedDataAccess.Client;
+//using Oracle.ManagedDataAccess.Client;
 using System.Linq.Expressions;
 
 namespace Persistance.Repositories

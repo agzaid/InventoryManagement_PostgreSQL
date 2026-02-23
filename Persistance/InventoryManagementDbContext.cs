@@ -31,29 +31,40 @@ namespace Persistance
 
             modelBuilder.Entity<Department>(entity =>
             {
-                // Map table
-                entity.ToTable("DEPARTMENTS");
+                entity.ToTable("DEPARTMENTS", "KWAREHOUSE"); 
 
-                // Primary key
-                entity.HasKey(e => e.DepCode);
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd();
 
-                // Map properties to exact Oracle columns
-                entity.Property(e => e.DepCode).HasColumnName("DEP_CODE");
-                entity.Property(e => e.DepDesc).HasColumnName("DEP_DESC");
-                entity.Property(e => e.SectorCode).HasColumnName("SECTOR_CODE");
-                entity.Property(e => e.GeneralManeg).HasColumnName("GENERAL_MANEG");
-                entity.Property(e => e.ManegSupCode).HasColumnName("MANEG_SUPCODE");
+                entity.Property(e => e.DepCode)
+                    .HasColumnName("dep_code")
+                    .IsRequired();
+                entity.HasIndex(e => e.DepCode).IsUnique();
+
+                entity.Property(e => e.DepDesc).HasColumnName("dep_desc");
+                entity.Property(e => e.SectorCode).HasColumnName("sector_code");
+                entity.Property(e => e.GeneralManeg).HasColumnName("general_maneg");
+                entity.Property(e => e.ManegSupCode).HasColumnName("maneg_supcode");
             });
+
             modelBuilder.Entity<Branch>(entity =>
             {
                 entity.ToTable("branches", "kwarehouse");
 
-                entity.HasKey(e => e.BranchCode);
+                // Map the C# 'Id' property to the database 'id' column
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd(); // This confirms it's the Identity column
+
+                entity.HasKey(e => e.Id);
 
                 entity.Property(e => e.BranchCode)
-                    .HasColumnName("branch_code")
-                    .HasColumnType("character")
+                    .HasColumnName("branch_code") // Recommendation: Specify length or use "text"
                     .IsRequired();
+
+                entity.HasIndex(e => e.BranchCode).IsUnique();
 
                 entity.Property(e => e.BranchDesc)
                     .HasColumnName("branch_desc");

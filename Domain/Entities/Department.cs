@@ -6,6 +6,7 @@ namespace Domain.Entities
 {
     public class Department
     {
+        public int Id { get; set; }
         public int DepCode { get; set; }
         public string DepDesc { get; set; }
         public string SectorCode { get; set; }

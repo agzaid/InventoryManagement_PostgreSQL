@@ -5,8 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Persistance.Repositories;
-using Oracle.EntityFrameworkCore; // The primary namespace
-using Oracle.EntityFrameworkCore.Infrastructure; // Often contains configuration
 
 namespace Persistance
 {
@@ -37,7 +35,8 @@ namespace Persistance
             //register dbcontext with postegresql
             services.AddDbContext<InventoryManagementDbContext>(options =>
             {
-                options.UseNpgsql(connectionString)
+                options.UseNpgsql(connectionString,x=>
+                x.MigrationsHistoryTable("__EFMigrationsHistory", "kwarehouse"))
                        .EnableSensitiveDataLogging()
                        .LogTo(Console.WriteLine, LogLevel.Information);
             });

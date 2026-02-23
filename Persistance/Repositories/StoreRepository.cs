@@ -1,7 +1,7 @@
 ﻿using Application.Interfaces.Contracts.Persistance;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Oracle.ManagedDataAccess.Client;
+//using Oracle.ManagedDataAccess.Client;
 
 namespace Persistance.Repositories
 {
