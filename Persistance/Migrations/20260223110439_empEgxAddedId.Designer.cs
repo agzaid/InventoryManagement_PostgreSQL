@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Persistance;
@@ -11,9 +12,11 @@ using Persistance;
 namespace Persistance.Migrations
 {
     [DbContext(typeof(InventoryManagementDbContext))]
-    partial class InventoryManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260223110439_empEgxAddedId")]
+    partial class empEgxAddedId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -206,12 +209,29 @@ namespace Persistance.Migrations
 
             modelBuilder.Entity("Domain.Entities.InvTrans", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("StoreCode")
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("storecode");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<int>("TrType")
+                        .HasColumnType("integer")
+                        .HasColumnName("trtype");
+
+                    b.Property<DateTime>("TrDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("trdate");
+
+                    b.Property<int>("TrNum")
+                        .HasColumnType("integer")
+                        .HasColumnName("trnum");
+
+                    b.Property<int>("TrSerial")
+                        .HasColumnType("integer")
+                        .HasColumnName("trserial");
+
+                    b.Property<string>("ItemCode")
+                        .HasColumnType("character varying(5)")
+                        .HasColumnName("itemcode");
 
                     b.Property<int?>("BillNum")
                         .HasColumnType("integer")
@@ -233,17 +253,13 @@ namespace Persistance.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("empcode");
 
-                    b.Property<int?>("EmployeeId")
+                    b.Property<int>("EmployeeId")
                         .HasColumnType("integer")
                         .HasColumnName("employeeid");
 
                     b.Property<int?>("FromToStore")
                         .HasColumnType("integer")
                         .HasColumnName("fromtostore");
-
-                    b.Property<string>("ItemCode")
-                        .HasColumnType("character varying(5)")
-                        .HasColumnName("itemcode");
 
                     b.Property<decimal?>("ItemPrice")
                         .HasColumnType("numeric")
@@ -257,39 +273,19 @@ namespace Persistance.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("orderdate");
 
-                    b.Property<int>("StoreCode")
-                        .HasColumnType("integer")
-                        .HasColumnName("storecode");
-
                     b.Property<int?>("SuplierCode")
                         .HasColumnType("integer")
                         .HasColumnName("supliercode");
-
-                    b.Property<DateTime>("TrDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("trdate");
 
                     b.Property<DateTime?>("TrDate2")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("trdate2");
 
-                    b.Property<int>("TrNum")
-                        .HasColumnType("integer")
-                        .HasColumnName("trnum");
-
                     b.Property<int?>("TrNum2")
                         .HasColumnType("integer")
                         .HasColumnName("trnum2");
 
-                    b.Property<int>("TrSerial")
-                        .HasColumnType("integer")
-                        .HasColumnName("trserial");
-
-                    b.Property<int>("TrType")
-                        .HasColumnType("integer")
-                        .HasColumnName("trtype");
-
-                    b.HasKey("Id");
+                    b.HasKey("StoreCode", "TrType", "TrDate", "TrNum", "TrSerial", "ItemCode");
 
                     b.HasIndex("DepCode");
 
@@ -298,9 +294,6 @@ namespace Persistance.Migrations
                     b.HasIndex("ItemCode");
 
                     b.HasIndex("SuplierCode");
-
-                    b.HasIndex("StoreCode", "TrType", "TrDate", "TrNum", "TrSerial", "ItemCode")
-                        .IsUnique();
 
                     b.ToTable("inv_trans", "kwarehouse");
                 });
@@ -805,18 +798,20 @@ namespace Persistance.Migrations
                 {
                     b.HasOne("Domain.Entities.Department", "Department")
                         .WithMany()
-                        .HasForeignKey("DepCode")
-                        .HasPrincipalKey("DepCode");
+                        .HasForeignKey("DepCode");
 
                     b.HasOne("Domain.Entities.EmpEgx", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Domain.Entities.Item", "Item")
                         .WithMany()
                         .HasForeignKey("ItemCode")
-                        .HasPrincipalKey("ItemCode");
+                        .HasPrincipalKey("ItemCode")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Domain.Entities.Supplier", "Supplier")
                         .WithMany()

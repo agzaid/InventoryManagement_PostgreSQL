@@ -6,6 +6,7 @@ namespace Domain.Entities
 {
     public class InvTrans
     {
+        public int Id { get; set; }
         public int StoreCode { get; set; }
         public int TrType { get; set; }
         public DateTime TrDate { get; set; }
@@ -28,7 +29,8 @@ namespace Domain.Entities
         //navigation properties
         public virtual Item Item { get; set; }
         public virtual Supplier Supplier { get; set; }
-        public virtual EmpEgx Employee { get; set; }
+        public int? EmployeeId { get; set; } // The new foreign key
+        public EmpEgx Employee { get; set; }
         public virtual Department Department { get; set; }
     }
 

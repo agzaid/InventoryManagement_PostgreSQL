@@ -71,12 +71,22 @@ namespace Persistance
             });
             modelBuilder.Entity<EmpEgx>(entity =>
             {
-                entity.ToTable("EMP_EGX");
-                entity.HasKey(e => new { e.DepCode, e.EmpCode }); // Composite Key
-                entity.Property(e => e.DepCode).HasColumnName("DEP_CODE");
-                entity.Property(e => e.EmpCode).HasColumnName("EMP_CODE");
-                entity.Property(e => e.EmpName).HasColumnName("EMP_NAME");
-                entity.Property(e => e.BranchCode).HasColumnName("BRANCH_CODE");
+                entity.ToTable("EMP_EGX", "KWAREHOUSE"); // Ensure schema is consistent
+
+                // 1. Set the new 'Id' as the Primary Key
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd(); 
+
+                entity.HasIndex(e => new { e.DepCode, e.EmpCode })
+                    .IsUnique();
+
+                entity.Property(e => e.DepCode).HasColumnName("dep_code");
+                entity.Property(e => e.EmpCode).HasColumnName("emp_code");
+                entity.Property(e => e.EmpName).HasColumnName("emp_name");
+                entity.Property(e => e.BranchCode).HasColumnName("branch_code");
             });
             modelBuilder.Entity<HInvTrans>(entity =>
             {
@@ -117,45 +127,45 @@ namespace Persistance
             });
             modelBuilder.Entity<InvTrans>(entity =>
             {
-                entity.ToTable("INV_TRANS");
-                entity.HasKey(e => new { e.StoreCode, e.TrType, e.TrDate, e.TrNum, e.TrSerial, e.ItemCode });
-                entity.Property(e => e.StoreCode).HasColumnName("STORE_CODE");
-                entity.Property(e => e.TrType).HasColumnName("TR_TYPE");
-                entity.Property(e => e.TrDate).HasColumnName("TR_DATE");
-                entity.Property(e => e.TrNum).HasColumnName("TR_NUM");
-                entity.Property(e => e.TrSerial).HasColumnName("TR_SERIAL");
-                entity.Property(e => e.ItemCode).HasColumnName("ITEM_CODE");
-                entity.Property(e => e.DepCode).HasColumnName("DEP_CODE");
-                entity.Property(e => e.EmpCode).HasColumnName("EMP_CODE");
-                entity.Property(e => e.SuplierCode).HasColumnName("SUPLIER_CODE");
-                entity.Property(e => e.FromToStore).HasColumnName("FROM_TO_STORE");
-                entity.Property(e => e.ItemQnt).HasColumnName("ITEM_QNT");
-                entity.Property(e => e.ItemPrice).HasColumnName("ITEM_PRICE");
-                entity.Property(e => e.BillNum).HasColumnName("BILL_NUM");
-                entity.Property(e => e.TrNum2).HasColumnName("TR_NUM2");
-                entity.Property(e => e.TrDate2).HasColumnName("TR_DATE2");
-                entity.Property(e => e.OrderDate).HasColumnName("ORDER_DATE");
-                entity.Property(e => e.DeliverNo).HasColumnName("DELIVER_NO");
-                entity.Property(e => e.DeliverDate).HasColumnName("DELIVER_DATE");
-                entity.HasOne(d => d.Item)
-                       .WithMany() // أو .WithMany(p => p.InvTrans) إذا كانت العلاقة معرفة في الطرفين
-                       .HasForeignKey(d => d.ItemCode)
-                       .HasPrincipalKey(p => p.ItemCode); // تأكد أن هذا هو اسم المفتاح في جدول الأصناف
+                entity.ToTable("INV_TRANS", "KWAREHOUSE");
+                entity.HasKey(e => e.Id);
 
-                // ربط جدول الموردين
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd();
+
+                entity.HasIndex(e => new { e.StoreCode, e.TrType, e.TrDate, e.TrNum, e.TrSerial, e.ItemCode })
+                    .IsUnique();
+
+                // ... (Keep your property mappings as they are) ...
+
+                // 1. CLEAN RELATIONSHIP: Link using the new EmployeeId
+                entity.HasOne(d => d.Employee)
+                      .WithMany()
+                      .HasForeignKey(d => d.EmployeeId)
+                      .OnDelete(DeleteBehavior.Restrict); // Recommended for safety
+
+                // 2. REMOVE the old composite relationship block completely
+                // DELETE THESE LINES:
+                // entity.HasOne(d => d.Employee)
+                //       .WithMany()
+                //       .HasForeignKey(d => new { d.DepCode, d.EmpCode });
+
+                // Keep other relationships
+                entity.HasOne(d => d.Item)
+                      .WithMany()
+                      .HasForeignKey(d => d.ItemCode)
+                      .HasPrincipalKey(p => p.ItemCode);
+
                 entity.HasOne(d => d.Supplier)
                       .WithMany()
                       .HasForeignKey(d => d.SuplierCode)
                       .HasPrincipalKey(p => p.SuplierCode);
+
                 entity.HasOne(d => d.Department)
-                  .WithMany()
-                  .HasForeignKey(d => d.DepCode);
-
-                entity.HasOne(d => d.Employee)
                       .WithMany()
-                      .HasForeignKey(d => new { d.DepCode, d.EmpCode });
-
-
+                      .HasForeignKey(d => d.DepCode)
+                      .HasPrincipalKey(p => p.DepCode);
             });
 
 
