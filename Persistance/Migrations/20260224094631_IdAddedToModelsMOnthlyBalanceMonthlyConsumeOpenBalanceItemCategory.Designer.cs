@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Persistance;
@@ -11,9 +12,11 @@ using Persistance;
 namespace Persistance.Migrations
 {
     [DbContext(typeof(InventoryManagementDbContext))]
-    partial class InventoryManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260224094631_IdAddedToModelsMOnthlyBalanceMonthlyConsumeOpenBalanceItemCategory")]
+    partial class IdAddedToModelsMOnthlyBalanceMonthlyConsumeOpenBalanceItemCategory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -761,12 +764,12 @@ namespace Persistance.Migrations
 
             modelBuilder.Entity("Domain.Entities.Store", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("StoreCode")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("store_code");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("StoreCode"));
 
                     b.Property<int>("BackNum")
                         .HasColumnType("integer")
@@ -788,10 +791,6 @@ namespace Persistance.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("scrap_num");
 
-                    b.Property<int>("StoreCode")
-                        .HasColumnType("integer")
-                        .HasColumnName("store_code");
-
                     b.Property<string>("StoreDesc")
                         .HasColumnType("text")
                         .HasColumnName("store_desc");
@@ -808,22 +807,19 @@ namespace Persistance.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("to_num");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("StoreCode")
-                        .IsUnique();
+                    b.HasKey("StoreCode");
 
                     b.ToTable("stores", "kwarehouse");
                 });
 
             modelBuilder.Entity("Domain.Entities.Supplier", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("SuplierCode")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("suplier_code");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SuplierCode"));
 
                     b.Property<string>("SuplierActivity")
                         .HasColumnType("text")
@@ -832,10 +828,6 @@ namespace Persistance.Migrations
                     b.Property<string>("SuplierAddress")
                         .HasColumnType("text")
                         .HasColumnName("suplier_address");
-
-                    b.Property<int>("SuplierCode")
-                        .HasColumnType("integer")
-                        .HasColumnName("suplier_code");
 
                     b.Property<string>("SuplierDesc")
                         .HasColumnType("text")
@@ -853,10 +845,7 @@ namespace Persistance.Migrations
                         .HasColumnType("text")
                         .HasColumnName("suplier_tel");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("SuplierCode")
-                        .IsUnique();
+                    b.HasKey("SuplierCode");
 
                     b.ToTable("supplier", "kwarehouse");
                 });
@@ -916,8 +905,7 @@ namespace Persistance.Migrations
 
                     b.HasOne("Domain.Entities.Supplier", "Supplier")
                         .WithMany()
-                        .HasForeignKey("SuplierCode")
-                        .HasPrincipalKey("SuplierCode");
+                        .HasForeignKey("SuplierCode");
 
                     b.Navigation("Department");
 

@@ -6,6 +6,7 @@ namespace Domain.Entities
 {
     public class InvUser
     {
+        public int Id { get; set; }
         public int UserCode { get; set; }
         public string UserName { get; set; }
         public string UserPasswd { get; set; }

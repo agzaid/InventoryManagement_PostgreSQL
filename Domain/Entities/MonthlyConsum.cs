@@ -6,6 +6,7 @@ namespace Domain.Entities
 {
     public class MonthlyConsum
     {
+        public int Id { get; set; }
         public int StoreCode { get; set; }
         public int ConsumYear { get; set; }
         public int ConsumMonth { get; set; }

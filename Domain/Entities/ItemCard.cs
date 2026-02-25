@@ -6,6 +6,7 @@ namespace Domain.Entities
 {
     public class ItemCard
     {
+        public int Id { get; set; }
         public int? StoreCode { get; set; }
         public string ItemCode { get; set; }
         public string ItemDesc { get; set; }

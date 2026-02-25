@@ -173,7 +173,14 @@ namespace Persistance
             modelBuilder.Entity<InvUser>(entity =>
             {
                 entity.ToTable("INV_USERS");
-                entity.HasKey(e => e.UserCode);
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd();
+
+                entity.HasIndex(e => e.UserCode)
+                    .IsUnique();
 
                 // --- THE RELATIONSHIP DEFINITION ---
                 entity.HasOne(u => u.Employee)           // InvUser has one Employee
@@ -206,7 +213,15 @@ namespace Persistance
             modelBuilder.Entity<Item>(entity =>
             {
                 entity.ToTable("ITEMS");
-                entity.HasKey(e => new { e.CatgryCode, e.ItemCode });
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd();
+
+                entity.HasIndex(e => new { e.CatgryCode, e.ItemCode })
+                    .IsUnique();
+
                 entity.Property(e => e.ItemCode).HasColumnName("ITEM_CODE").HasMaxLength(5).HasDefaultValueSql("NULL");
                 entity.Property(e => e.CatgryCode).HasColumnName("CATGRY_CODE").HasMaxLength(2);
                 entity.Property(e => e.ItemDesc).HasColumnName("ITEM_DESC");
@@ -216,6 +231,7 @@ namespace Persistance
                 entity.HasOne(d => d.ItemCategory)      // الصنف له تصنيف واحد
                       .WithMany(p => p.Items)           // التصنيف له أصناف كثيرة
                       .HasForeignKey(d => d.CatgryCode) // المفتاح الأجنبي هو CatgryCode
+                      .HasPrincipalKey(p => p.CatgryCode) // Join it to CatgryCode in ItemCategory
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -223,7 +239,15 @@ namespace Persistance
             modelBuilder.Entity<ItemBalance>(entity =>
             {
                 entity.ToTable("ITEM_BALANCE");
-                entity.HasKey(e => new { e.StoreCode, e.BalDate, e.ItemCode });
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd();
+
+                entity.HasIndex(e => new { e.StoreCode, e.BalDate, e.ItemCode })
+                    .IsUnique();
+
                 entity.Property(e => e.StoreCode).HasColumnName("STORE_CODE");
                 entity.Property(e => e.BalDate).HasColumnName("BAL_DATE");
                 entity.Property(e => e.ItemCode).HasColumnName("ITEM_CODE");
@@ -241,7 +265,15 @@ namespace Persistance
             modelBuilder.Entity<ItemCard>(entity =>
             {
                 entity.ToTable("ITEM_CARD");
-                entity.HasKey(e => new { e.StoreCode, e.ItemCode, e.CardSerial });
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd();
+
+                entity.HasIndex(e => new { e.StoreCode, e.ItemCode, e.CardSerial })
+                    .IsUnique();
+
                 entity.Property(e => e.StoreCode).HasColumnName("STORE_CODE");
                 entity.Property(e => e.ItemCode).HasColumnName("ITEM_CODE");
                 entity.Property(e => e.ItemDesc).HasColumnName("ITEM_DESC");
@@ -264,7 +296,14 @@ namespace Persistance
             modelBuilder.Entity<ItemCategory>(entity =>
             {
                 entity.ToTable("item_category"); // Ensure this matches your actual table name
-                entity.HasKey(e => e.CatgryCode);
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd();
+
+                entity.HasIndex(e => e.CatgryCode)
+                    .IsUnique();
 
                 entity.Property(e => e.CatgryCode)
                 .HasColumnName("catgry_code");
@@ -278,7 +317,15 @@ namespace Persistance
             modelBuilder.Entity<MonthlyBalance>(entity =>
             {
                 entity.ToTable("MONTHLY_BALANCE");
-                entity.HasKey(e => new { e.StoreCode, e.BalYear, e.BalMonth, e.ItemCode });
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd();
+
+                entity.HasIndex(e => new { e.StoreCode, e.BalYear, e.BalMonth, e.ItemCode })
+                    .IsUnique();
+
                 entity.Property(e => e.StoreCode).HasColumnName("STORE_CODE");
                 entity.Property(e => e.BalYear).HasColumnName("BAL_YEAR");
                 entity.Property(e => e.BalMonth).HasColumnName("BAL_MONTH");
@@ -298,7 +345,15 @@ namespace Persistance
             modelBuilder.Entity<MonthlyConsum>(entity =>
             {
                 entity.ToTable("MONTHLY_CONSUM");
-                entity.HasKey(e => new { e.StoreCode, e.ConsumYear, e.ConsumMonth, e.DepCode, e.ItemCode });
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd();
+
+                entity.HasIndex(e => new { e.StoreCode, e.ConsumYear, e.ConsumMonth, e.DepCode, e.ItemCode })
+                    .IsUnique();
+
                 entity.Property(e => e.StoreCode).HasColumnName("STORE_CODE");
                 entity.Property(e => e.ConsumYear).HasColumnName("CONSUM_YEAR");
                 entity.Property(e => e.ConsumMonth).HasColumnName("CONSUM_MONTH");
@@ -312,7 +367,15 @@ namespace Persistance
             modelBuilder.Entity<OpenBalance>(entity =>
             {
                 entity.ToTable("OPEN_BALANCE");
-                entity.HasKey(e => new { e.StoreCode, e.OpenDate, e.ItemCode });
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd();
+
+                entity.HasIndex(e => new { e.StoreCode, e.OpenDate, e.ItemCode })
+                    .IsUnique();
+
                 entity.Property(e => e.StoreCode).HasColumnName("STORE_CODE");
                 entity.Property(e => e.OpenDate).HasColumnName("OPEN_DATE");
                 entity.Property(e => e.ItemCode).HasColumnName("ITEM_CODE");
@@ -324,7 +387,15 @@ namespace Persistance
             modelBuilder.Entity<Store>(entity =>
             {
                 entity.ToTable("STORES");
-                entity.HasKey(e => e.StoreCode);
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd();
+
+                entity.HasIndex(e => e.StoreCode)
+                    .IsUnique();
+
                 entity.Property(e => e.StoreCode).HasColumnName("STORE_CODE");
                 entity.Property(e => e.StoreDesc).HasColumnName("STORE_DESC");
                 entity.Property(e => e.SysDate).HasColumnName("SYS_DATE");
@@ -341,7 +412,15 @@ namespace Persistance
             modelBuilder.Entity<Supplier>(entity =>
             {
                 entity.ToTable("SUPPLIER");
-                entity.HasKey(e => e.SuplierCode);
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .ValueGeneratedOnAdd();
+
+                entity.HasIndex(e => e.SuplierCode)
+                    .IsUnique();
+
                 entity.Property(e => e.SuplierCode).HasColumnName("SUPLIER_CODE");
                 entity.Property(e => e.SuplierDesc).HasColumnName("SUPLIER_DESC");
                 entity.Property(e => e.SuplierAddress).HasColumnName("SUPLIER_ADDRESS");

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Persistance;
@@ -11,9 +12,11 @@ using Persistance;
 namespace Persistance.Migrations
 {
     [DbContext(typeof(InventoryManagementDbContext))]
-    partial class InventoryManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260224093158_idAddedToModelItemBalanceAndItemCard")]
+    partial class idAddedToModelItemBalanceAndItemCard
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -584,15 +587,7 @@ namespace Persistance.Migrations
 
             modelBuilder.Entity("Domain.Entities.ItemCategory", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<string>("CatgryCode")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("catgry_code");
 
@@ -600,30 +595,28 @@ namespace Persistance.Migrations
                         .HasColumnType("text")
                         .HasColumnName("catgry_desc");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("CatgryCode")
-                        .IsUnique();
+                    b.HasKey("CatgryCode");
 
                     b.ToTable("item_category", "kwarehouse");
                 });
 
             modelBuilder.Entity("Domain.Entities.MonthlyBalance", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("StoreCode")
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("store_code");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<int>("BalYear")
+                        .HasColumnType("integer")
+                        .HasColumnName("bal_year");
 
                     b.Property<int>("BalMonth")
                         .HasColumnType("integer")
                         .HasColumnName("bal_month");
 
-                    b.Property<int>("BalYear")
-                        .HasColumnType("integer")
-                        .HasColumnName("bal_year");
+                    b.Property<string>("ItemCode")
+                        .HasColumnType("text")
+                        .HasColumnName("item_code");
 
                     b.Property<decimal>("CurrentBal")
                         .HasColumnType("numeric")
@@ -636,10 +629,6 @@ namespace Persistance.Migrations
                     b.Property<decimal>("ItemBack2")
                         .HasColumnType("numeric")
                         .HasColumnName("item_back2");
-
-                    b.Property<string>("ItemCode")
-                        .HasColumnType("text")
-                        .HasColumnName("item_code");
 
                     b.Property<decimal>("ItemFrom")
                         .HasColumnType("numeric")
@@ -665,42 +654,24 @@ namespace Persistance.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("open_bal");
 
-                    b.Property<int>("StoreCode")
-                        .HasColumnType("integer")
-                        .HasColumnName("store_code");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StoreCode", "BalYear", "BalMonth", "ItemCode")
-                        .IsUnique();
+                    b.HasKey("StoreCode", "BalYear", "BalMonth", "ItemCode");
 
                     b.ToTable("monthly_balance", "kwarehouse");
                 });
 
             modelBuilder.Entity("Domain.Entities.MonthlyConsum", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("StoreCode")
                         .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("ConsumAvg")
-                        .HasColumnType("numeric")
-                        .HasColumnName("consum_avg");
-
-                    b.Property<int>("ConsumMonth")
-                        .HasColumnType("integer")
-                        .HasColumnName("consum_month");
-
-                    b.Property<decimal>("ConsumQnt")
-                        .HasColumnType("numeric")
-                        .HasColumnName("consum_qnt");
+                        .HasColumnName("store_code");
 
                     b.Property<int>("ConsumYear")
                         .HasColumnType("integer")
                         .HasColumnName("consum_year");
+
+                    b.Property<int>("ConsumMonth")
+                        .HasColumnType("integer")
+                        .HasColumnName("consum_month");
 
                     b.Property<int>("DepCode")
                         .HasColumnType("integer")
@@ -710,26 +681,28 @@ namespace Persistance.Migrations
                         .HasColumnType("text")
                         .HasColumnName("item_code");
 
-                    b.Property<int>("StoreCode")
-                        .HasColumnType("integer")
-                        .HasColumnName("store_code");
+                    b.Property<decimal>("ConsumAvg")
+                        .HasColumnType("numeric")
+                        .HasColumnName("consum_avg");
 
-                    b.HasKey("Id");
+                    b.Property<decimal>("ConsumQnt")
+                        .HasColumnType("numeric")
+                        .HasColumnName("consum_qnt");
 
-                    b.HasIndex("StoreCode", "ConsumYear", "ConsumMonth", "DepCode", "ItemCode")
-                        .IsUnique();
+                    b.HasKey("StoreCode", "ConsumYear", "ConsumMonth", "DepCode", "ItemCode");
 
                     b.ToTable("monthly_consum", "kwarehouse");
                 });
 
             modelBuilder.Entity("Domain.Entities.OpenBalance", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("StoreCode")
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("store_code");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<DateTime>("OpenDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("open_date");
 
                     b.Property<string>("ItemCode")
                         .HasColumnType("text")
@@ -739,34 +712,23 @@ namespace Persistance.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("open_bal");
 
-                    b.Property<DateTime>("OpenDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("open_date");
-
                     b.Property<string>("RelayFlag")
                         .HasColumnType("text")
                         .HasColumnName("relay_flag");
 
-                    b.Property<int>("StoreCode")
-                        .HasColumnType("integer")
-                        .HasColumnName("store_code");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StoreCode", "OpenDate", "ItemCode")
-                        .IsUnique();
+                    b.HasKey("StoreCode", "OpenDate", "ItemCode");
 
                     b.ToTable("open_balance", "kwarehouse");
                 });
 
             modelBuilder.Entity("Domain.Entities.Store", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("StoreCode")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("store_code");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("StoreCode"));
 
                     b.Property<int>("BackNum")
                         .HasColumnType("integer")
@@ -788,10 +750,6 @@ namespace Persistance.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("scrap_num");
 
-                    b.Property<int>("StoreCode")
-                        .HasColumnType("integer")
-                        .HasColumnName("store_code");
-
                     b.Property<string>("StoreDesc")
                         .HasColumnType("text")
                         .HasColumnName("store_desc");
@@ -808,22 +766,19 @@ namespace Persistance.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("to_num");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("StoreCode")
-                        .IsUnique();
+                    b.HasKey("StoreCode");
 
                     b.ToTable("stores", "kwarehouse");
                 });
 
             modelBuilder.Entity("Domain.Entities.Supplier", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("SuplierCode")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("suplier_code");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SuplierCode"));
 
                     b.Property<string>("SuplierActivity")
                         .HasColumnType("text")
@@ -832,10 +787,6 @@ namespace Persistance.Migrations
                     b.Property<string>("SuplierAddress")
                         .HasColumnType("text")
                         .HasColumnName("suplier_address");
-
-                    b.Property<int>("SuplierCode")
-                        .HasColumnType("integer")
-                        .HasColumnName("suplier_code");
 
                     b.Property<string>("SuplierDesc")
                         .HasColumnType("text")
@@ -853,10 +804,7 @@ namespace Persistance.Migrations
                         .HasColumnType("text")
                         .HasColumnName("suplier_tel");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("SuplierCode")
-                        .IsUnique();
+                    b.HasKey("SuplierCode");
 
                     b.ToTable("supplier", "kwarehouse");
                 });
@@ -916,8 +864,7 @@ namespace Persistance.Migrations
 
                     b.HasOne("Domain.Entities.Supplier", "Supplier")
                         .WithMany()
-                        .HasForeignKey("SuplierCode")
-                        .HasPrincipalKey("SuplierCode");
+                        .HasForeignKey("SuplierCode");
 
                     b.Navigation("Department");
 
@@ -945,7 +892,6 @@ namespace Persistance.Migrations
                     b.HasOne("Domain.Entities.ItemCategory", "ItemCategory")
                         .WithMany("Items")
                         .HasForeignKey("CatgryCode")
-                        .HasPrincipalKey("CatgryCode")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ItemCategory");

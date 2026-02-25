@@ -6,6 +6,7 @@ namespace Domain.Entities
 {
     public class Store
     {
+        public int Id { get; set; }
         public int StoreCode { get; set; }
         public string StoreDesc { get; set; }
         public DateTime? SysDate { get; set; }

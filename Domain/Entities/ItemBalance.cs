@@ -6,6 +6,7 @@ namespace Domain.Entities
 {
     public class ItemBalance
     {
+        public int Id { get; set; }
         public int StoreCode { get; set; }
         public DateTime BalDate { get; set; }
         public string ItemCode { get; set; }

@@ -6,6 +6,7 @@ namespace Domain.Entities
 {
     public class MonthlyBalance
     {
+        public int Id { get; set; }
         public int StoreCode { get; set; }
         public int BalYear { get; set; }
         public int BalMonth { get; set; }
