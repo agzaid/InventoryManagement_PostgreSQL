@@ -26,5 +26,19 @@ namespace Persistance.Repositories
             );
             return users;
         }
+
+        public async Task<InvUser> GetInvUserByCodeAsync(int code)
+        {
+            var users = await GetAllAsyncExpression<int>(
+                filter: u => u.UserCode == code,
+                orderBy: null,
+                descending: false,
+                includeProperties: "Employee",
+                tracked: false
+            );
+
+            // Return the first match, or null if not found
+            return users.FirstOrDefault();
+        }
     }
 }

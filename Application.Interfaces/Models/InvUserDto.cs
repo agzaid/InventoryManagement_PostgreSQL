@@ -5,6 +5,7 @@ namespace Application.Interfaces.Models
 {
     public class InvUserDto
     {
+        public int Id { get; set; }
         [Required(ErrorMessage = "يرجى اختيار اسم المستخدم")]
         public int? UserCode { get; set; }
         [Required(ErrorMessage = "يرجى إدخال اسم المستخدم")]

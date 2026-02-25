@@ -51,12 +51,12 @@ namespace Application.Service
 
         public async Task<int> UpdateInvUserAsync(InvUserDto command)
         {
-            var invUser = await _unitOfWork.InvUserRepository.GetAsyncById((int)command.UserCode);
+            var invUser = await _unitOfWork.InvUserRepository.GetInvUserByCodeAsync((int)command.UserCode);
             if (invUser == null)
             {
                 throw new BadRequestException("invUser code does not exist in the human resources system.");
             }
-
+            command.Id = invUser.Id;
             var updateUser = _mapper.Map(command, invUser);
             await _unitOfWork.InvUserRepository.UpdateAsync(updateUser);
             int rowsAffected = await _unitOfWork.SaveChangesAsync();
@@ -65,7 +65,7 @@ namespace Application.Service
         }
         public async Task<int> DeleteInvUserAsync(int usercode)
         {
-            var invUser = await _unitOfWork.InvUserRepository.GetAsyncById(usercode);
+            var invUser = await _unitOfWork.InvUserRepository.GetInvUserByCodeAsync(usercode);
             if (invUser == null)
             {
                 throw new BadRequestException("UserNotFound");

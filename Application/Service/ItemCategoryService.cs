@@ -31,25 +31,30 @@ namespace Application.Service
             {
                 throw new FluentValidation.ValidationException(validationResult.Errors);
             }
-            var isNameUnique = await _unitOfWork.ItemCategoryRepository.GetByNameAsync(command.CatgryDesc);
+            var isNameUnique = await _unitOfWork.ItemCategoryRepository.GetByNameAsync(command.CatgryDesc.Trim());
 
             if (isNameUnique != null)
             {
                 throw new BadRequestException($"Item Category name '{command.CatgryDesc}' is already in use.");
             }
-            // use oracle squence instead of Get_MAX() logic
+
+            var allCategories = await _unitOfWork.ItemCategoryRepository.GetAllAsync();
+            int nextId = allCategories.Count > 0 ? allCategories.Max(c => c.Id) + 1 : 1;
+            string nextCatgryCode = nextId.ToString().PadLeft(2, '0');
 
             var itemCategory = new ItemCategory
             {
+                CatgryCode = nextCatgryCode, // Set CatgryCode before adding
                 CatgryDesc = command.CatgryDesc
-                // Note: Id is usually set by the database
             };
+            
+            // Add and Save
             await _unitOfWork.ItemCategoryRepository.AddAsync(itemCategory);
             var result = await _unitOfWork.SaveChangesAsync();
 
             if (result <= 0)
             {
-                throw new BadRequestException("حدث خطأ أثناء محاولة حذف البيانات من قاعدة البيانات.");
+                throw new BadRequestException("حدث خطأ أثناء محاولة إضافة البيانات إلى قاعدة البيانات.");
             }
             return itemCategory.CatgryCode;
         }

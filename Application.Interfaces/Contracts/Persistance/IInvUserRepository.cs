@@ -10,5 +10,6 @@ namespace Application.Interfaces.Contracts.Persistance
     public interface IInvUserRepository : IGenericRepository<InvUser>
     {
         Task<IReadOnlyList<InvUser>> GetAllUsersWithEmployeeDetailsAsync();
+        Task<InvUser> GetInvUserByCodeAsync(int code);
     }
 }
