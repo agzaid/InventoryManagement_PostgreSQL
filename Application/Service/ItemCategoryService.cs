@@ -38,13 +38,9 @@ namespace Application.Service
                 throw new BadRequestException($"Item Category name '{command.CatgryDesc}' is already in use.");
             }
 
-            var allCategories = await _unitOfWork.ItemCategoryRepository.GetAllAsync();
-            int nextId = allCategories.Count > 0 ? allCategories.Max(c => c.Id) + 1 : 1;
-            string nextCatgryCode = nextId.ToString().PadLeft(2, '0');
-
             var itemCategory = new ItemCategory
             {
-                CatgryCode = nextCatgryCode, // Set CatgryCode before adding
+                CatgryCode = 0, // Set to 0 initially
                 CatgryDesc = command.CatgryDesc
             };
             
@@ -56,7 +52,11 @@ namespace Application.Service
             {
                 throw new BadRequestException("حدث خطأ أثناء محاولة إضافة البيانات إلى قاعدة البيانات.");
             }
-            return itemCategory.CatgryCode;
+            
+            // Use raw SQL to update CatgryCode to avoid EF Core tracking issues
+            await _unitOfWork.ItemCategoryRepository.ExecuteRawSqlAsync("UPDATE kwarehouse.item_category SET catgry_code = id WHERE id = {0}", itemCategory.Id);
+            
+            return itemCategory.Id.ToString();
         }
 
         public async Task<IReadOnlyList<ItemCategoryDto>> GetAllItemCategoryAsync()
@@ -82,7 +82,7 @@ namespace Application.Service
 
             // 2. Fetch the existing entity from the database
             // Ensure you use the unique identifier (CatgryCode)
-            var existingCategory = await _unitOfWork.ItemCategoryRepository.GetByIdStringAsync(command.CatgryCode);
+            var existingCategory = await _unitOfWork.ItemCategoryRepository.GetByIdStringAsync(command.CatgryCode.ToString());
 
             if (existingCategory == null)
             {
@@ -156,7 +156,7 @@ namespace Application.Service
                 int count = items.Count(i => i.CatgryCode == c.CatgryCode);
                 return new CategoryDistributionDto
                 {
-                    CategoryCode = c.CatgryCode,
+                    CategoryCode = c.CatgryCode.ToString(),
                     CategoryName = c.CatgryDesc,
                     ItemCount = count,
                     Percentage = totalItems > 0 ? Math.Round((decimal)count / totalItems * 100, 1) : 0

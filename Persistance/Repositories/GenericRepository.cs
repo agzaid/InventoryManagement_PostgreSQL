@@ -141,5 +141,10 @@ namespace Persistance.Repositories
                 PageSize = pageSize
             };
         }
+
+        public async Task ExecuteRawSqlAsync(string sql, params object[] parameters)
+        {
+            await _dbContext.Database.ExecuteSqlRawAsync(sql, parameters);
+        }
     }
 }

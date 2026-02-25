@@ -23,9 +23,13 @@ namespace Persistance.Repositories
         }
         public async Task<ItemCategory?> GetByIdStringAsync(string name)
         {
-            var itemCategory = await _dbContext.ItemCategories
-                           .FirstOrDefaultAsync(d => d.CatgryCode == name);
-            return itemCategory;
+            if (int.TryParse(name, out int catgryCode))
+            {
+                var itemCategory = await _dbContext.ItemCategories
+                               .FirstOrDefaultAsync(d => d.CatgryCode == catgryCode);
+                return itemCategory;
+            }
+            return null;
         }
     }
 }

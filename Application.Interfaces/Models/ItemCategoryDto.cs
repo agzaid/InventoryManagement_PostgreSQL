@@ -9,7 +9,7 @@ namespace Application.Interfaces.Models
     public class ItemCategoryDto
     {
         public int? Id { get; set; }
-        public string? CatgryCode { get; set; }
+        public int? CatgryCode { get; set; }
         public string? CatgryDesc { get; set; }
     }
 }

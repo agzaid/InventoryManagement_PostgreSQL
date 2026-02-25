@@ -8,7 +8,7 @@ namespace Domain.Entities
     public class ItemCategory
     {
         public int Id { get; set; }
-        public string CatgryCode { get; set; }
+        public int CatgryCode { get; set; }
         public string CatgryDesc { get; set; }
         public virtual List<Item> Items { get; set; }
     }

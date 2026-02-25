@@ -94,7 +94,7 @@ namespace Application.Service
             throw new NotImplementedException();
         }
 
-        public async Task UpdateItemAsync(ItemDto command, string oldCatgryCode)
+        public async Task UpdateItemAsync(ItemDto command, int oldCatgryCode)
         {
             var validationResult = await _validator.ValidateAsync(command);
             if (!validationResult.IsValid)
@@ -123,7 +123,7 @@ namespace Application.Service
                 // إضافة الجديد (بنفس ItemCode ولكن CatgryCode جديد)
                 var newItem = _mapper.Map<Item>(command);
                 newItem.ItemCategory = null;
-                newItem.CatgryCode = oldCatgryCode;
+                newItem.CatgryCode = command.CatgryCode ?? 0;
                 await _unitOfWork.ItemRepository.AddAsync(newItem);
             }
             else

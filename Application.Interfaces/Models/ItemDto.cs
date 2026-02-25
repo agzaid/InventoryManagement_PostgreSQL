@@ -10,7 +10,7 @@ namespace Application.Interfaces.Models
     public class ItemDto
     {
         public string? ItemCode { get; set; }
-        public string? CatgryCode { get; set; }
+        public int? CatgryCode { get; set; }
         public string? ItemDesc { get; set; }
         public decimal? RecallPrc { get; set; }
         public decimal? RecallQnt { get; set; }

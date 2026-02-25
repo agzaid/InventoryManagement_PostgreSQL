@@ -8,7 +8,7 @@ namespace Application.Interfaces.Contracts.Service
         Task<IReadOnlyList<ItemDto>> GetAllItemAsync();
         Task<ItemDto?> GetItemByIdAsync(int id);
         Task<string> CreateItemAsync(ItemDto command);
-        Task UpdateItemAsync(ItemDto command, string oldCategory);
+        Task UpdateItemAsync(ItemDto command, int oldCategory);
         Task DeleteItemAsync(string id);
         Task<PagedResult<ItemDto>> GetItemsPaginated(int page, string search, string category);
         Task<int> GetTotalCountAsync();

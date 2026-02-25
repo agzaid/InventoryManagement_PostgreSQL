@@ -223,7 +223,7 @@ namespace Persistance
                     .IsUnique();
 
                 entity.Property(e => e.ItemCode).HasColumnName("ITEM_CODE").HasMaxLength(5).HasDefaultValueSql("NULL");
-                entity.Property(e => e.CatgryCode).HasColumnName("CATGRY_CODE").HasMaxLength(2);
+                entity.Property(e => e.CatgryCode).HasColumnName("CATGRY_CODE");
                 entity.Property(e => e.ItemDesc).HasColumnName("ITEM_DESC");
                 entity.Property(e => e.RecallPrc).HasColumnName("RECALL_PRC");
                 entity.Property(e => e.RecallQnt).HasColumnName("RECALL_QNT");
@@ -301,9 +301,6 @@ namespace Persistance
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .ValueGeneratedOnAdd();
-
-                entity.HasIndex(e => e.CatgryCode)
-                    .IsUnique();
 
                 entity.Property(e => e.CatgryCode)
                 .HasColumnName("catgry_code");

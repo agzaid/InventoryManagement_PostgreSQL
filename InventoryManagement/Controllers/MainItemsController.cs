@@ -75,8 +75,12 @@ namespace InventoryManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(string CatgryCode, string CatgryDesc)
         {
-            await _itemCategoryService.UpdateItemCategoryAsync(new ItemCategoryDto() { CatgryCode = CatgryCode, CatgryDesc = CatgryDesc });
-            return Json(new { success = true, message = "تم تحديث البيانات بنجاح" });
+            if (int.TryParse(CatgryCode, out int catgryCode))
+            {
+                await _itemCategoryService.UpdateItemCategoryAsync(new ItemCategoryDto() { CatgryCode = catgryCode, CatgryDesc = CatgryDesc });
+                return Json(new { success = true, message = "تم تحديث البيانات بنجاح" });
+            }
+            return Json(new { success = false, message = "كود التصنيف غير صالح" });
         }
         [HttpPost]
         public async Task<IActionResult> Delete(string id)
@@ -118,8 +122,12 @@ namespace InventoryManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> Update(ItemDto command, string oldCatgryCode)
         {
-            await _itemService.UpdateItemAsync(command, oldCatgryCode);
-            return Json(new { success = true, message = "تم تحديث البيانات بنجاح" });
+            if (int.TryParse(oldCatgryCode, out int oldCatgryCodeInt))
+            {
+                await _itemService.UpdateItemAsync(command, oldCatgryCodeInt);
+                return Json(new { success = true, message = "تم تحديث البيانات بنجاح" });
+            }
+            return Json(new { success = false, message = "كود التصنيف القديم غير صالح" });
         }
         [HttpPost]
         public async Task<IActionResult> DeleteItem(string id)

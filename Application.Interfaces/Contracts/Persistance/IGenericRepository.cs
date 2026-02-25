@@ -26,5 +26,6 @@ namespace Application.Interface.Contract.Persistance
         Expression<Func<T, TKey>>? orderBy = null,
         bool descending = false,
         string? includeProperties = null);
+        Task ExecuteRawSqlAsync(string sql, params object[] parameters);
     }
 }
