@@ -40,7 +40,6 @@ namespace Application.Service
                 throw new BadRequestException($"Item name '{command.ItemDesc}' is already in use.");
             }
 
-            // 2. بدء المعاملة (Transaction) لضمان "الكل أو لا شيء"
             await using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
@@ -48,34 +47,37 @@ namespace Application.Service
                     var item = _mapper.Map<Item>(command);
                     item.ItemCategory = null;
 
-                    // حفظ الصنف أولاً للحصول على الـ ItemCode
+                    if (string.IsNullOrEmpty(item.ItemCode))
+                    {
+                        var allItems = await _unitOfWork.ItemRepository.GetAllAsync();
+                        int nextCode = allItems.Count > 0 ? 
+                            int.Parse(allItems.Max(i => i.ItemCode ?? "0")) + 1 : 1;
+                        item.ItemCode = nextCode.ToString().PadLeft(5, '0');
+                    }
+
                     await _unitOfWork.ItemRepository.AddAsync(item);
                     await _unitOfWork.SaveChangesAsync();
 
-                    // إضافة الرصيد الافتتاحي باستخدام الكود الناتج
                     var openBal = new OpenBalance()
                     {
                         ItemCode = item.ItemCode,
-                        OpenDate = DateTime.Now.Date,
+                        OpenDate = DateTime.UtcNow.Date,
                         StoreCode = 1,
-                        OpenBal = 0,
+                        OpenBal = item.RecallQnt ?? 0,
                         RelayFlag = "0"
                     };
 
                     await _unitOfWork.OpenBalanceRepository.AddAsync(openBal);
                     await _unitOfWork.SaveChangesAsync();
 
-                    // تثبيت كافة التغييرات نهائياً
                     await transaction.CommitAsync();
 
                     return item.ItemCode;
                 }
                 catch (Exception ex)
                 {
-                    // في حال حدوث أي خطأ، يتم إلغاء كل ما تم حفظه (حتى الـ Item)
                     await transaction.RollbackAsync();
 
-                    // إعادة رمي الخطأ ليتم التعامل معه في الـ Controller أو Middleware
                     throw new NotFoundException("فشلت عملية إنشاء الصنف والرصيد الافتتاحي: " + ex.Message);
                 }
             }
@@ -96,60 +98,57 @@ namespace Application.Service
 
         public async Task UpdateItemAsync(ItemDto command, int oldCatgryCode)
         {
+            // 1. Validation
             var validationResult = await _validator.ValidateAsync(command);
-            if (!validationResult.IsValid)
-            {
-                throw new ValidationException(validationResult.Errors);
-            }
-            var categoryWithSameName = await _unitOfWork.ItemRepository.GetByNameAsync(command.ItemDesc);
-            if (categoryWithSameName != null && categoryWithSameName.CatgryCode != command.CatgryCode)
-            {
-                throw new BadRequestException($"Item name '{command.ItemDesc}' is already in use by another Item.");
-            }
+            if (!validationResult.IsValid) throw new ValidationException(validationResult.Errors);
+
+            // 2. Fetch existing item (Tracked by EF)
             var existingItem = await _unitOfWork.ItemRepository.GetByIdStringAsync(command.ItemCode);
-            if (existingItem==null)
+            if (existingItem == null) throw new BadRequestException($"Item {command.ItemCode} not found");
+
+            command.Id = existingItem.Id;
+            _mapper.Map(command, existingItem);
+            existingItem.ItemCategory = null;
+
+            // Explicitly update the category if it changed
+            existingItem.CatgryCode = command.CatgryCode ?? 0;
+
+            await _unitOfWork.ItemRepository.UpdateAsync(existingItem);
+
+            // 4. Update the OpenBalance (Opening Quantity)
+            var openBalRecord = await _unitOfWork.OpenBalanceRepository.GetByIdStringAsync(command.ItemCode);
+            if (openBalRecord != null)
             {
-                throw new BadRequestException($"Item name '{command.ItemDesc}' is not there");
+                openBalRecord.OpenBal = command.RecallQnt ?? 0;
+                // Remember the PostgreSQL UTC rule from earlier!
+                openBalRecord.OpenDate = DateTime.UtcNow;
+                await _unitOfWork.OpenBalanceRepository.UpdateAsync(openBalRecord);
+            }
+            else if (command.RecallQnt > 0)
+            {
+                // Create it if it didn't exist
+                var newBal = new OpenBalance
+                {
+                    ItemCode = command.ItemCode,
+                    OpenBal = command.RecallQnt ?? 0,
+                    OpenDate = DateTime.UtcNow,
+                    StoreCode = 1
+                };
+                await _unitOfWork.OpenBalanceRepository.AddAsync(newBal);
             }
 
-            var itemEdited = _mapper.Map<Item>(command);
-            itemEdited.ItemCategory = null;
-
-            if (oldCatgryCode != command.CatgryCode)
-            {
-                // حذف القديم
-                await _unitOfWork.ItemRepository.DeleteAsync(existingItem);
-
-                // إضافة الجديد (بنفس ItemCode ولكن CatgryCode جديد)
-                var newItem = _mapper.Map<Item>(command);
-                newItem.ItemCategory = null;
-                newItem.CatgryCode = command.CatgryCode ?? 0;
-                await _unitOfWork.ItemRepository.AddAsync(newItem);
-            }
-            else
-            {
-                // 3. تحديث عادي إذا لم يتغير التصنيف
-                _mapper.Map(command, existingItem);
-                existingItem.ItemCategory = null;
-                await _unitOfWork.ItemRepository.UpdateAsync(existingItem);
-            }
-
-           var result = await _unitOfWork.SaveChangesAsync();
+            // 5. Save all changes at once
+            var result = await _unitOfWork.SaveChangesAsync();
 
             if (result <= 0)
-            {
-                throw new Exception("حدث خطأ أثناء محاولة حذف البيانات من قاعدة البيانات.");
-            }
+                throw new Exception("No changes were saved to the database.");
         }
         public async Task DeleteItemAsync(string itemcode)
         {
-            // 1. Validate Input
             if (string.IsNullOrWhiteSpace(itemcode))
             {
                 throw new BadRequestException("Category code is required for deletion.");
             }
-
-            // 2. Fetch the existing entity
             var itemCategory = await _unitOfWork.ItemRepository.GetByIdStringAsync(itemcode);
 
             if (itemCategory == null)
@@ -157,8 +156,6 @@ namespace Application.Service
                 throw new NotFoundException($"Item Category with code '{itemcode}' was not found.");
             }
             await _unitOfWork.ItemRepository.DeleteAsync(itemCategory);
-
-            // 5. Commit changes
             var result = await _unitOfWork.SaveChangesAsync();
 
             if (result <= 0)
@@ -171,10 +168,8 @@ namespace Application.Service
         {
             int pageSize = 20;
 
-            // 1. تنظيف النص العربي من المسافات الزائدة
             string cleanSearch = search?.Trim() ?? "";
 
-            // 2. بناء الفلتر
             Expression<Func<Item, bool>> filter = x =>
                 (string.IsNullOrEmpty(cleanSearch) ||
                  x.ItemDesc.Contains(cleanSearch) ||
@@ -182,7 +177,6 @@ namespace Application.Service
                 (string.IsNullOrEmpty(category) ||
                  (x.ItemCategory != null && x.ItemCategory.CatgryDesc == category));
 
-            // 3. التنفيذ
             var pagedResult = await _unitOfWork.ItemRepository.GetPagedAsync(
                 page,
                 pageSize,
@@ -191,7 +185,6 @@ namespace Application.Service
                 includeProperties: "ItemCategory"
             );
 
-            // إذا كانت النتيجة null، نرجع كائن فارغ بدلاً من الخطأ
             if (pagedResult == null || pagedResult.Items == null)
             {
                 return new PagedResult<ItemDto> { Items = new List<ItemDto>(), TotalCount = 0 };

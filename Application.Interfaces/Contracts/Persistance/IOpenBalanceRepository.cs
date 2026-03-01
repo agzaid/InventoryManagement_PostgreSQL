@@ -9,7 +9,7 @@ namespace Application.Interfaces.Contracts.Persistance
 {
     public interface IOpenBalanceRepository : IGenericRepository<OpenBalance>
     {
-    //    Task<ItemCategory?> GetByNameAsync(string name);
-    //    Task<ItemCategory?> GetByIdStringAsync(string code);
+        //    Task<ItemCategory?> GetByNameAsync(string name);
+        Task<OpenBalance?> GetByIdStringAsync(string code);
     }
 }

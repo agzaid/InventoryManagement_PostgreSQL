@@ -9,6 +9,7 @@ namespace Application.Interfaces.Models
 {
     public class ItemDto
     {
+        public int Id { get; set; }
         public string? ItemCode { get; set; }
         public int? CatgryCode { get; set; }
         public string? ItemDesc { get; set; }

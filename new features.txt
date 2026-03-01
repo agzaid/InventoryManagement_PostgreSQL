@@ -1,0 +1,3 @@
+1- inside this link https://localhost:7272/en/MainItems/SubCategoryClassification
+inside modal إضافة صنف جديد
+added new column for adding number quantity for new item

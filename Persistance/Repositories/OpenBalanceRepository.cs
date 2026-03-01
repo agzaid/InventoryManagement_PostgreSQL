@@ -14,6 +14,12 @@ namespace Persistance.Repositories
         {
             _dbContext = dbContext;
         }
+        public async Task<OpenBalance?> GetByIdStringAsync(string name)
+        {
+            var itemCategory = await _dbContext.OpenBalances
+                           .FirstOrDefaultAsync(d => d.ItemCode == name);
+            return itemCategory;
+        }
 
         //public async Task<ItemCategory?> GetByNameAsync(string name)
         //{

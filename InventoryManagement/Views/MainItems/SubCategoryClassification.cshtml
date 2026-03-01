@@ -95,11 +95,15 @@
                         <label class="block text-sm font-medium mb-1">اسم الصنف</label>
                         <input type="text" name="ItemDesc" required class="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700">
                     </div>
-@* 
+
                     <div>
                         <label class="block text-sm font-medium mb-1">الباركود</label>
                         <input type="text" name="Barecode" class="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700">
-                    </div> *@
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">الكمية الافتتاحية</label>
+                        <input type="text" name="RecallQnt" class="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700">
+                    </div>
                 </div>
 
                 <div class="flex justify-end gap-3 mt-6 pt-4 border-t">
@@ -242,7 +246,8 @@
                 code: $row.attr('data-code'),
                 name: $row.attr('data-name'),
                 catId: $row.attr('data-catid'),
-                barcode: $row.attr('data-barcode')
+                barcode: $row.attr('data-barcode'),
+                qnt: $row.attr('data-qnt')
             };
 
             $form.attr('data-mode', 'edit');
@@ -253,6 +258,8 @@
             $form.find('input[name="ItemCode"]').val(data.code);
             $form.find('input[name="ItemDesc"]').val(data.name);
             $form.find('select[name="CatgryCode"]').val(data.catId);
+            $form.find('input[name="Barecode"]').val(data.barcode);
+            $form.find('input[name="RecallQnt"]').val(data.qnt);
 
             toggleModal('itemModal');
         };
@@ -280,6 +287,19 @@
                         _AlertHelper.showError(response.message || "حدث خطأ");
                     }
                 },
+           error: function (xhr, status, error) {
+                       // This handles 500 errors, network loss, or server crashes
+                       console.error("AJAX Error:", status, error, xhr.responseText);
+
+                       let errorMessage = "حدث خطأ أثناء الاتصال بالسيرفر";
+
+                       // If the server sent a specific error message in the body
+                       if (xhr.responseJSON && xhr.responseJSON.message) {
+                           errorMessage = xhr.responseJSON.message;
+                       }
+
+                       _AlertHelper.showError(errorMessage);
+                   },
                 complete: function () {
                     $btn.prop('disabled', false).find('#btnText').text(mode === 'edit' ? 'تحديث البيانات' : 'حفظ الصنف');
                     $('#btnSpinner').addClass('hidden');
