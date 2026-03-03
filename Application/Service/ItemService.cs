@@ -167,13 +167,13 @@ namespace Application.Service
         public async Task<PagedResult<ItemDto>> GetItemsPaginated(int page, string search, string category)
         {
             int pageSize = 20;
-
             string cleanSearch = search?.Trim() ?? "";
 
             Expression<Func<Item, bool>> filter = x =>
                 (string.IsNullOrEmpty(cleanSearch) ||
                  x.ItemDesc.Contains(cleanSearch) ||
-                 x.ItemCode.Contains(cleanSearch)) &&
+                 x.ItemCode.Contains(cleanSearch) ||
+                 (x.Barecode != null && x.Barecode.Contains(cleanSearch))) &&
                 (string.IsNullOrEmpty(category) ||
                  (x.ItemCategory != null && x.ItemCategory.CatgryDesc == category));
 

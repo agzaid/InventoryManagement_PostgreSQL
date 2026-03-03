@@ -49,7 +49,7 @@ namespace InventoryManagement.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetInventoryData(string viewType = "specific", string? searchTerm = null, int page = 1, int pageSize = 20, int? warehouseId = null)
+        public async Task<IActionResult> GetInventoryData(string viewType = "all", string? searchTerm = null, int page = 1, int pageSize = 20, int? warehouseId = null)
         {
             int storeCode = warehouseId ?? 1;
 
@@ -66,7 +66,7 @@ namespace InventoryManagement.Controllers
 
             IEnumerable<ItemBalanceDto> filtered = latestPerItem;
 
-            if (!string.IsNullOrWhiteSpace(viewType) && viewType.ToLower() == "specific" && !string.IsNullOrWhiteSpace(searchTerm))
+            if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 var q = searchTerm.Trim().ToLower();
                 filtered = latestPerItem.Where(b =>

@@ -157,25 +157,6 @@ namespace InventoryManagement.Controllers
         }
         [HttpPost]
 
-        //[HttpPost]
-        //public async Task<IActionResult> UpdateUser([FromBody] InvUserDto usersData)
-        //{
-        //    if (usersData == null)
-        //    {
-        //        throw new BadRequestException("NoDataReceived");
-        //    }
-        //    if (!ModelState.IsValid)
-        //    {
-        //        var firstError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
-        //        throw new BadRequestException(firstError ?? "InvalidData");
-        //    }
-        //    await _sysManagement.UpdateInvUserAsync(usersData);
-        //    return Json(new
-        //    {
-        //        success = true,
-        //        message = _localizer["UpdateSuccess"]
-        //    });
-        //}
 
         [HttpPost]
         public async Task<IActionResult> DeleteRecord(string id)
@@ -190,23 +171,6 @@ namespace InventoryManagement.Controllers
 
             return Json(new { success = true, message = "تم الحذف بنجاح" });
         }
-        //[HttpPost]
-        //public async Task<IActionResult> Delete([FromBody] InvUserDto data)
-        //{
-        //    // 1. Basic check
-        //    if (data.UserCode <= 0)
-        //    {
-        //        throw new BadRequestException("InvalidUserCode"); // Key for localization
-        //    }
-        //    await _sysManagement.DeleteInvUserAsync((int)data.UserCode);
-
-        //    // 3. Success Response
-        //    return Json(new
-        //    {
-        //        success = true,
-        //        message = _localizer["DeleteSuccess"]
-        //    });
-        //}
 
         #region Record Return
         public async Task<IActionResult> IncomingItemsReturns()
@@ -300,6 +264,7 @@ namespace InventoryManagement.Controllers
             var items = await _itemService.GetAllItemAsync();
             ViewBag.Items = items;
             var typeList = new List<int> { type };
+
             var pagedTransactions = await _hInvTransService.GetHistoryTransactionsPaginatedAsync(typeList,
                 page,
                 pageSize,
@@ -324,13 +289,23 @@ namespace InventoryManagement.Controllers
             try
             {
                 var typeList = trType.Split(',').Select(int.Parse).ToList();
-
-                // 2. Safely handle dates
                 if (!DateTime.TryParse(fromDate, out DateTime start))
-                    start = DateTime.Now.AddDays(-30).Date;
+                {
+                    start = DateTime.SpecifyKind(DateTime.UtcNow.AddDays(-30).Date, DateTimeKind.Utc);
+                }
+                else
+                {
+                    start = DateTime.SpecifyKind(start.Date, DateTimeKind.Utc);
+                }
 
                 if (!DateTime.TryParse(toDate, out DateTime end))
-                    end = DateTime.Now.Date;
+                {
+                    end = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Utc);
+                }
+                else
+                {
+                    end = DateTime.SpecifyKind(end.Date, DateTimeKind.Utc);
+                }
 
                 var result = await _hInvTransService.GetHistoryTransactionsPaginatedAsync(
                     typeList,
@@ -347,6 +322,7 @@ namespace InventoryManagement.Controllers
                     pageNumber = result.PageNumber
                 });
             }
+
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error processing request", details = ex.Message });

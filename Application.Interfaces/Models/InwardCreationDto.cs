@@ -9,6 +9,7 @@ namespace Application.Interfaces.Models
     public class InwardCreationDto
     {
         public int SuplierCode { get; set; }
+        public int TrNum { get; set; }
         public int DeptCode { get; set; }
         public int EmpCode { get; set; }
         public int TrType { get; set; }

@@ -39,7 +39,7 @@ namespace Application.Service
             {
                 throw new BadRequestException($"Item name '{command.SuplierDesc}' is already in use.");
             }
-
+            
             var item = _mapper.Map<Supplier>(command);
 
             await _unitOfWork.SupplierRepository.AddAsync(item);

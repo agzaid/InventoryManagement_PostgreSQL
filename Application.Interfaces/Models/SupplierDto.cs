@@ -5,6 +5,7 @@ namespace Application.Interfaces.Models
 {
     public class SupplierDto
     {
+        public int? Id { get; set; }
         public int? SuplierCode { get; set; }
         public string? SuplierDesc { get; set; }
         public string? SuplierAddress { get; set; }

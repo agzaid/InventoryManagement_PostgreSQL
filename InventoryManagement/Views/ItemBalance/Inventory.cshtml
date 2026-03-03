@@ -37,12 +37,12 @@
             <div class="md:col-span-5 lg:col-span-4">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">نوع العرض</label>
                 <div class="flex gap-4 p-1 bg-gray-100 dark:bg-slate-900 rounded-lg">
-                    <label class="relative flex-1 cursor-pointer text-center">
+                    @* <label class="relative flex-1 cursor-pointer text-center">
                         <input type="radio" name="viewType" value="specific" class="sr-only peer" @(selectedViewType == "specific" ? "checked" : "") />
                         <div class="py-2 text-sm font-medium text-gray-500 rounded-md peer-checked:bg-white dark:peer-checked:bg-blue-600 peer-checked:text-blue-600 dark:peer-checked:text-white shadow-sm transition-all">
                             جرد محدد
                         </div>
-                    </label>
+                    </label> *@
                     <label class="relative flex-1 cursor-pointer text-center">
                         <input type="radio" name="viewType" value="all" class="sr-only peer" @(selectedViewType == "all" ? "checked" : "") />
                         <div class="py-2 text-sm font-medium text-gray-500 rounded-md peer-checked:bg-white dark:peer-checked:bg-blue-600 peer-checked:text-blue-600 dark:peer-checked:text-white shadow-sm transition-all">
@@ -146,6 +146,13 @@
             var currentPage = 1;
             var debounceTimer = null;
 
+
+
+         $('#inventoryFilterForm').on('submit', function(e) {
+            e.preventDefault(); // Stop page refresh
+            currentPage = 1;
+            loadInventory();
+        });
             function getFilters() {
                 return {
                     viewType: $form.find('input[name="viewType"]:checked').val() || 'specific',

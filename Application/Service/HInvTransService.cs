@@ -34,11 +34,13 @@ namespace Application.Service
      DateTime start,
      DateTime end)
         {
-         Expression<Func<HInvTrans, bool>> filter = it =>
+            DateTime utcStart = DateTime.SpecifyKind(start, DateTimeKind.Utc);
+            DateTime utcEnd = DateTime.SpecifyKind(end, DateTimeKind.Utc);
+            Expression<Func<HInvTrans, bool>> filter = it =>
                 trTypes.Contains(it.TrType) &&
                 it.StoreCode == 1 &&
-                it.TrDate2 >= start &&
-                it.TrDate2 <= end;
+                it.TrDate2 >= utcStart &&
+                it.TrDate2 <= utcEnd;
 
             var pagedResult = await _unitOfWork.HInvTransRepository.GetPagedAsync(
                 page,

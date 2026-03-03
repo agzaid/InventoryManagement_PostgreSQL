@@ -110,7 +110,7 @@ namespace Application.Service
 
         public async Task<IReadOnlyList<RecentActivityDto>> GetRecentActivityTodayAsync(int storeCode, int limit = 10)
         {
-            var today = DateTime.Today;
+            var today = DateTime.UtcNow;
             var data = await _unitOfWork.InvTransRepository.GetAllAsyncExpression(
                 filter: it => it.StoreCode == storeCode && it.TrDate.Date == today,
                 orderBy: it => it.TrNum,
@@ -157,7 +157,7 @@ namespace Application.Service
 
         public async Task<DailyInvTransSummaryDto> GetDailyInvTransSummaryTodayAsync(int storeCode)
         {
-            var today = DateTime.Today;
+            var today = DateTime.UtcNow;
             var data = await _unitOfWork.InvTransRepository.GetAllAsyncExpression(
                 filter: it => it.StoreCode == storeCode && it.TrDate.Date == today,
                 orderBy: it => it.TrNum,
@@ -185,12 +185,14 @@ namespace Application.Service
             int storeCode = 1;
             var transactionsToSave = new List<InvTrans>();
 
+            var getAll = await _unitOfWork.InvTransRepository.GetAllAsync();
+            var lastTrNum = getAll.Any() ? getAll.Max(x => x.TrNum) : 0;
+            lastTrNum = lastTrNum + 1;
             foreach (var item in command.Items.Where(x => x.ItemQnt > 0))
             {
-                // 2. Unified Balance Logic
                 await UpdateItemBalance(item.ItemCode, storeCode, item.ItemQnt, command.TrType);
 
-                // 3. Map Transaction Object
+                command.TrNum = lastTrNum;
                 transactionsToSave.Add(MapToInvTrans(command, item, storeCode));
             }
 
@@ -256,7 +258,7 @@ namespace Application.Service
                     ItemCode = itemCode,
                     OpenBal = currentQty,
                     CurrentBal = currentQty + (qty * multiplier),
-                    BalDate = DateTime.Now
+                    BalDate = DateTime.UtcNow
                 };
                 ApplyQuantityToType(newBalance, qty, trType);
                 await _unitOfWork.ItemBalanceRepository.AddAsync(newBalance);
@@ -264,6 +266,7 @@ namespace Application.Service
             else
             {
                 existingBalance.CurrentBal += (qty * multiplier);
+                existingBalance.BalDate = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
                 ApplyQuantityToType(existingBalance, qty, trType);
                 await _unitOfWork.ItemBalanceRepository.UpdateAsync(existingBalance);
             }
@@ -285,18 +288,20 @@ namespace Application.Service
 
         private InvTrans MapToInvTrans(InwardCreationDto command, InwardItemDto itemDto, int storeCode)
         {
+            DateTime utcDateOnly = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Utc);
             return new InvTrans
             {
                 StoreCode = storeCode,
                 TrType = command.TrType,
-                TrDate = DateTime.Now.Date,
+                TrDate = utcDateOnly,
                 TrSerial = 1,
+                TrNum = command.TrNum,
                 ItemCode = itemDto.ItemCode,
                 SuplierCode = command.SuplierCode,
                 ItemQnt = itemDto.ItemQnt,
                 ItemPrice = itemDto.ItemPrice,
                 BillNum = int.TryParse(command.BillNum, out int bNum) ? bNum : 0,
-                TrDate2 = DateTime.Now.Date,
+                TrDate2 = utcDateOnly,
                 DepCode = command.DeptCode,
                 EmpCode = command.EmpCode,
             };
@@ -386,7 +391,7 @@ namespace Application.Service
                     ItemOut = itemOut,
                     ItemFrom = itemFrom,
                     ItemTo = itemTo,
-                    BalDate = DateTime.Now
+                    BalDate = DateTime.UtcNow
                 });
             }
 
@@ -409,7 +414,7 @@ namespace Application.Service
 
         public async Task<InvTransDto> GetInvTransByIdAsync(int id)
         {
-            var getInvTrans = await _unitOfWork.InvTransRepository.GetAllAsyncExpression(filter: s=>s.TrNum == id,orderBy:s=>s.TrDate);
+            var getInvTrans = await _unitOfWork.InvTransRepository.GetAllAsyncExpression(filter: s => s.TrNum == id, orderBy: s => s.TrDate);
             var invtrans = getInvTrans.FirstOrDefault();
             if (getInvTrans == null)
                 throw new NotFoundException($"Supplier with code '{id}' was not found.");
