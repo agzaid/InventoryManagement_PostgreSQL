@@ -1,7 +1,7 @@
 ﻿using Application.Interfaces.Models.Pagination;
 using System.Linq.Expressions;
 
-namespace Application.Interface.Contract.Persistance
+namespace Application.Interfaces.Contracts.Persistance
 {
     public interface IGenericRepository<T> where T : class
     {

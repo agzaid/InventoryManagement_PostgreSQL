@@ -19,6 +19,9 @@ namespace Application.Interfaces.Contracts.Persistance
         IItemRepository ItemRepository { get; }
         IOpenBalanceRepository OpenBalanceRepository { get; }
         ISupplierRepository SupplierRepository { get; }
+        IUserRepository UserRepository { get; }
+        IRoleRepository RoleRepository { get; }
+        IUserRoleRepository UserRoleRepository { get; }
         Task<int> SaveChangesAsync();
         Task<ITransactionWrapper> BeginTransactionAsync();
     }

@@ -1,4 +1,4 @@
-using Application.Interface.Contract.Persistance;
+using Application.Interfaces.Contracts.Persistance;
 using Application.Interfaces.Models;
 using Domain.Entities;
 using System;
