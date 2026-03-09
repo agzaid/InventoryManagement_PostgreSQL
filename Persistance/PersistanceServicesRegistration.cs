@@ -1,5 +1,4 @@
-﻿using Application.Interface.Contract.Persistance;
-using Application.Interfaces.Contracts.Persistance;
+﻿using Application.Interfaces.Contracts.Persistance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
