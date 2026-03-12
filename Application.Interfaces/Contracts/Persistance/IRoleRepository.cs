@@ -1,10 +1,10 @@
-using System.Threading.Tasks;
 using Domain.Entities;
 
 namespace Application.Interfaces.Contracts.Persistance
 {
-    public interface IRoleRepository : IGenericRepository<Role>
+    public interface IRoleRepository : IGenericRepository<ApplicationRole>
     {
-        Task<Role?> GetByNameAsync(string name);
+        Task<ApplicationRole?> GetByNameAsync(string name);
+        Task<IEnumerable<ApplicationRole>> GetByUserIdAsync(string userId);
     }
 }

@@ -2,6 +2,7 @@ using Application.Interfaces.Contracts.Localization;
 using Application.Interfaces.Contracts.Service;
 using Application.Interfaces.Models;
 using InventoryManagement.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using System.Diagnostics;
@@ -9,6 +10,7 @@ using System.Globalization;
 
 namespace InventoryManagement.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

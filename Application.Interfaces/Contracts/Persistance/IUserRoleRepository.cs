@@ -6,10 +6,10 @@ namespace Application.Interfaces.Contracts.Persistance
 {
     public interface IUserRoleRepository
     {
-        Task<IList<UserRole>> GetRolesByUserIdAsync(int userId);
-        Task<IList<UserRole>> GetUsersByRoleIdAsync(int roleId);
+        Task<IList<UserRole>> GetRolesByUserIdAsync(string userId);
+        Task<IList<UserRole>> GetUsersByRoleIdAsync(string roleId);
         Task AddUserRoleAsync(UserRole userRole);
-        Task RemoveUserRoleAsync(int userId, int roleId);
-        Task<bool> IsUserInRoleAsync(int userId, int roleId);
+        Task RemoveUserRoleAsync(string userId, string roleId);
+        Task<bool> IsUserInRoleAsync(string userId, string roleId);
     }
 }

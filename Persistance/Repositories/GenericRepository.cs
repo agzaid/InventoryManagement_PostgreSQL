@@ -1,13 +1,13 @@
-﻿using Application.Interface.Contract.Persistance;
+﻿using Application.Interfaces.Contracts.Persistance;
 using Application.Interfaces.Models.Pagination;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace Persistance.Repositories
 {
-    internal class GenericRepository<T> : IGenericRepository<T> where T : class
+    public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        private readonly InventoryManagementDbContext _dbContext;
+        protected readonly InventoryManagementDbContext _dbContext;
 
         public GenericRepository(InventoryManagementDbContext dbContext)
         {

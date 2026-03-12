@@ -70,7 +70,7 @@
             <div>
                 <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <span class="material-icons-outlined text-blue-600">inventory_2</span>
-                    تسجيل الوارد إلى المخزن
+                    تسجيل المنصرف من المخزن
                 </h2>
                 <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">إنشاء سجل جديد لاستلام البضائع وإضافتها للمخزون</p>
             </div>
@@ -217,8 +217,8 @@
                             <thead class="bg-slate-50 dark:bg-slate-900 sticky top-0 text-slate-500">
                                 <tr>
                                     <th class="p-4 border-b">الترتيب</th>
-                                    @* <th class="p-4 border-b">كود المورد</th> *@
                                     <th class="p-4 border-b">اسم المورد</th>
+                                    <th class="p-4 border-b">اسم الموظف</th>
                                     <th class="p-4 border-b">اسم الصنف</th>
                                     <th class="p-4 border-b">العدد</th>
                                     <th class="p-4 border-b">التاريخ</th>
@@ -233,6 +233,7 @@
                                         <tr class="hover:bg-slate-50">
                                             <td class="p-4 font-bold text-blue-600">@tr.TrNum</td>
                                             <td class="p-4">@tr.SupplierDesc</td>
+                                            <td class="p-4">@tr.EmpName</td>
                                             <td class="p-4">@tr.ItemDesc</td>
                                             <td class="p-4">@tr.ItemQnt</td>
                                             <td class="p-4 text-slate-400">@tr.TrDate2</td>

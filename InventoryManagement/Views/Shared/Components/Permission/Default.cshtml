@@ -1,0 +1,6 @@
+@model bool
+
+@if (Model)
+{
+    @await Component.InvokeAsync("PermissionBody", new { permissionCode = ViewBag.PermissionCode })
+}

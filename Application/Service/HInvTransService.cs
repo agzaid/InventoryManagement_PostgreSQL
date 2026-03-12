@@ -32,15 +32,36 @@ namespace Application.Service
      int page,
      int pageSize,
      DateTime start,
-     DateTime end)
+     DateTime end,
+     string itemSearch = "",
+     string supplierSearch = "")
         {
             DateTime utcStart = DateTime.SpecifyKind(start, DateTimeKind.Utc);
             DateTime utcEnd = DateTime.SpecifyKind(end, DateTimeKind.Utc);
+            
             Expression<Func<HInvTrans, bool>> filter = it =>
                 trTypes.Contains(it.TrType) &&
                 it.StoreCode == 1 &&
                 it.TrDate2 >= utcStart &&
                 it.TrDate2 <= utcEnd;
+
+            // Add item search filter
+            if (!string.IsNullOrWhiteSpace(itemSearch))
+            {
+                var searchLower = itemSearch.ToLower().Trim();
+                filter = CombineExpressions(filter, it => 
+                    it.ItemCode.ToLower().Contains(searchLower) || 
+                    (it.Item != null && it.Item.ItemDesc.ToLower().Contains(searchLower)));
+            }
+
+            // Add supplier search filter
+            if (!string.IsNullOrWhiteSpace(supplierSearch))
+            {
+                var searchLower = supplierSearch.ToLower().Trim();
+                filter = CombineExpressions(filter, it => 
+                    it.SuplierCode.ToString().Contains(searchLower) || 
+                    (it.Supplier != null && it.Supplier.SuplierDesc.ToLower().Contains(searchLower)));
+            }
 
             var pagedResult = await _unitOfWork.HInvTransRepository.GetPagedAsync(
                 page,
@@ -281,6 +302,37 @@ namespace Application.Service
                 TrDate2 = it.TrDate2?.ToString("yyyy-MM-dd"),
                 //DepDesc = it.Department?.DepDesc ?? "" // اسم الإدارة أو المخزن المحول إليه
             }).ToList();
+        }
+
+        // Helper method to combine multiple expression filters
+        private static Expression<Func<T, bool>> CombineExpressions<T>(Expression<Func<T, bool>> first, Expression<Func<T, bool>> second)
+        {
+            var parameter = Expression.Parameter(typeof(T));
+            
+            var leftVisitor = new ReplaceExpressionVisitor(first.Parameters[0], parameter);
+            var left = leftVisitor.Visit(first.Body);
+            
+            var rightVisitor = new ReplaceExpressionVisitor(second.Parameters[0], parameter);
+            var right = rightVisitor.Visit(second.Body);
+            
+            return Expression.Lambda<Func<T, bool>>(Expression.AndAlso(left, right), parameter);
+        }
+
+        private class ReplaceExpressionVisitor : ExpressionVisitor
+        {
+            private readonly Expression _oldValue;
+            private readonly Expression _newValue;
+
+            public ReplaceExpressionVisitor(Expression oldValue, Expression newValue)
+            {
+                _oldValue = oldValue;
+                _newValue = newValue;
+            }
+
+            public override Expression Visit(Expression node)
+            {
+                return node == _oldValue ? _newValue : base.Visit(node);
+            }
         }
     }
 }

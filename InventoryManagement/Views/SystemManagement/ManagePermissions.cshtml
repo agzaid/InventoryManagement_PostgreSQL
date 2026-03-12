@@ -1,0 +1,180 @@
+@{
+    ViewData["Title"] = "إدارة الصلاحيات";
+}
+
+<div class="container-fluid" dir="rtl">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shield-alt"></i> إدارة الصلاحيات
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label for="roleSelect" class="form-label">اختر الدور</label>
+                            <select class="form-select" id="roleSelect">
+                                <option value="">-- اختر دور --</option>
+                                <option value="admin">المدير</option>
+                                <option value="storekeeper">أمين المخزن</option>
+                                <option value="manager">المشرف</option>
+                                <option value="user">المستخدم</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="permissionsContainer" class="d-none">
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="button" id="savePermissions" class="btn btn-success">
+                                    <i class="fas fa-save"></i> حفظ الصلاحيات
+                                </button>
+                                <button type="button" id="selectAll" class="btn btn-outline-primary">
+                                    <i class="fas fa-check-square"></i> تحديد الكل
+                                </button>
+                                <button type="button" id="deselectAll" class="btn btn-outline-secondary">
+                                    <i class="fas fa-square"></i> إلغاء تحديد الكل
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4" id="permissionsList">
+                            <!-- Permissions will be loaded here dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            let currentRoleId = '';
+
+            $('#roleSelect').change(function() {
+                const roleId = $(this).val();
+                if (roleId) {
+                    loadRolePermissions(roleId);
+                    $('#permissionsContainer').removeClass('d-none');
+                } else {
+                    $('#permissionsContainer').addClass('d-none');
+                }
+            });
+
+            $('#savePermissions').click(function() {
+                savePermissions();
+            });
+
+            $('#selectAll').click(function() {
+                $('#permissionsList input[type="checkbox"]').prop('checked', true);
+            });
+
+            $('#deselectAll').click(function() {
+                $('#permissionsList input[type="checkbox"]').prop('checked', false);
+            });
+
+            function loadRolePermissions(roleId) {
+                currentRoleId = roleId;
+                
+                $.get('/SystemManagement/GetRolePermissions', { roleId: roleId })
+                    .done(function(data) {
+                        renderPermissions(data);
+                    })
+                    .fail(function() {
+                        alert('فشل في تحميل الصلاحيات');
+                    });
+            }
+
+            function renderPermissions(rolePermissions) {
+                const permissionsByModule = {};
+                
+                // Group permissions by module
+                rolePermissions.permissions.forEach(function(permission) {
+                    if (!permissionsByModule[permission.module]) {
+                        permissionsByModule[permission.module] = [];
+                    }
+                    permissionsByModule[permission.module].push(permission);
+                });
+
+                let html = '';
+                
+                for (const [module, permissions] of Object.entries(permissionsByModule)) {
+                    html += `
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">${getModuleDisplayName(module)}</h6>
+                                </div>
+                                <div class="card-body">
+                    `;
+                    
+                    permissions.forEach(function(permission) {
+                        html += `
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" 
+                                       id="perm_${permission.code}" 
+                                       value="${permission.code}"
+                                       ${permission.isChecked ? 'checked' : ''}>
+                                <label class="form-check-label" for="perm_${permission.code}">
+                                    ${permission.displayName}
+                                </label>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                $('#permissionsList').html(html);
+            }
+
+            function getModuleDisplayName(module) {
+                const moduleNames = {
+                    'Daily Movement': 'الحركة اليومية',
+                    'Inventory': 'المخزون',
+                    'System Codes': 'الأكواد النظامية',
+                    'Admin': 'الإدارة'
+                };
+                return moduleNames[module] || module;
+            }
+
+            function savePermissions() {
+                const selectedPermissions = [];
+                $('#permissionsList input[type="checkbox"]:checked').each(function() {
+                    selectedPermissions.push($(this).val());
+                });
+
+                $.ajax({
+                    url: '/SystemManagement/UpdateRolePermissions',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        roleId: currentRoleId,
+                        permissionCodes: selectedPermissions
+                    }),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    }
+                })
+                .done(function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                    } else {
+                        alert(response.message);
+                    }
+                })
+                .fail(function() {
+                    alert('فشل في حفظ الصلاحيات');
+                });
+            }
+        });
+    </script>
+}

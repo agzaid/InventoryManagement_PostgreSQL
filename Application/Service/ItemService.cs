@@ -6,6 +6,7 @@ using AutoMapper;
 using Domain.Entities;
 using Domain.Exceptions;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
@@ -167,13 +168,13 @@ namespace Application.Service
         public async Task<PagedResult<ItemDto>> GetItemsPaginated(int page, string search, string category)
         {
             int pageSize = 20;
-            string cleanSearch = search?.Trim() ?? "";
+            string cleanSearch = search?.Trim().ToLower() ?? "";
 
             Expression<Func<Item, bool>> filter = x =>
                 (string.IsNullOrEmpty(cleanSearch) ||
-                 x.ItemDesc.Contains(cleanSearch) ||
-                 x.ItemCode.Contains(cleanSearch) ||
-                 (x.Barecode != null && x.Barecode.Contains(cleanSearch))) &&
+                 x.ItemDesc.ToLower().Contains(cleanSearch) ||
+                 x.ItemCode.ToLower().Contains(cleanSearch) ||
+                 (x.Barecode != null && x.Barecode.ToLower().Contains(cleanSearch))) &&
                 (string.IsNullOrEmpty(category) ||
                  (x.ItemCategory != null && x.ItemCategory.CatgryDesc == category));
 

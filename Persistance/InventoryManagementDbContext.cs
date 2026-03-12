@@ -1,9 +1,10 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Persistance
 {
-    public class InventoryManagementDbContext : AuditableDbContext
+    public class InventoryManagementDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
     {
         public InventoryManagementDbContext(DbContextOptions<InventoryManagementDbContext> options) : base(options)
         {
@@ -24,6 +25,16 @@ namespace Persistance
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<SysMessg> SysMessgs { get; set; }
         public DbSet<EmpEgx> EmpEgx { get; set; }
+        
+        // Custom authorization tables (using ASP.NET Identity roles)
+        public DbSet<UserRole> UserRoles { get; set; }
+        
+        // Removed redundant tables:
+        // - User (use ApplicationUser from ASP.NET Identity)
+        // - Role (use ApplicationRole from ASP.NET Identity)
+        // - UserRoleAssignment (use AspNetUserRoles from ASP.NET Identity)
+        
+        public DbSet<RolePermission> RolePermissions { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -436,7 +447,107 @@ namespace Persistance
                 entity.Property(e => e.MsgDesc).HasColumnName("MSG_DESC");
             });
 
-           
+            // Removed User entity configuration - using ASP.NET Identity ApplicationUser instead
+            // modelBuilder.Entity<User>(entity =>
+            // {
+            //     entity.ToTable("users");
+            //     entity.HasKey(e => e.Id);
+            //     entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            //     entity.Property(e => e.Username).HasColumnName("username").IsRequired().HasMaxLength(100);
+            //     entity.Property(e => e.Email).HasColumnName("email").IsRequired().HasMaxLength(255);
+            //     entity.Property(e => e.PasswordHash).HasColumnName("password_hash").IsRequired().HasMaxLength(500);
+            //     entity.Property(e => e.FirstName).HasColumnName("first_name").IsRequired().HasMaxLength(100);
+            //     entity.Property(e => e.LastName).HasColumnName("last_name").IsRequired().HasMaxLength(100);
+            //     entity.Property(e => e.IsActive).HasColumnName("is_active");
+            //     entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            //     entity.Property(e => e.LastLoginAt).HasColumnName("last_login_at");
+            //     entity.HasIndex(e => e.Username).IsUnique();
+            //     entity.HasIndex(e => e.Email).IsUnique();
+            // });
+
+            // Removed Role entity configuration - using ApplicationRole from ASP.NET Identity
+            // modelBuilder.Entity<Role>(entity =>
+            // {
+            //     entity.ToTable("roles");
+            //     entity.HasKey(e => e.Id);
+            //     entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            //     entity.Property(e => e.Name).HasColumnName("name").IsRequired().HasMaxLength(100);
+            //     entity.Property(e => e.Description).HasColumnName("description").HasMaxLength(255);
+            //     entity.Property(e => e.IsActive).HasColumnName("is_active");
+            //     entity.HasIndex(e => e.Name).IsUnique();
+            // });
+
+            // UserRole entity configuration (many-to-many with ApplicationRole)
+            modelBuilder.Entity<UserRole>(entity =>
+            {
+                entity.ToTable("user_roles");
+                entity.HasKey(e => new { e.UserId, e.RoleId });
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.Property(e => e.RoleId).HasColumnName("role_id");
+                
+                // Removed User navigation - using ASP.NET Identity ApplicationUser
+                // entity.HasOne(e => e.User)
+                //       .WithMany(u => u.UserRoles)
+                //       .HasForeignKey(e => e.UserId)
+                //       .OnDelete(DeleteBehavior.Cascade);
+                      
+                entity.HasOne(e => e.Role)  // Now references ApplicationRole
+                      .WithMany(r => r.UserRoles)
+                      .HasForeignKey(e => e.RoleId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Identity entity configurations
+            modelBuilder.Entity<ApplicationUser>(entity =>
+            {
+                entity.ToTable("AspNetUsers");
+                entity.Property(e => e.FirstName).HasMaxLength(100);
+                entity.Property(e => e.LastName).HasMaxLength(100);
+                entity.Property(e => e.FullName).HasMaxLength(200);
+                entity.Property(e => e.Department).HasMaxLength(100);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            });
+
+            modelBuilder.Entity<ApplicationRole>(entity =>
+            {
+                entity.ToTable("AspNetRoles");
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            });
+
+            // Removed UserRoleAssignment configuration - using ASP.NET Identity AspNetUserRoles instead
+            // modelBuilder.Entity<UserRoleAssignment>(entity =>
+            // {
+            //     entity.ToTable("UserRoleAssignments");
+            //     entity.HasKey(e => e.Id);
+            //     entity.Property(e => e.PermissionCode).HasMaxLength(50).IsRequired();
+            //     entity.Property(e => e.AssignedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            //     
+            //     entity.HasOne(e => e.User)
+            //           .WithMany(u => u.RoleAssignments)
+            //           .HasForeignKey(e => e.UserId)
+            //           .OnDelete(DeleteBehavior.Cascade);
+            //           
+            //     entity.HasOne(e => e.Role)
+            //           .WithMany()
+            //           .HasForeignKey(e => e.RoleId)
+            //           .OnDelete(DeleteBehavior.Cascade);
+            // });
+
+            modelBuilder.Entity<RolePermission>(entity =>
+            {
+                entity.ToTable("RolePermissions");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.PermissionCode).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.PermissionName).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.Module).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                
+                entity.HasOne(e => e.Role)
+                      .WithMany(r => r.RolePermissions)
+                      .HasForeignKey(e => e.RoleId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
 
             modelBuilder.HasDefaultSchema("KWAREHOUSE");
 

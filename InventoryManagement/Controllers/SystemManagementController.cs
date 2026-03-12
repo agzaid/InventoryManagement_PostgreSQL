@@ -2,11 +2,13 @@
 using Application.Interfaces.Contracts.Service;
 using Application.Interfaces.Models;
 using Domain.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
 namespace InventoryManagement.Controllers
 {
+    [Authorize(Roles = "Admin,Manager")]
     public class SystemManagementController : Controller
     {
         private readonly ILogger<SystemManagementController> _logger;
@@ -16,8 +18,9 @@ namespace InventoryManagement.Controllers
         private readonly ISystemManagementService _sysManagement;
         private readonly IInvTransService _invTransService;
         private readonly IMonthlyBalanceService _monthlyBalanceService;
+        private readonly IPermissionService _permissionService;
 
-        public SystemManagementController(ILogger<SystemManagementController> logger, IAppLocalizer localizer, IStoreService store, IInvUserService userService, ISystemManagementService sysManagement, IInvTransService invTransService, IMonthlyBalanceService monthlyBalanceService)
+        public SystemManagementController(ILogger<SystemManagementController> logger, IAppLocalizer localizer, IStoreService store, IInvUserService userService, ISystemManagementService sysManagement, IInvTransService invTransService, IMonthlyBalanceService monthlyBalanceService, IPermissionService permissionService)
         {
             _logger = logger;
             _localizer = localizer;
@@ -26,6 +29,7 @@ namespace InventoryManagement.Controllers
             _sysManagement = sysManagement;
             _invTransService = invTransService;
             _monthlyBalanceService = monthlyBalanceService;
+            _permissionService = permissionService;
         }
         public async Task<IActionResult> Index()
         {
@@ -145,5 +149,43 @@ namespace InventoryManagement.Controllers
 
             return Json(new { success = false, message = result.Message });
         }
+
+        #region Permission Management
+
+        [HttpGet]
+        public async Task<IActionResult> ManagePermissions()
+        {
+            var roles = await _permissionService.GetAllPermissionsAsync();
+            return View(roles);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetRolePermissions(string roleId)
+        {
+            var rolePermissions = await _permissionService.GetRolePermissionsAsync(roleId);
+            return Json(rolePermissions);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateRolePermissions([FromBody] UpdateRolePermissionsRequest request)
+        {
+            try
+            {
+                var result = await _permissionService.UpdateRolePermissionsAsync(request);
+                if (result)
+                {
+                    return Json(new { success = true, message = "تم تحديث الصلاحيات بنجاح" });
+                }
+                return Json(new { success = false, message = "فشل في تحديث الصلاحيات" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating role permissions");
+                return Json(new { success = false, message = "حدث خطأ أثناء تحديث الصلاحيات" });
+            }
+        }
+
+        #endregion
     }
 }

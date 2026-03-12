@@ -3,6 +3,7 @@ using Application.Interfaces.Contracts.Service;
 using Application.Interfaces.Models;
 using Domain.Exceptions;
 using InventoryManagement.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Linq;
@@ -10,6 +11,7 @@ using System.Collections.Generic;
 
 namespace InventoryManagement.Controllers
 {
+    [Authorize]
     public class ItemBalanceController : Controller
     {
         private readonly ILogger<ItemBalanceController> _logger;

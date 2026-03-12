@@ -4,12 +4,14 @@ using Application.Interfaces.Models;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace InventoryManagement.Controllers
 {
+    [Authorize]
     public class InventoryMovementController : Controller
     {
         private readonly ILogger<InventoryMovementController> _logger;
@@ -284,7 +286,7 @@ namespace InventoryManagement.Controllers
             return View();
         }
         [HttpGet]
-        public async Task<IActionResult> GetTransactionsData(string trType, string fromDate, string toDate, int page = 1, int pageSize = 20)
+        public async Task<IActionResult> GetTransactionsData(string trType, string fromDate, string toDate, string itemSearch = "", string supplierSearch = "", int page = 1, int pageSize = 20)
         {
             try
             {
@@ -312,7 +314,9 @@ namespace InventoryManagement.Controllers
                     page,
                     pageSize,
                     start,
-                    end
+                    end,
+                    itemSearch,
+                    supplierSearch
                 );
 
                 return Json(new

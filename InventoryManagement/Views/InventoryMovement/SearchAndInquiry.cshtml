@@ -59,6 +59,14 @@
                     <label class="block text-xs font-semibold text-slate-500 uppercase">إلى تاريخ</label>
                     <input type="date" id="entryDateTo" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-sm dark:text-white">
                 </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase">البحث بالصنف</label>
+                    <input type="text" id="entryItemSearch" placeholder="كود أو اسم الصنف" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-sm dark:text-white">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase">البحث بالمورد</label>
+                    <input type="text" id="entrySupplierSearch" placeholder="كود أو اسم المورد" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-sm dark:text-white">
+                </div>
                 <button type="button" onclick="searchTransactions('entry')" class="flex items-center gap-2 px-6 py-2 bg-blue-800 hover:bg-blue-900 text-white rounded-lg shadow-md transition-all text-sm font-medium">
                     <span class="material-icons-outlined text-lg">search</span> بحث
                 </button>
@@ -138,6 +146,14 @@
                     <label class="block text-xs font-semibold text-slate-500 uppercase">إلى تاريخ</label>
                     <input type="date" id="outgoingDateTo" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-sm dark:text-white">
                 </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase">البحث بالصنف</label>
+                    <input type="text" id="outgoingItemSearch" placeholder="كود أو اسم الصنف" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-sm dark:text-white">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase">البحث بالمورد</label>
+                    <input type="text" id="outgoingSupplierSearch" placeholder="كود أو اسم المورد" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-sm dark:text-white">
+                </div>
                 <button type="button" onclick="searchTransactions('outgoing')" class="flex items-center gap-2 px-6 py-2 bg-blue-800 hover:bg-blue-900 text-white rounded-lg shadow-md transition-all text-sm font-medium">
                     <span class="material-icons-outlined text-lg">search</span> بحث
                 </button>
@@ -214,6 +230,14 @@
                 <div class="space-y-1.5">
                     <label class="block text-xs font-semibold text-slate-500 uppercase">إلى تاريخ</label>
                     <input type="date" id="transferDateTo" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-sm dark:text-white">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase">البحث بالصنف</label>
+                    <input type="text" id="transferItemSearch" placeholder="كود أو اسم الصنف" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-sm dark:text-white">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase">البحث بالمورد</label>
+                    <input type="text" id="transferSupplierSearch" placeholder="كود أو اسم المورد" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-sm dark:text-white">
                 </div>
                 <button type="button" onclick="searchTransactions('transfer')" class="flex items-center gap-2 px-6 py-2 bg-blue-800 hover:bg-blue-900 text-white rounded-lg shadow-md transition-all text-sm font-medium">
                     <span class="material-icons-outlined text-lg">search</span> بحث
@@ -293,6 +317,14 @@
                 <div class="space-y-1.5">
                     <label class="block text-xs font-semibold text-slate-500 uppercase">إلى تاريخ</label>
                     <input type="date" id="returnedDateTo" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-sm dark:text-white">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase">البحث بالصنف</label>
+                    <input type="text" id="returnedItemSearch" placeholder="كود أو اسم الصنف" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-sm dark:text-white">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase">البحث بالمورد</label>
+                    <input type="text" id="returnedSupplierSearch" placeholder="كود أو اسم المورد" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-sm dark:text-white">
                 </div>
                 <button type="button" onclick="searchTransactions('returned')" class="flex items-center gap-2 px-6 py-2 bg-blue-800 hover:bg-blue-900 text-white rounded-lg shadow-md transition-all text-sm font-medium">
                     <span class="material-icons-outlined text-lg">search</span> بحث
@@ -402,6 +434,8 @@
             const tableBodyId = `#${mode}TableBody`;
             const dateFrom = $(`#${mode}DateFrom`).val();
             const dateTo = $(`#${mode}DateTo`).val();
+            const itemSearch = $(`#${mode}ItemSearch`).val().trim();
+            const supplierSearch = $(`#${mode}SupplierSearch`).val().trim();
 
             // Validate dates - using _AlertHelper directly (guaranteed to be loaded)
             if (!dateFrom || !dateTo) {
@@ -421,7 +455,7 @@
             $.ajax({
                 url: `/${culture}/InventoryMovement/GetTransactionsData`,
                 type: 'GET',
-                data: { trType, fromDate: dateFrom, toDate: dateTo, page, pageSize: PAGE_SIZE },
+                data: { trType, fromDate: dateFrom, toDate: dateTo, itemSearch, supplierSearch, page, pageSize: PAGE_SIZE },
                 success: function(response) {
                     let html = '';
                     let items = response.items || response;

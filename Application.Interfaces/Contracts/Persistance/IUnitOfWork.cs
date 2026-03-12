@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Application.Interfaces.Contracts.Persistance
 {
@@ -21,8 +22,10 @@ namespace Application.Interfaces.Contracts.Persistance
         ISupplierRepository SupplierRepository { get; }
         IUserRepository UserRepository { get; }
         IRoleRepository RoleRepository { get; }
+        IRolePermissionRepository RolePermissionRepository { get; }
         IUserRoleRepository UserRoleRepository { get; }
         Task<int> SaveChangesAsync();
         Task<ITransactionWrapper> BeginTransactionAsync();
+        Task<int> CompleteAsync();
     }
 }

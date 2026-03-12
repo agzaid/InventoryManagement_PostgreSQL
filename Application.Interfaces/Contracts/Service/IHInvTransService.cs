@@ -14,6 +14,6 @@ namespace Application.Interfaces.Contracts.Service
         Task<List<TransactionDisplayDto>> GetHistoryTransactionsEmployeeAsync(int storeCode);
         Task<List<TransactionDisplayDto>> GetHistoryByTypeAsync(int storeCode, TrType type);
         Task<List<TransactionDisplayDto>> GetHistoryTransactionsByTypeAndDateAsync(int storeCode, int trType, DateTime from, DateTime to);
-        Task<PagedResult<TransactionDisplayDto>> GetHistoryTransactionsPaginatedAsync(List<int> trTypes, int page, int pageSize, DateTime start, DateTime end);
+        Task<PagedResult<TransactionDisplayDto>> GetHistoryTransactionsPaginatedAsync(List<int> trTypes, int page, int pageSize, DateTime start, DateTime end, string itemSearch = "", string supplierSearch = "");
     }
 }

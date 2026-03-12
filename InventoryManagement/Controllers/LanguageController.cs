@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Localization;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagement.Controllers
@@ -6,15 +7,16 @@ namespace InventoryManagement.Controllers
     public class LanguageController : Controller
     {
         [HttpPost]
+        [AllowAnonymous]
         public IActionResult SetLanguage(string culture, string returnUrl)
         {
             var selectedCulture = culture.StartsWith("ar") ? "ar" : "en";
 
             // 1. Set Cookie
             Response.Cookies.Append(
-                CookieRequestCultureProvider.DefaultCookieName,
+                "EGX.Culture",
                 CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(selectedCulture)),
-                new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) }
+                new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), Path = "/" }
             );
 
             // 2. Get the PathBase (e.g., "/inventory")
