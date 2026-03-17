@@ -1,0 +1,424 @@
+@model Application.Interfaces.Models.PermissionActionManagementDto
+@{
+    ViewData["Title"] = "ربط الصلاحيات بالصفحات";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    primary: "#0ea5e9",
+                    secondary: "#64748b",
+                    accent: "#f59e0b",
+                    "background-light": "#f8fafc",
+                    "background-dark": "#0f172a",
+                    "surface-light": "#ffffff",
+                    "surface-dark": "#1e293b",
+                    "border-light": "#e2e8f0",
+                    "border-dark": "#334155",
+                },
+                fontFamily: {
+                    sans: ["Cairo", "sans-serif"],
+                    display: ["Cairo", "sans-serif"],
+                },
+            },
+        },
+    };
+</script>
+
+<div class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-200 font-sans min-h-screen flex flex-col transition-colors duration-300">
+    <main class="flex-1 mx-auto w-full flex flex-col gap-6 p-6">
+        
+        @* Header Section *@
+        <section class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark shadow-sm">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold mb-2 flex items-center gap-2 text-slate-900 dark:text-white">
+                        <span class="material-icons-round text-accent">link</span>
+                        ربط الصلاحيات بالصفحات
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">تحديد الصفحات والإجراءات المرتبطة بكل صلاحية</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="openCreateModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white rounded-lg transition-all shadow-sm">
+                        <span class="material-icons-round text-lg">add</span>
+                        <span class="font-medium">إضافة ربط جديد</span>
+                    </button>
+                    <a href="@Url.Action("Index", "Permissions")" class="inline-flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary/90 text-white rounded-lg transition-colors shadow-sm">
+                        <span class="material-icons-round text-lg">arrow_back</span>
+                        <span class="font-medium">رجوع</span>
+                    </a>
+                </div>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-3">
+                    <span class="material-icons-round text-green-600 dark:text-green-400">check_circle</span>
+                    <span class="text-green-800 dark:text-green-200">@TempData["Success"]</span>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-3">
+                    <span class="material-icons-round text-red-600 dark:text-red-400">error</span>
+                    <span class="text-red-800 dark:text-red-200">@TempData["Error"]</span>
+                </div>
+            }
+        </section>
+
+        @* Permission Actions Table *@
+        <section class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-slate-50 dark:bg-slate-800/50 border-b border-border-light dark:border-border-dark">
+                        <tr>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">الوحدة</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">الصلاحية</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Controller</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Action</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">HTTP Method</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">الحالة</th>
+                            <th class="px-6 py-4 text-center text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-light dark:divide-border-dark">
+                        @if (Model.PermissionActions != null && Model.PermissionActions.Any())
+                        {
+                            @foreach (var pa in Model.PermissionActions)
+                            {
+                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+                                            @pa.Module
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm font-medium text-slate-900 dark:text-white">@pa.PermissionName</div>
+                                        <div class="text-xs text-slate-500 dark:text-slate-400">@pa.PermissionCode</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700 dark:text-slate-300">@pa.Controller</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700 dark:text-slate-300">@pa.Action</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium @(pa.HttpMethod == "GET" ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200" : "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200")">
+                                            @pa.HttpMethod
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if (pa.IsActive)
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
+                                                <span class="material-icons-round text-xs">check_circle</span>
+                                                مفعل
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200">
+                                                <span class="material-icons-round text-xs">cancel</span>
+                                                معطل
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                        <div class="flex items-center justify-center gap-2">
+                                            <button onclick="togglePermissionAction(@pa.Id)" class="inline-flex items-center gap-1 px-3 py-1.5 @(pa.IsActive ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200" : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-200") rounded-lg transition-colors text-xs font-medium">
+                                                <span class="material-icons-round text-sm">@(pa.IsActive ? "toggle_on" : "toggle_off")</span>
+                                                @(pa.IsActive ? "تعطيل" : "تفعيل")
+                                            </button>
+                                            <button onclick="deletePermissionAction(@pa.Id)" class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-lg transition-colors text-xs font-medium">
+                                                <span class="material-icons-round text-sm">delete</span>
+                                                حذف
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center gap-3">
+                                        <span class="material-icons-round text-6xl text-slate-300 dark:text-slate-600">link_off</span>
+                                        <p class="text-slate-500 dark:text-slate-400">لا توجد روابط بين الصلاحيات والصفحات</p>
+                                        <button onclick="openCreateModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors text-sm">
+                                            <span class="material-icons-round text-lg">add</span>
+                                            إضافة ربط جديد
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        @* Statistics *@
+        @if (Model.PermissionActions != null && Model.PermissionActions.Any())
+        {
+            var totalMappings = Model.PermissionActions.Count;
+            var activeMappings = Model.PermissionActions.Count(pa => pa.IsActive);
+            var uniquePermissions = Model.PermissionActions.Select(pa => pa.PermissionCode).Distinct().Count();
+
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-100 text-sm font-medium">إجمالي الروابط</p>
+                            <h3 class="text-3xl font-bold mt-2">@totalMappings</h3>
+                        </div>
+                        <div class="bg-white/20 rounded-full p-3">
+                            <span class="material-icons-round text-4xl">link</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-100 text-sm font-medium">الروابط المفعلة</p>
+                            <h3 class="text-3xl font-bold mt-2">@activeMappings</h3>
+                        </div>
+                        <div class="bg-white/20 rounded-full p-3">
+                            <span class="material-icons-round text-4xl">check_circle</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-100 text-sm font-medium">صلاحيات مربوطة</p>
+                            <h3 class="text-3xl font-bold mt-2">@uniquePermissions</h3>
+                        </div>
+                        <div class="bg-white/20 rounded-full p-3">
+                            <span class="material-icons-round text-4xl">verified_user</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        }
+    </main>
+</div>
+
+@* Create Permission Action Modal *@
+<div id="createModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-surface-light dark:bg-surface-dark rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-gradient-to-r from-primary to-accent p-6 rounded-t-xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <span class="material-icons-round">add_link</span>
+                    إضافة ربط جديد
+                </h3>
+                <button onclick="closeCreateModal()" class="text-white hover:bg-white/20 rounded-full p-2 transition-colors">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+        </div>
+
+        <form asp-action="CreatePermissionAction" method="post" class="p-6 space-y-6">
+            @Html.AntiForgeryToken()
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">الوحدة</label>
+                    <select id="moduleSelect" name="Module" required class="w-full px-4 py-2 border border-border-light dark:border-border-dark rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <option value="">اختر الوحدة</option>
+                        @if (Model.AvailablePermissions != null)
+                        {
+                            @foreach (var module in Model.AvailablePermissions.Select(p => p.Module).Distinct())
+                            {
+                                <option value="@module">@module</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">الصلاحية</label>
+                    <select id="permissionSelect" name="PermissionCode" required onchange="updatePermissionName()" class="w-full px-4 py-2 border border-border-light dark:border-border-dark rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <option value="">اختر الصلاحية</option>
+                    </select>
+                    <input type="hidden" id="permissionName" name="PermissionName" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Controller</label>
+                    <select id="controllerSelect" name="Controller" required onchange="updateActions()" class="w-full px-4 py-2 border border-border-light dark:border-border-dark rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <option value="">اختر Controller</option>
+                        @if (Model.AvailableControllers != null)
+                        {
+                            @foreach (var controller in Model.AvailableControllers.Select(c => c.Controller).Distinct())
+                            {
+                                <option value="@controller">@controller</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Action</label>
+                    <select id="actionSelect" name="Action" required class="w-full px-4 py-2 border border-border-light dark:border-border-dark rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <option value="">اختر Action</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">HTTP Method</label>
+                    <select name="HttpMethod" class="w-full px-4 py-2 border border-border-light dark:border-border-dark rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">الوصف (اختياري)</label>
+                <textarea name="Description" rows="3" class="w-full px-4 py-2 border border-border-light dark:border-border-dark rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
+            </div>
+
+            <div class="flex gap-3 justify-end pt-4 border-t border-border-light dark:border-border-dark">
+                <button type="button" onclick="closeCreateModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                    إلغاء
+                </button>
+                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg hover:from-primary/90 hover:to-accent/90 transition-all shadow-sm">
+                    إضافة الربط
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const permissionsData = @Html.Raw(Json.Serialize(Model.AvailablePermissions));
+    const controllersData = @Html.Raw(Json.Serialize(Model.AvailableControllers));
+
+    document.getElementById('moduleSelect').addEventListener('change', function() {
+        const module = this.value;
+        const permissionSelect = document.getElementById('permissionSelect');
+        permissionSelect.innerHTML = '<option value="">اختر الصلاحية</option>';
+        
+        if (module) {
+            const modulePerms = permissionsData.find(p => p.module === module);
+            if (modulePerms) {
+                modulePerms.permissions.forEach(perm => {
+                    const option = document.createElement('option');
+                    option.value = perm.code;
+                    option.textContent = perm.name;
+                    option.dataset.name = perm.name;
+                    permissionSelect.appendChild(option);
+                });
+            }
+        }
+    });
+
+    function updatePermissionName() {
+        const select = document.getElementById('permissionSelect');
+        const selectedOption = select.options[select.selectedIndex];
+        document.getElementById('permissionName').value = selectedOption.dataset.name || '';
+    }
+
+    function updateActions() {
+        const controller = document.getElementById('controllerSelect').value;
+        const actionSelect = document.getElementById('actionSelect');
+        actionSelect.innerHTML = '<option value="">اختر Action</option>';
+        
+        if (controller) {
+            const actions = controllersData.filter(c => c.controller === controller);
+            actions.forEach(action => {
+                const option = document.createElement('option');
+                option.value = action.action;
+                option.textContent = action.action;
+                actionSelect.appendChild(option);
+            });
+        }
+    }
+
+    function openCreateModal() {
+        document.getElementById('createModal').classList.remove('hidden');
+    }
+
+    function closeCreateModal() {
+        document.getElementById('createModal').classList.add('hidden');
+    }
+
+    function togglePermissionAction(id) {
+        Swal.fire({
+            title: 'تأكيد العملية',
+            text: 'هل تريد تغيير حالة هذا الربط؟',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#0ea5e9',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'نعم، تغيير',
+            cancelButtonText: 'إلغاء'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '@Url.Action("TogglePermissionAction")';
+                
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = id;
+                form.appendChild(idInput);
+                
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                form.appendChild(tokenInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+
+    function deletePermissionAction(id) {
+        Swal.fire({
+            title: 'تأكيد الحذف',
+            text: 'هل أنت متأكد من حذف هذا الربط؟ لا يمكن التراجع عن هذا الإجراء',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'نعم، حذف',
+            cancelButtonText: 'إلغاء'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '@Url.Action("DeletePermissionAction")';
+                
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = id;
+                form.appendChild(idInput);
+                
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                form.appendChild(tokenInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+</script>

@@ -39,7 +39,8 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     options.SignIn.RequireConfirmedEmail = false;
 })
 .AddEntityFrameworkStores<InventoryManagementDbContext>()
-.AddDefaultTokenProviders();
+.AddDefaultTokenProviders()
+.AddClaimsPrincipalFactory<InventoryManagement.Services.CustomUserClaimsPrincipalFactory>();
 
 // Configure authentication cookies
 builder.Services.ConfigureApplicationCookie(options =>
@@ -69,6 +70,8 @@ builder.Services.AddLocalization();
 
 builder.Services.AddScoped<IAppLocalizer, Infrastructure.Localization.AppLocalizer>();
 builder.Services.AddScoped<InventoryManagement.Services.RoleSeedingService>();
+builder.Services.AddScoped<InventoryManagement.Services.AdminSeedingService>();
+builder.Services.AddScoped<InventoryManagement.Services.IPermissionClaimsService, InventoryManagement.Services.PermissionClaimsService>();
 
 builder.Services.AddControllersWithViews()
     .AddDataAnnotationsLocalization(options => {
@@ -144,7 +147,9 @@ using (var scope = app.Services.CreateScope())
 {
     var roleSeeder = scope.ServiceProvider.GetRequiredService<InventoryManagement.Services.RoleSeedingService>();
     await roleSeeder.SeedRolesAsync();
-    await roleSeeder.SeedAdminUserAsync();
+    
+    var adminSeeder = scope.ServiceProvider.GetRequiredService<InventoryManagement.Services.AdminSeedingService>();
+    await adminSeeder.SeedAdminUserAsync();
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

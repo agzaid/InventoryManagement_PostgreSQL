@@ -1,0 +1,192 @@
+@model InventoryManagement.Models.UserManagement.EditRoleViewModel
+@{
+    ViewData["Title"] = "تعديل الدور";
+}
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-500 p-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <span class="material-icons-round text-3xl">edit</span>
+                        تعديل الدور: @Model.Name
+                    </h2>
+                    <a href="@Url.Action("ManageRoles", "UserManagement")" class="text-white hover:bg-white/20 rounded-full p-2 transition-colors">
+                        <span class="material-icons-round">close</span>
+                    </a>
+                </div>
+            </div>
+
+            <form asp-action="EditRole" method="post" class="p-8">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="IsSystemRole" />
+
+                <div asp-validation-summary="ModelOnly" class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl"></div>
+
+                <div class="space-y-6">
+                    <div>
+                        <label asp-for="Name" class="block text-sm font-semibold text-slate-700 mb-2">
+                            اسم الدور <span class="text-red-500">*</span>
+                        </label>
+                        <input asp-for="Name" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
+                        <span asp-validation-for="Name" class="text-red-500 text-sm mt-1"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Level" class="block text-sm font-semibold text-slate-700 mb-2">
+                            المستوى
+                        </label>
+                        <input asp-for="Level" type="number" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
+                        <span asp-validation-for="Level" class="text-red-500 text-sm mt-1"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Description" class="block text-sm font-semibold text-slate-700 mb-2">
+                            الوصف
+                        </label>
+                        <textarea asp-for="Description" rows="3" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"></textarea>
+                        <span asp-validation-for="Description" class="text-red-500 text-sm mt-1"></span>
+                    </div>
+
+                    <div class="border-t border-slate-200 pt-6">
+                        <h4 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                            <span class="material-icons-round text-purple-600">security</span>
+                            صلاحيات الدور
+                        </h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                            @* Daily Movement Module *@
+                            <div class="bg-yellow-50 rounded-xl p-4">
+                                <h5 class="font-bold text-yellow-800 mb-3 flex items-center gap-2">
+                                    <span class="material-icons-round text-sm">calendar_today</span>
+                                    الحركة اليومية
+                                </h5>
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog01" @(Model.SelectedPermissions.Contains("Prog01") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-yellow-600">
+                                        <span class="text-sm text-slate-700">تسجيل حركة الوارد</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog02" @(Model.SelectedPermissions.Contains("Prog02") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-yellow-600">
+                                        <span class="text-sm text-slate-700">تسجيل حركة المنصرف</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog03" @(Model.SelectedPermissions.Contains("Prog03") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-yellow-600">
+                                        <span class="text-sm text-slate-700">تسجيل حركة التحويل</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog11" @(Model.SelectedPermissions.Contains("Prog11") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-yellow-600">
+                                        <span class="text-sm text-slate-700">تسجيل المرتجعات</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog12" @(Model.SelectedPermissions.Contains("Prog12") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-yellow-600">
+                                        <span class="text-sm text-slate-700">استعلام وبحث البيانات</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            @* Inventory Module *@
+                            <div class="bg-blue-50 rounded-xl p-4">
+                                <h5 class="font-bold text-blue-800 mb-3 flex items-center gap-2">
+                                    <span class="material-icons-round text-sm">inventory_2</span>
+                                    أرصدة المخزن
+                                </h5>
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog13" @(Model.SelectedPermissions.Contains("Prog13") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-blue-600">
+                                        <span class="text-sm text-slate-700">تسجيل أرصدة الفتح</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog14" @(Model.SelectedPermissions.Contains("Prog14") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-blue-600">
+                                        <span class="text-sm text-slate-700">الأرصدة الحالية</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog21" @(Model.SelectedPermissions.Contains("Prog21") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-blue-600">
+                                        <span class="text-sm text-slate-700">كارت الصنف</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog22" @(Model.SelectedPermissions.Contains("Prog22") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-blue-600">
+                                        <span class="text-sm text-slate-700">جرد المخزن</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog23" @(Model.SelectedPermissions.Contains("Prog23") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-blue-600">
+                                        <span class="text-sm text-slate-700">تقارير الأرصدة والاستهلاك</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog24" @(Model.SelectedPermissions.Contains("Prog24") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-blue-600">
+                                        <span class="text-sm text-slate-700">جرد كل المخازن</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            @* System Codes Module *@
+                            <div class="bg-purple-50 rounded-xl p-4">
+                                <h5 class="font-bold text-purple-800 mb-3 flex items-center gap-2">
+                                    <span class="material-icons-round text-sm">grid_view</span>
+                                    أكواد النظام
+                                </h5>
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog25" @(Model.SelectedPermissions.Contains("Prog25") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-purple-600">
+                                        <span class="text-sm text-slate-700">أكواد الأصناف</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog29" @(Model.SelectedPermissions.Contains("Prog29") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-purple-600">
+                                        <span class="text-sm text-slate-700">أكواد الموردين</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog31" @(Model.SelectedPermissions.Contains("Prog31") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-purple-600">
+                                        <span class="text-sm text-slate-700">إدارات المؤسسة</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog32" @(Model.SelectedPermissions.Contains("Prog32") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-purple-600">
+                                        <span class="text-sm text-slate-700">العاملين بالمؤسسة</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            @* Admin Module *@
+                            <div class="bg-red-50 rounded-xl p-4">
+                                <h5 class="font-bold text-red-800 mb-3 flex items-center gap-2">
+                                    <span class="material-icons-round text-sm">settings</span>
+                                    إدارة النظام
+                                </h5>
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog33" @(Model.SelectedPermissions.Contains("Prog33") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-red-600">
+                                        <span class="text-sm text-slate-700">صلاحيات المستخدمين</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog34" @(Model.SelectedPermissions.Contains("Prog34") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-red-600">
+                                        <span class="text-sm text-slate-700">تهيئة إعدادات النظام</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="selectedPermissions" value="Prog35" @(Model.SelectedPermissions.Contains("Prog35") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-red-600">
+                                        <span class="text-sm text-slate-700">ترحيل الحركة اليومية</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-slate-100">
+                    <a href="@Url.Action("ManageRoles", "UserManagement")" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors font-medium">
+                        <span class="material-icons-round text-sm align-middle">close</span>
+                        إلغاء
+                    </a>
+                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-xl transition-all font-medium shadow-lg">
+                        <span class="material-icons-round text-sm align-middle">save</span>
+                        حفظ التغييرات
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -23,6 +23,7 @@ namespace InventoryManagement.Models.UserManagement
         public string Description { get; set; } = string.Empty;
         public int Level { get; set; }
         public bool IsSystemRole { get; set; }
+        public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; }
         public int UserCount { get; set; }
     }
@@ -88,6 +89,8 @@ namespace InventoryManagement.Models.UserManagement
 
         [Display(Name = "Is System Role")]
         public bool IsSystemRole { get; set; } = false;
+
+        public List<string> SelectedPermissions { get; set; } = new List<string>();
     }
 
     public class UserPermissionViewModel

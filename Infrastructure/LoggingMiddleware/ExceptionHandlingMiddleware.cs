@@ -1,4 +1,4 @@
-﻿using Application.Interfaces.Contracts.Localization;
+using Application.Interfaces.Contracts.Localization;
 using Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -74,7 +74,8 @@ namespace Infrastructure
             // 3. Redirect to Home and pass the error message via Query String
             // We URI Encode the message to ensure it handles spaces/special characters
             var encodedMessage = Uri.EscapeDataString(message);
-            context.Response.Redirect($"/Home/Index?errorMessage={encodedMessage}");
+            string culture = GetCurrentCulture(context);
+            context.Response.Redirect($"/{culture}/Home/Index?errorMessage={encodedMessage}");
         }
 
         private async Task HandleAjaxExceptionAsync(HttpContext context, Exception exception, IAppLocalizer localizer)
@@ -118,6 +119,28 @@ namespace Infrastructure
             context.Response.ContentType = "application/json";
 
             await context.Response.WriteAsJsonAsync(problemDetails);
+        }
+
+        private string GetCurrentCulture(HttpContext context)
+        {
+            // Try to get culture from route data
+            var culture = context.Request.RouteValues["culture"]?.ToString();
+            
+            if (string.IsNullOrEmpty(culture))
+            {
+                // Try to get from cookie
+                var cookieCulture = context.Request.Cookies["EGX.Culture"];
+                if (!string.IsNullOrEmpty(cookieCulture))
+                {
+                    var parts = cookieCulture.Split('|');
+                    if (parts.Length > 0)
+                    {
+                        culture = parts[0].Replace("c=", "").Trim();
+                    }
+                }
+            }
+            
+            return culture ?? "en";
         }
     }
 }

@@ -1,107 +1,161 @@
 @model InventoryManagement.Models.UserManagement.ProfileViewModel
 @{
-    ViewData["Title"] = "الملف الشخصي";
+    ViewData["Title"] = "حسابي الشخصي";
 }
 
-<div class="container-fluid" dir="rtl">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-user"></i> الملف الشخصي
-                    </h5>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+    body {
+        font-family: 'Cairo', sans-serif;
+        background-color: #f8fafc;
+    }
+
+    .glass-card { apply
+        bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden;
+    }
+
+    .label-text { apply
+        text-slate-400 text-sm font-bold block mb-1;
+    }
+
+    .data-text { apply
+        text-slate-700 font-800 text-lg flex items-center gap-2;
+    }
+</style>
+
+<div class="p-8 max-w-[1200px] mx-auto space-y-8" dir="rtl">
+
+    <header class="flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="flex items-center gap-4">
+            <div class="w-16 h-16 bg-emerald-500 rounded-3xl flex items-center justify-center shadow-xl shadow-emerald-100">
+                <span class="material-icons-round text-white text-3xl">person</span>
+            </div>
+            <div>
+                <h1 class="text-3xl font-900 text-slate-800">حسابي الشخصي</h1>
+                <p class="text-slate-500 font-medium">إدارة معلوماتك وتفضيلات الأمان</p>
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("ChangePassword")" class="flex items-center gap-2 px-6 py-3 bg-white text-slate-600 rounded-2xl font-bold shadow-sm border border-slate-100 hover:bg-slate-50 transition-all">
+                <span class="material-icons-round text-base">lock_reset</span>
+                تغيير كلمة المرور
+            </a>
+            <a href="@Url.Action("Edit")" class="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-2xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-600 transition-all">
+                <span class="material-icons-round text-base">edit</span>
+                تعديل البيانات
+            </a>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <div class="lg:col-span-8 space-y-8">
+            <div class="glass-card p-10 relative">
+                <div class="flex items-center gap-8 mb-12 pb-10 border-b border-slate-50">
+                    <div class="w-28 h-28 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-500 text-5xl font-black border-4 border-white shadow-inner">
+                        @(Model.FullName?.Substring(0, 1) ?? "U")
+                    </div>
                     <div>
-                        <a href="@Url.Action("Edit")" class="btn btn-light btn-sm">
-                            <i class="fas fa-edit"></i> تعديل
-                        </a>
-                        <a href="@Url.Action("ChangePassword")" class="btn btn-light btn-sm">
-                            <i class="fas fa-key"></i> تغيير كلمة المرور
-                        </a>
+                        <h2 class="text-3xl font-900 text-slate-800 mb-2">@Model.FullName</h2>
+                        <div class="flex gap-4">
+                            <span class="px-3 py-1 bg-emerald-100 text-emerald-600 rounded-lg text-xs font-bold">نشط حالياً</span>
+                            <span class="text-slate-400 text-sm font-bold">كود الموظف: #@Model.EmployeeCode</span>
+                        </div>
                     </div>
                 </div>
-                <div class="card-body">
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            @TempData["Success"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
 
-                    <div class="row">
-                        <div class="col-md-8">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td><strong>اسم المستخدم:</strong></td>
-                                    <td>@Model.UserName</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>البريد الإلكتروني:</strong></td>
-                                    <td>@Model.Email</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>الاسم الكامل:</strong></td>
-                                    <td>@Model.FullName</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>الكود الوظيفي:</strong></td>
-                                    <td>@Model.EmployeeCode</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>الإدارة:</strong></td>
-                                    <td>@Model.Department</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>رقم الهاتف:</strong></td>
-                                    <td>@Model.PhoneNumber</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>الحالة:</strong></td>
-                                    <td>
-                                        @if (Model.IsActive)
-                                        {
-                                            <span class="badge bg-success">نشط</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-danger">غير نشط</span>
-                                        }
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>تاريخ الإنشاء:</strong></td>
-                                    <td>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>آخر تسجيل دخول:</strong></td>
-                                    <td>
-                                        @(Model.LastLoginAt?.ToString("yyyy-MM-dd HH:mm") ?? "لم يسجل دخول بعد")
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6 class="mb-0">الأدوار المخصصة</h6>
-                                </div>
-                                <div class="card-body">
-                                    @if (Model.Roles.Any())
-                                    {
-                                        @foreach (var role in Model.Roles)
-                                        {
-                                            <span class="badge bg-info me-1 mb-1">@role</span>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <p class="text-muted">لا توجد أدوار مخصصة</p>
-                                    }
-                                </div>
-                            </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-12">
+                    <div>
+                        <span class="label-text">اسم المستخدم</span>
+                        <div class="data-text">
+                            <span class="material-icons-round text-slate-300">alternate_email</span>
+                            @Model.UserName
                         </div>
                     </div>
+                    <div>
+                        <span class="label-text">البريد الإلكتروني</span>
+                        <div class="data-text">
+                            <span class="material-icons-round text-slate-300">mail_outline</span>
+                            @Model.Email
+                        </div>
+                    </div>
+                    <div>
+                        <span class="label-text">الإدارة / القسم</span>
+                        <div class="data-text">
+                            <span class="material-icons-round text-slate-300">business</span>
+                            @Model.Department
+                        </div>
+                    </div>
+                    <div>
+                        <span class="label-text">رقم الهاتف</span>
+                        <div class="data-text" dir="ltr">
+                            <span class="material-icons-round text-slate-300">phone_iphone</span>
+                            @(Model.PhoneNumber ?? "غير مسجل")
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-card p-6 flex items-center gap-5 bg-slate-50/50">
+                    <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+                        <span class="material-icons-round text-blue-500">event_available</span>
+                    </div>
+                    <div>
+                        <span class="label-text">تاريخ الانضمام</span>
+                        <span class="font-bold text-slate-700">@Model.CreatedAt.ToString("yyyy-MM-dd")</span>
+                    </div>
+                </div>
+                <div class="glass-card p-6 flex items-center gap-5 bg-slate-50/50">
+                    <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+                        <span class="material-icons-round text-amber-500">history</span>
+                    </div>
+                    <div>
+                        <span class="label-text">آخر تسجيل دخول</span>
+                        <span class="font-bold text-slate-700">@(Model.LastLoginAt?.ToString("yyyy-MM-dd HH:mm") ?? "أول دخول")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-4 space-y-6">
+            <div class="glass-card p-8">
+                <div class="flex items-center gap-3 mb-8">
+                    <span class="material-icons-round text-indigo-500">shield</span>
+                    <h3 class="font-900 text-slate-800 text-lg">الأدوار الممنوحة</h3>
+                </div>
+
+                <div class="space-y-3">
+                    @if (Model.Roles.Any())
+                    {
+                        @foreach (var role in Model.Roles)
+                        {
+                            <div class="flex items-center justify-between p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
+                                <span class="font-bold text-indigo-700">@role</span>
+                                <span class="material-icons-round text-indigo-300">verified</span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-slate-400 text-center py-4">لا توجد أدوار مخصصة</p>
+                    }
+                </div>
+            </div>
+
+            <div class="glass-card p-8 bg-slate-900 text-white relative overflow-hidden">
+                <span class="material-icons-round absolute -right-4 -bottom-4 text-9xl text-slate-800 opacity-50">tips_and_updates</span>
+                <div class="relative z-10">
+                    <div class="w-12 h-12 bg-amber-400 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-amber-900/20">
+                        <span class="material-icons-round text-slate-900">lightbulb</span>
+                    </div>
+                    <h4 class="text-xl font-900 mb-3">نصيحة أمان</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        للحفاظ على أمان حسابك بالكامل، يوصى بتغيير كلمة المرور الخاصة بك بشكل دوري كل 90 يوماً.
+                    </p>
                 </div>
             </div>
         </div>

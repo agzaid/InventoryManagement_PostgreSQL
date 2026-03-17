@@ -1,0 +1,223 @@
+@model Application.Interfaces.Models.ManageRolePermissionsViewModel
+@{
+    ViewData["Title"] = $"إدارة صلاحيات {Model.RoleName}";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    primary: "#0ea5e9",
+                    secondary: "#64748b",
+                    accent: "#f59e0b",
+                    "background-light": "#f8fafc",
+                    "background-dark": "#0f172a",
+                    "surface-light": "#ffffff",
+                    "surface-dark": "#1e293b",
+                    "border-light": "#e2e8f0",
+                    "border-dark": "#334155",
+                },
+                fontFamily: {
+                    sans: ["Cairo", "sans-serif"],
+                    display: ["Cairo", "sans-serif"],
+                },
+            },
+        },
+    };
+</script>
+
+<div class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-200 font-sans min-h-screen flex flex-col transition-colors duration-300">
+    <main class="flex-1 mx-auto w-full flex flex-col gap-6 p-6">
+        
+        @* Header Section *@
+        <section class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark shadow-sm">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold mb-2 flex items-center gap-2 text-slate-900 dark:text-white">
+                        <span class="material-icons-round text-accent">admin_panel_settings</span>
+                        إدارة صلاحيات: @Model.RoleName
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">حدد الصفحات والوظائف التي يمكن لهذا الدور الوصول إليها</p>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="selectAll()" class="inline-flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors shadow-sm">
+                        <span class="material-icons-round text-lg">check_box</span>
+                        <span class="font-medium">تحديد الكل</span>
+                    </button>
+                    <button type="button" onclick="deselectAll()" class="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors shadow-sm">
+                        <span class="material-icons-round text-lg">check_box_outline_blank</span>
+                        <span class="font-medium">إلغاء الكل</span>
+                    </button>
+                    <a href="@Url.Action("Index")" class="inline-flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary/90 text-white rounded-lg transition-colors shadow-sm">
+                        <span class="material-icons-round text-lg">arrow_back</span>
+                        <span class="font-medium">رجوع</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        @* Permissions Form *@
+        <form asp-action="ManageRole" method="post" id="permissionsForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="roleId" value="@Model.RoleId" />
+
+            @if (Model.PermissionGroups != null && Model.PermissionGroups.Any())
+            {
+                @foreach (var group in Model.PermissionGroups)
+                {
+                    <section class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden mb-6">
+                        <div class="bg-gradient-to-r from-primary/10 to-accent/10 dark:from-primary/20 dark:to-accent/20 p-4 border-b border-border-light dark:border-border-dark">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <span class="material-icons-round text-primary">folder_open</span>
+                                    @group.ModuleName
+                                </h3>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-slate-600 dark:text-slate-400">
+                                        <span class="selected-count-@group.ModuleName.Replace(" ", "-")">@group.Permissions.Count(p => p.IsAllowed)</span>
+                                        / @group.Permissions.Count
+                                    </span>
+                                    <button type="button" onclick="toggleGroup('@group.ModuleName.Replace(" ", "-")')" 
+                                            class="text-sm px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors">
+                                        تبديل الكل
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                @foreach (var permission in group.Permissions)
+                                {
+                                    <div class="permission-item bg-slate-50 dark:bg-slate-800/30 rounded-lg p-4 border border-border-light dark:border-border-dark hover:border-primary dark:hover:border-primary transition-colors"
+                                         data-group="@group.ModuleName.Replace(" ", "-")">
+                                        <label class="flex items-start gap-3 cursor-pointer">
+                                            <input type="checkbox" 
+                                                   name="permissionCodes" 
+                                                   value="@permission.Code" 
+                                                   @(permission.IsAllowed ? "checked" : "")
+                                                   onchange="updateCount('@group.ModuleName.Replace(" ", "-")')"
+                                                   class="permission-checkbox mt-1 w-5 h-5 text-primary bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-primary" />
+                                            <div class="flex-1">
+                                                <div class="font-semibold text-slate-900 dark:text-white mb-1">@permission.Name</div>
+                                                <div class="text-xs text-slate-500 dark:text-slate-400 mb-2">@permission.Code</div>
+                                                @if (!string.IsNullOrEmpty(permission.Description))
+                                                {
+                                                    <div class="text-xs text-slate-600 dark:text-slate-400 flex items-start gap-1">
+                                                        <span class="material-icons-round text-xs mt-0.5">info</span>
+                                                        <span>@permission.Description</span>
+                                                    </div>
+                                                }
+                                                @if (!string.IsNullOrEmpty(permission.Controller) && !string.IsNullOrEmpty(permission.Action))
+                                                {
+                                                    <div class="mt-2 inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded text-xs">
+                                                        <span class="material-icons-round text-xs">link</span>
+                                                        <span>@permission.Controller/@permission.Action</span>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </section>
+                }
+            }
+            else
+            {
+                <section class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark p-12 text-center">
+                    <span class="material-icons-round text-6xl text-slate-300 dark:text-slate-600">folder_off</span>
+                    <p class="mt-4 text-slate-500 dark:text-slate-400">لا توجد صلاحيات متاحة</p>
+                </section>
+            }
+
+            @* Save Button *@
+            <div class="sticky bottom-6 bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="material-icons-round text-slate-400">info</span>
+                        <div>
+                            <div class="text-sm font-medium text-slate-900 dark:text-white">
+                                الصلاحيات المحددة: <span id="totalSelected" class="text-primary">@Model.PermissionGroups.Sum(g => g.Permissions.Count(p => p.IsAllowed))</span>
+                            </div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400">
+                                من إجمالي @Model.PermissionGroups.Sum(g => g.Permissions.Count) صلاحية
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" id="saveBtn"
+                            class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white rounded-lg transition-all font-semibold shadow-lg hover:shadow-xl">
+                        <span class="material-icons-round text-lg">save</span>
+                        <span>حفظ الصلاحيات</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </main>
+</div>
+
+<script>
+    function selectAll() {
+        document.querySelectorAll('.permission-checkbox').forEach(cb => {
+            cb.checked = true;
+        });
+        updateAllCounts();
+    }
+
+    function deselectAll() {
+        document.querySelectorAll('.permission-checkbox').forEach(cb => {
+            cb.checked = false;
+        });
+        updateAllCounts();
+    }
+
+    function toggleGroup(groupName) {
+        const groupCheckboxes = document.querySelectorAll(`[data-group="${groupName}"] .permission-checkbox`);
+        const allChecked = Array.from(groupCheckboxes).every(cb => cb.checked);
+        
+        groupCheckboxes.forEach(cb => {
+            cb.checked = !allChecked;
+        });
+        
+        updateCount(groupName);
+    }
+
+    function updateCount(groupName) {
+        const groupCheckboxes = document.querySelectorAll(`[data-group="${groupName}"] .permission-checkbox`);
+        const checkedCount = Array.from(groupCheckboxes).filter(cb => cb.checked).length;
+        
+        const countElement = document.querySelector(`.selected-count-${groupName}`);
+        if (countElement) {
+            countElement.textContent = checkedCount;
+        }
+        
+        updateTotalCount();
+    }
+
+    function updateAllCounts() {
+        document.querySelectorAll('[data-group]').forEach(item => {
+            const groupName = item.getAttribute('data-group');
+            updateCount(groupName);
+        });
+    }
+
+    function updateTotalCount() {
+        const totalChecked = document.querySelectorAll('.permission-checkbox:checked').length;
+        document.getElementById('totalSelected').textContent = totalChecked;
+    }
+
+    document.getElementById('permissionsForm')?.addEventListener('submit', function(e) {
+        const saveBtn = document.getElementById('saveBtn');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="material-icons-round text-lg animate-spin">sync</span><span>جاري الحفظ...</span>';
+        }
+    });
+</script>

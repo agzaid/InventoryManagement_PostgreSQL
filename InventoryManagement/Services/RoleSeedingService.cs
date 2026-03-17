@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Domain.Entities;
+using Persistance;
 
 namespace InventoryManagement.Services
 {
@@ -8,12 +9,14 @@ namespace InventoryManagement.Services
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<RoleSeedingService> _logger;
+        private readonly InventoryManagementDbContext _context;
 
-        public RoleSeedingService(RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager, ILogger<RoleSeedingService> logger)
+        public RoleSeedingService(RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager, ILogger<RoleSeedingService> logger, InventoryManagementDbContext context)
         {
             _roleManager = roleManager;
             _userManager = userManager;
             _logger = logger;
+            _context = context;
         }
 
         public async Task SeedRolesAsync()
@@ -109,8 +112,10 @@ namespace InventoryManagement.Services
                     CreatedAt = DateTime.UtcNow
                 }).ToList();
 
-                // Note: In a real implementation, you would save these to the database
-                // For now, we're just logging them
+                // Save permissions to database
+                await _context.RolePermissions.AddRangeAsync(rolePermissions);
+                await _context.SaveChangesAsync();
+                
                 _logger.LogInformation("Added {Count} permissions to role {RoleName}", 
                     rolePermissions.Count, role.Name);
             }

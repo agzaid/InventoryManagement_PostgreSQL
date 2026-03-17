@@ -131,6 +131,7 @@ namespace InventoryManagement.Controllers
                     }
 
                     await _signInManager.SignInAsync(user, isPersistent: false);
+                    
                     _logger.LogInformation("User created a new account with password.");
                     
                     if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))

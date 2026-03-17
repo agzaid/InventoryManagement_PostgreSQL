@@ -35,6 +35,7 @@ namespace Persistance
         // - UserRoleAssignment (use AspNetUserRoles from ASP.NET Identity)
         
         public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<PermissionAction> PermissionActions { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -547,6 +548,22 @@ namespace Persistance
                       .WithMany(r => r.RolePermissions)
                       .HasForeignKey(e => e.RoleId)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<PermissionAction>(entity =>
+            {
+                entity.ToTable("PermissionActions");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.PermissionCode).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.PermissionName).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.Module).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Controller).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Action).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.FullUrl).HasMaxLength(500);
+                entity.Property(e => e.HttpMethod).HasMaxLength(50).HasDefaultValue("GET");
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                
+                entity.HasIndex(e => new { e.PermissionCode, e.Controller, e.Action }).IsUnique();
             });
 
             modelBuilder.HasDefaultSchema("KWAREHOUSE");

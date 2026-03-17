@@ -8,7 +8,7 @@ using System.ComponentModel.DataAnnotations;
 namespace InventoryManagement.Controllers
 {
     [Authorize]
-    public class ProfileController : Controller
+    public class ProfileController : BaseController
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
@@ -99,7 +99,7 @@ namespace InventoryManagement.Controllers
                 if (result.Succeeded)
                 {
                     TempData["Success"] = "Profile updated successfully.";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToActionWithCulture(nameof(Index));
                 }
 
                 foreach (var error in result.Errors)
@@ -135,7 +135,7 @@ namespace InventoryManagement.Controllers
                 {
                     await _signInManager.RefreshSignInAsync(user);
                     TempData["Success"] = "Password changed successfully.";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToActionWithCulture(nameof(Index));
                 }
 
                 foreach (var error in result.Errors)

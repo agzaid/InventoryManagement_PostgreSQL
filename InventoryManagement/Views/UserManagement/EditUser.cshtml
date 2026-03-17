@@ -1,0 +1,107 @@
+@model Application.Interfaces.Models.InvUserDto
+@{
+    ViewData["Title"] = "تعديل المستخدم";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    primary: "#0ea5e9",
+                    secondary: "#64748b",
+                    accent: "#f59e0b",
+                    "background-light": "#f8fafc",
+                    "background-dark": "#0f172a",
+                    "surface-light": "#ffffff",
+                    "surface-dark": "#1e293b",
+                    "border-light": "#e2e8f0",
+                    "border-dark": "#334155",
+                },
+                fontFamily: {
+                    sans: ["Cairo", "sans-serif"],
+                    display: ["Cairo", "sans-serif"],
+                },
+            },
+        },
+    };
+</script>
+
+<div class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-200 font-sans min-h-screen flex flex-col transition-colors duration-300">
+    <main class="flex-1 mx-auto w-full max-w-4xl flex flex-col gap-6 p-6">
+        
+        <section class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold mb-2 flex items-center gap-2 text-slate-900 dark:text-white">
+                        <span class="material-icons-round text-primary">edit</span>
+                        تعديل المستخدم
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">تحديث بيانات المستخدم</p>
+                </div>
+                <a href="@Url.Action("Index", "UserManagement")" class="inline-flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary/90 text-white rounded-lg transition-colors shadow-sm">
+                    <span class="material-icons-round text-lg">arrow_back</span>
+                    <span class="font-medium">رجوع</span>
+                </a>
+            </div>
+
+            <form asp-action="EditUser" method="post" class="space-y-6">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="UserCode" />
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <span class="material-icons-round text-sm align-middle">person</span>
+                            اسم المستخدم
+                        </label>
+                        <input type="text" asp-for="UserName" required maxlength="10" 
+                               class="w-full px-4 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-slate-900 dark:text-white">
+                        <span asp-validation-for="UserName" class="text-red-500 text-xs mt-1"></span>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <span class="material-icons-round text-sm align-middle">badge</span>
+                            الاسم الكامل
+                        </label>
+                        <input type="text" asp-for="FullNameArabic" readonly 
+                               class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg text-slate-900 dark:text-white">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <span class="material-icons-round text-sm align-middle">lock</span>
+                            كلمة المرور الجديدة (اتركها فارغة للاحتفاظ بالحالية)
+                        </label>
+                        <input type="password" asp-for="UserPasswd" minlength="6" maxlength="16" 
+                               class="w-full px-4 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-slate-900 dark:text-white"
+                               placeholder="كلمة المرور الجديدة">
+                        <span asp-validation-for="UserPasswd" class="text-red-500 text-xs mt-1"></span>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-6 border-t border-border-light dark:border-border-dark">
+                    <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors shadow-sm font-medium">
+                        <span class="material-icons-round">save</span>
+                        <span>حفظ التعديلات</span>
+                    </button>
+                    <a href="@Url.Action("Index", "UserManagement")" class="px-6 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition-colors font-medium">
+                        إلغاء
+                    </a>
+                </div>
+            </form>
+        </section>
+
+    </main>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

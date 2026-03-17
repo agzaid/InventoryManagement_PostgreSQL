@@ -1,0 +1,712 @@
+@model IEnumerable<InventoryManagement.Models.UserManagement.RoleListViewModel>
+@{
+    ViewData["Title"] = "إدارة الأدوار والصلاحيات";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+    body {
+        font-family: 'Cairo', sans-serif;
+        background-color: #f8fafc;
+    }
+
+    .permission-card { apply
+        bg-white rounded-3xl border border-slate-100 shadow-sm p-0 overflow-hidden transition-all hover:shadow-md;
+    }
+
+    .card-header-yellow {
+        background-color: #fef9c3;
+        color: #854d0e;
+    }
+
+    .card-header-blue {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+
+    .card-header-purple {
+        background-color: #f3e8ff;
+        color: #6b21a8;
+    }
+
+    .card-header-red {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+</style>
+
+<div class="p-6 max-w-[1400px] mx-auto" dir="rtl">
+
+    <div class="mb-8">
+        <div class="flex items-center gap-2 mb-4">
+            <span class="material-icons-round text-amber-500">security</span>
+            <h2 class="text-xl font-bold text-slate-800">إدارة الصلاحيات التفصيلية</h2>
+        </div>
+        <p class="text-slate-500 text-sm mb-6">قائمة بجميع الصلاحيات المتاحة في النظام مصنفة حسب الوحدات. يمكنك تعيين هذه الصلاحيات للأدوار من خلال إنشاء أو تعديل الدور.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="permission-card">
+                <div class="card-header-yellow p-4 flex items-center gap-3">
+                    <span class="material-icons-round">calendar_today</span>
+                    <span class="font-bold">الحركة اليومية</span>
+                </div>
+                <div class="p-5 space-y-3">
+                    @foreach (var item in new[] { "تسجيل حركة الوارد", "تسجيل حركة المنصرف", "تسجيل حركة التحويل", "تسجيل المرتجعات", "استعلام وبحث البيانات" })
+                    {
+                        <div class="flex items-center gap-3">
+                            <span class="material-icons-round text-xs text-amber-500">check_circle</span>
+                            <span class="text-slate-600 text-sm">@item</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="permission-card">
+                <div class="card-header-blue p-4 flex items-center gap-3">
+                    <span class="material-icons-round">inventory_2</span>
+                    <span class="font-bold">أرصدة المخزن</span>
+                </div>
+                <div class="p-5 space-y-3">
+                    @foreach (var item in new[] { "تسجيل أرصدة الفتح", "الأرصدة الحالية", "كارت الصنف", "جرد المخزن", "تقارير الأرصدة والاستهلاك", "جرد كل المخازن" })
+                    {
+                        <div class="flex items-center gap-3">
+                            <span class="material-icons-round text-xs text-blue-500">check_circle</span>
+                            <span class="text-slate-600 text-sm">@item</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="permission-card">
+                <div class="card-header-purple p-4 flex items-center gap-3">
+                    <span class="material-icons-round">grid_view</span>
+                    <span class="font-bold">أكواد النظام</span>
+                </div>
+                <div class="p-5 space-y-3">
+                    @foreach (var item in new[] { "أكواد الأصناف", "أكواد الموردين", "إدارات المؤسسة", "العاملين بالمؤسسة" })
+                    {
+                        <div class="flex items-center gap-3">
+                            <span class="material-icons-round text-xs text-purple-500">check_circle</span>
+                            <span class="text-slate-600 text-sm">@item</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="permission-card">
+                <div class="card-header-red p-4 flex items-center gap-3">
+                    <span class="material-icons-round">settings</span>
+                    <span class="font-bold">إدارة النظام</span>
+                </div>
+                <div class="p-5 space-y-3">
+                    @foreach (var item in new[] { "صلاحيات المستخدمين", "تهيئة إعدادات النظام", "ترحيل الحركة اليومية" })
+                    {
+                        <div class="flex items-center gap-3">
+                            <span class="material-icons-round text-xs text-red-500">check_circle</span>
+                            <span class="text-slate-600 text-sm">@item</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col md:flex-row gap-4 mb-8">
+        <div class="relative flex-1">
+            <span class="material-icons-round absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+            <input type="text" id="searchInput" placeholder="بحث باسم الدور أو الوصف..."
+                   class="w-full pr-12 pl-4 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <form asp-action="SeedAdminPermissions" method="post" class="inline">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-purple-200 transition-all whitespace-nowrap">
+                <span class="material-icons-round">admin_panel_settings</span>
+                إضافة صلاحيات Admin
+            </button>
+        </form>
+        <button onclick="openCreateRoleModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-emerald-200 transition-all whitespace-nowrap">
+            <span class="material-icons-round">person_add</span>
+            إضافة دور جديد
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div class="lg:col-span-3 bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="p-6 border-b border-slate-50 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800">نتائج البحث</h3>
+                <span id="roleCount" class="bg-slate-100 text-slate-500 text-xs px-3 py-1 rounded-full font-bold">@Model.Count() نتيجة</span>
+            </div>
+            <table class="w-full text-right">
+                <thead class="bg-slate-50/50 text-slate-400 text-sm">
+                    <tr>
+                        <th class="p-4 font-semibold">الكود</th>
+                        <th class="p-4 font-semibold">اسم الدور</th>
+                        <th class="p-4 font-semibold">الوصف</th>
+                        <th class="p-4 font-semibold">الحالة</th>
+                        <th class="p-4 font-semibold text-center">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="rolesTableBody" class="divide-y divide-slate-50">
+                    @foreach (var role in Model)
+                    {
+                        <tr class="role-row hover:bg-slate-50/50 transition-colors cursor-pointer" data-role-name="@role.Name" data-role-description="@role.Description" data-role-id="@role.Id" onclick="viewRolePermissions('@role.Id', '@role.Name')">
+                            <td class="p-4 text-rose-500 font-bold">@role.Id.Substring(0, 3)</td>
+                            <td class="p-4">
+                                <div class="font-bold text-slate-900">@role.Name</div>
+                                <div class="text-xs text-slate-400">@(role.IsSystemRole ? "نظام أساسي" : "دور مخصص")</div>
+                            </td>
+                            <td class="p-4 text-slate-500 text-sm">@role.Description</td>
+                            <td class="p-4">
+                                @if (role.IsActive)
+                                {
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-bold">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                        نشط
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 text-slate-500 text-xs font-bold">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                                        معطل
+                                    </span>
+                                }
+                            </td>
+                            <td class="p-4" onclick="event.stopPropagation()">
+                                <div class="flex justify-center gap-2">
+                                    <button onclick="viewRolePermissions('@role.Id', '@role.Name')" class="p-2 hover:bg-purple-50 text-purple-600 rounded-xl transition-colors" title="عرض الصلاحيات">
+                                        <span class="material-icons-round">security</span>
+                                    </button>
+                                    <button onclick="toggleRoleStatus('@role.Id', '@role.Name', @role.IsActive.ToString().ToLower())" class="p-2 hover:bg-@(role.IsActive ? "orange" : "green")-50 text-@(role.IsActive ? "orange" : "green")-600 rounded-xl transition-colors" title="@(role.IsActive ? "تعطيل" : "تفعيل")">
+                                        <span class="material-icons-round">@(role.IsActive ? "toggle_on" : "toggle_off")</span>
+                                    </button>
+                                    <button onclick="editRole('@role.Id')" class="p-2 hover:bg-blue-50 text-blue-600 rounded-xl transition-colors" title="تعديل">
+                                        <span class="material-icons-round">edit</span>
+                                    </button>
+                                    <button onclick="deleteRole('@role.Id', '@role.Name', @role.UserCount)" class="p-2 hover:bg-red-50 text-red-600 rounded-xl transition-colors" title="حذف">
+                                        <span class="material-icons-round">delete</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="lg:col-span-1 space-y-6">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+                <div class="flex items-center gap-2 mb-6">
+                    <span class="material-icons-round text-blue-500">bar_chart</span>
+                    <h3 class="font-bold text-slate-800">إحصائيات سريعة</h3>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                                <span class="material-icons-round text-sm">groups</span>
+                            </div>
+                            <span class="text-sm font-bold text-slate-600">إجمالي</span>
+                        </div>
+                        <span class="text-xl font-black text-slate-800">@Model.Count()</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
+                                <span class="material-icons-round text-sm">check_circle</span>
+                            </div>
+                            <span class="text-sm font-bold text-slate-600">نشط</span>
+                        </div>
+                        <span class="text-xl font-black text-slate-800">@Model.Count()</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* View Role Permissions Modal *@
+<div id="viewPermissionsModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeViewPermissionsModal(event)">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div class="sticky top-0 bg-gradient-to-r from-purple-500 to-indigo-500 p-6 rounded-t-3xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <span class="material-icons-round">security</span>
+                    <span id="viewPermissionsRoleName">صلاحيات الدور</span>
+                </h3>
+                <button type="button" onclick="closeViewPermissionsModalDirect()" class="text-white hover:bg-white/20 rounded-full p-2 transition-colors">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <div id="permissionsContent" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="text-center py-8">
+                    <span class="material-icons-round text-6xl text-slate-300">hourglass_empty</span>
+                    <p class="text-slate-500 mt-2">جاري التحميل...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Create Role Modal *@
+<div id="createRoleModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeModalOnBackdrop(event)">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div class="sticky top-0 bg-gradient-to-r from-emerald-500 to-teal-500 p-6 rounded-t-3xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <span class="material-icons-round">add_circle</span>
+                    إنشاء دور جديد
+                </h3>
+                <button type="button" onclick="closeCreateRoleModal()" class="text-white hover:bg-white/20 rounded-full p-2 transition-colors">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+        </div>
+
+        <form asp-action="CreateRole" asp-controller="UserManagement" method="post" class="p-6">
+            @Html.AntiForgeryToken()
+            
+            @if (TempData["CreateRoleErrors"] != null)
+            {
+                <div id="modalErrorDisplay" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-2xl">
+                    <div class="flex items-center gap-2 text-red-800 mb-2">
+                        <span class="material-icons-round text-red-600">error</span>
+                        <span class="font-semibold">يرجى تصحيح الأخطاء التالية:</span>
+                    </div>
+                    <div class="text-sm text-red-700">@TempData["CreateRoleErrors"]</div>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3">
+                    <span class="material-icons-round text-red-600">error</span>
+                    <span class="text-red-800">@TempData["Error"]</span>
+                </div>
+            }
+
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="Name" class="block text-sm font-semibold text-slate-700 mb-2">
+                            اسم الدور <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="Name" name="Name" required value=""
+                               class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-slate-900" />
+                    </div>
+
+                    <div>
+                        <label for="Level" class="block text-sm font-semibold text-slate-700 mb-2">
+                            المستوى <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" id="Level" name="Level" min="0" max="100" value="0" required
+                               class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-slate-900" />
+                        <small class="text-slate-500 text-xs">رقم أعلى يعني صلاحيات أكبر</small>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="Description" class="block text-sm font-semibold text-slate-700 mb-2">
+                        الوصف
+                    </label>
+                    <textarea id="Description" name="Description" rows="3"
+                              class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-slate-900 resize-none"></textarea>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="IsSystemRole" name="IsSystemRole" value="true"
+                               class="mt-1 w-5 h-5 text-emerald-500 bg-white border-slate-300 rounded focus:ring-2 focus:ring-emerald-500" />
+                        <div class="flex-1">
+                            <label for="IsSystemRole" class="font-semibold text-slate-800 cursor-pointer">
+                                دور نظام
+                            </label>
+                            <p class="text-xs text-slate-600 mt-1">
+                                <span class="material-icons-round text-xs align-middle">info</span>
+                                الأدوار النظامية لا يمكن تعديلها أو حذفها
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-200 pt-4 mt-4">
+                    <h4 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                        <span class="material-icons-round text-purple-600">security</span>
+                        تعيين الصلاحيات للدور
+                    </h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                        @* Daily Movement Module *@
+                        <div class="bg-yellow-50 rounded-xl p-4">
+                            <h5 class="font-bold text-yellow-800 mb-3 flex items-center gap-2">
+                                <span class="material-icons-round text-sm">calendar_today</span>
+                                الحركة اليومية
+                            </h5>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog01" class="w-4 h-4 rounded border-slate-300 text-yellow-600">
+                                    <span class="text-sm text-slate-700">تسجيل حركة الوارد</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog02" class="w-4 h-4 rounded border-slate-300 text-yellow-600">
+                                    <span class="text-sm text-slate-700">تسجيل حركة المنصرف</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog03" class="w-4 h-4 rounded border-slate-300 text-yellow-600">
+                                    <span class="text-sm text-slate-700">تسجيل حركة التحويل</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog11" class="w-4 h-4 rounded border-slate-300 text-yellow-600">
+                                    <span class="text-sm text-slate-700">تسجيل المرتجعات</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog12" class="w-4 h-4 rounded border-slate-300 text-yellow-600">
+                                    <span class="text-sm text-slate-700">استعلام وبحث البيانات</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        @* Inventory Module *@
+                        <div class="bg-blue-50 rounded-xl p-4">
+                            <h5 class="font-bold text-blue-800 mb-3 flex items-center gap-2">
+                                <span class="material-icons-round text-sm">inventory_2</span>
+                                أرصدة المخزن
+                            </h5>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog13" class="w-4 h-4 rounded border-slate-300 text-blue-600">
+                                    <span class="text-sm text-slate-700">تسجيل أرصدة الفتح</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog14" class="w-4 h-4 rounded border-slate-300 text-blue-600">
+                                    <span class="text-sm text-slate-700">الأرصدة الحالية</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog21" class="w-4 h-4 rounded border-slate-300 text-blue-600">
+                                    <span class="text-sm text-slate-700">كارت الصنف</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog22" class="w-4 h-4 rounded border-slate-300 text-blue-600">
+                                    <span class="text-sm text-slate-700">جرد المخزن</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog23" class="w-4 h-4 rounded border-slate-300 text-blue-600">
+                                    <span class="text-sm text-slate-700">تقارير الأرصدة والاستهلاك</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog24" class="w-4 h-4 rounded border-slate-300 text-blue-600">
+                                    <span class="text-sm text-slate-700">جرد كل المخازن</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        @* System Codes Module *@
+                        <div class="bg-purple-50 rounded-xl p-4">
+                            <h5 class="font-bold text-purple-800 mb-3 flex items-center gap-2">
+                                <span class="material-icons-round text-sm">grid_view</span>
+                                أكواد النظام
+                            </h5>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog25" class="w-4 h-4 rounded border-slate-300 text-purple-600">
+                                    <span class="text-sm text-slate-700">أكواد الأصناف</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog29" class="w-4 h-4 rounded border-slate-300 text-purple-600">
+                                    <span class="text-sm text-slate-700">أكواد الموردين</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog31" class="w-4 h-4 rounded border-slate-300 text-purple-600">
+                                    <span class="text-sm text-slate-700">إدارات المؤسسة</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog32" class="w-4 h-4 rounded border-slate-300 text-purple-600">
+                                    <span class="text-sm text-slate-700">العاملين بالمؤسسة</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        @* Admin Module *@
+                        <div class="bg-red-50 rounded-xl p-4">
+                            <h5 class="font-bold text-red-800 mb-3 flex items-center gap-2">
+                                <span class="material-icons-round text-sm">settings</span>
+                                إدارة النظام
+                            </h5>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog33" class="w-4 h-4 rounded border-slate-300 text-red-600">
+                                    <span class="text-sm text-slate-700">صلاحيات المستخدمين</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog34" class="w-4 h-4 rounded border-slate-300 text-red-600">
+                                    <span class="text-sm text-slate-700">تهيئة إعدادات النظام</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="selectedPermissions" value="Prog35" class="w-4 h-4 rounded border-slate-300 text-red-600">
+                                    <span class="text-sm text-slate-700">ترحيل الحركة اليومية</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 mt-6 pt-6 border-t border-slate-100">
+                <button type="button" onclick="closeCreateRoleModal()" 
+                        class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors font-medium">
+                    <span class="material-icons-round text-sm align-middle">close</span>
+                    إلغاء
+                </button>
+                <button type="submit" 
+                        class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl transition-all font-medium shadow-lg">
+                    <span class="material-icons-round text-sm align-middle">save</span>
+                    حفظ الدور
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('.role-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const roleName = row.getAttribute('data-role-name').toLowerCase();
+            const roleDescription = row.getAttribute('data-role-description')?.toLowerCase() || '';
+            
+            if (roleName.includes(searchTerm) || roleDescription.includes(searchTerm)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Update count
+        document.getElementById('roleCount').textContent = visibleCount + ' نتيجة';
+    });
+
+    // Modal functions
+    function openCreateRoleModal() {
+        document.getElementById('createRoleModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeCreateRoleModal() {
+        document.getElementById('createRoleModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+        document.querySelector('#createRoleModal form').reset();
+    }
+
+    function closeModalOnBackdrop(event) {
+        if (event.target.id === 'createRoleModal') {
+            closeCreateRoleModal();
+        }
+    }
+
+    // View Permissions Modal functions
+    function viewRolePermissions(roleId, roleName) {
+        document.getElementById('viewPermissionsRoleName').textContent = 'صلاحيات: ' + roleName;
+        document.getElementById('viewPermissionsModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        // Fetch role permissions via AJAX
+        fetch(`/UserManagement/GetRolePermissions?roleId=${roleId}`)
+            .then(response => response.json())
+            .then(data => {
+                displayPermissions(data);
+            })
+            .catch(error => {
+                console.error('Error fetching permissions:', error);
+                document.getElementById('permissionsContent').innerHTML = `
+                    <div class="col-span-2 text-center py-8">
+                        <span class="material-icons-round text-6xl text-red-300">error</span>
+                        <p class="text-red-500 mt-2">حدث خطأ في تحميل الصلاحيات</p>
+                    </div>
+                `;
+            });
+    }
+
+    function displayPermissions(permissions) {
+        const modules = {
+            'الحركة اليومية': { permissions: [], color: 'yellow' },
+            'أرصدة المخزن': { permissions: [], color: 'blue' },
+            'أكواد النظام': { permissions: [], color: 'purple' },
+            'إدارة النظام': { permissions: [], color: 'red' }
+        };
+
+        permissions.forEach(perm => {
+            if (modules[perm.module]) {
+                modules[perm.module].permissions.push(perm);
+            }
+        });
+
+        let html = '';
+        for (const [moduleName, moduleData] of Object.entries(modules)) {
+            if (moduleData.permissions.length > 0) {
+                html += `
+                    <div class="bg-${moduleData.color}-50 rounded-xl p-4">
+                        <h5 class="font-bold text-${moduleData.color}-800 mb-3 flex items-center gap-2">
+                            <span class="material-icons-round text-sm">check_circle</span>
+                            ${moduleName}
+                        </h5>
+                        <div class="space-y-2">
+                            ${moduleData.permissions.map(p => `
+                                <div class="flex items-center gap-2 text-sm text-slate-700">
+                                    <span class="material-icons-round text-xs text-green-600">done</span>
+                                    ${p.permissionName}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        if (html === '') {
+            html = `
+                <div class="col-span-2 text-center py-8">
+                    <span class="material-icons-round text-6xl text-slate-300">block</span>
+                    <p class="text-slate-500 mt-2">لا توجد صلاحيات مخصصة لهذا الدور</p>
+                </div>
+            `;
+        }
+
+        document.getElementById('permissionsContent').innerHTML = html;
+    }
+
+    function closeViewPermissionsModalDirect() {
+        document.getElementById('viewPermissionsModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+    function closeViewPermissionsModal(event) {
+        if (event.target.id === 'viewPermissionsModal') {
+            closeViewPermissionsModalDirect();
+        }
+    }
+
+    // Edit Role function
+    function editRole(roleId) {
+        window.location.href = `/UserManagement/EditRole/${roleId}`;
+    }
+
+    // Toggle Role Status function
+    function toggleRoleStatus(roleId, roleName, isActive) {
+        const action = isActive ? 'تعطيل' : 'تفعيل';
+        const actionVerb = isActive ? 'تعطيل' : 'تفعيل';
+        
+        Swal.fire({
+            title: `${action} الدور؟`,
+            html: `هل تريد ${action} الدور <strong>${roleName}</strong>؟`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: isActive ? '#f97316' : '#10b981',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: `نعم، ${actionVerb}`,
+            cancelButtonText: 'إلغاء',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/UserManagement/ToggleRoleStatus/${roleId}`;
+                
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = token;
+                form.appendChild(tokenInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+
+    // Delete Role function
+    function deleteRole(roleId, roleName, userCount) {
+        if (userCount > 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'لا يمكن الحذف',
+                html: `<p>لا يمكن حذف الدور <strong>${roleName}</strong></p><p>يوجد <strong>${userCount}</strong> مستخدم مرتبط بهذا الدور</p><p class="text-sm text-slate-500 mt-2">يجب إزالة جميع المستخدمين من هذا الدور أولاً</p>`,
+                confirmButtonText: 'حسناً',
+                confirmButtonColor: '#ef4444'
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            html: `سيتم حذف الدور <strong>${roleName}</strong> نهائياً`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'نعم، احذف',
+            cancelButtonText: 'إلغاء',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/UserManagement/DeleteRole/${roleId}`;
+                
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = token;
+                form.appendChild(tokenInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeCreateRoleModal();
+            closeViewPermissionsModalDirect();
+        }
+    });
+
+    // Auto-open modal if there are errors and restore form values
+    @if (TempData["CreateRoleErrors"] != null)
+    {
+        <text>
+        document.addEventListener('DOMContentLoaded', function() {
+            openCreateRoleModal();
+            
+            // Restore form values if available
+            var modelData = '@Html.Raw(TempData["CreateRoleModel"])';
+            if (modelData) {
+                try {
+                    var model = JSON.parse(modelData);
+                    if (model.Name) document.getElementById('Name').value = model.Name;
+                    if (model.Level !== undefined) document.getElementById('Level').value = model.Level;
+                    if (model.Description) document.getElementById('Description').value = model.Description;
+                    if (model.IsSystemRole) document.getElementById('IsSystemRole').checked = model.IsSystemRole;
+                } catch (e) {
+                    console.error('Error parsing model data:', e);
+                }
+            }
+        });
+        </text>
+    }
+</script>
