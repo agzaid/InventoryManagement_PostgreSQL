@@ -43,6 +43,10 @@
                             <span class="material-symbols-outlined text-sm">people</span>
                             <p class="text-sm font-normal">@Localizer["ManageUsers"]</p>
                         </a>
+                        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]" asp-action="ManageApplicationUsers" asp-controller="UserManagement">
+                            <span class="material-symbols-outlined text-sm">manage_accounts</span>
+                            <p class="text-sm font-normal">@Localizer["ManageApplicationUsers"]</p>
+                        </a>
                         <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]" asp-action="ManageRoles" asp-controller="UserManagement">
                             <span class="material-symbols-outlined text-sm">security</span>
                             <p class="text-sm font-normal">@Localizer["ManageRoles"]</p>
@@ -51,14 +55,14 @@
                             <span class="material-symbols-outlined text-sm">assignment_ind</span>
                             <p class="text-sm font-normal">@Localizer["AssignRoles"]</p>
                         </a>
-                        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]" asp-action="Index" asp-controller="Permissions">
+                       <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]" asp-action="Index" asp-controller="Permissions">
                             <span class="material-symbols-outlined text-sm">verified_user</span>
                             <p class="text-sm font-normal">إدارة الصلاحيات</p>
-                        </a>
+                        </a> @* 
                         <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]" asp-action="ManagePermissionActions" asp-controller="Permissions">
                             <span class="material-symbols-outlined text-sm">link</span>
                             <p class="text-sm font-normal">ربط الصلاحيات بالصفحات</p>
-                        </a>
+                        </a> *@
                         <hr />
                         <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]" asp-action="Index" asp-controller="Profile">
                             <span class="material-symbols-outlined text-sm">account_circle</span>
@@ -181,6 +185,10 @@
                 </a>
                 <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]" asp-action="Inventory" asp-controller="itemBalance">
                     <p class="text-sm font-normal pl-4">@Localizer["Inventory"]</p>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155]" asp-action="Index" asp-controller="BalanceNotifications">
+                    <span class="material-symbols-outlined text-sm">notifications_active</span>
+                    <p class="text-sm font-normal">@Localizer["BalanceNotifications"]</p>
                 </a>
                 <hr />
                 <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#617589] dark:text-slate-400 hover:bg-[#f0f2f4] dark:hover:bg-[#334155] transition-colors" asp-action="PostDailyTransactions" asp-controller="itemBalance">

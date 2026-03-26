@@ -56,14 +56,14 @@ namespace Domain.Entities
     public class RolePermission
     {
         public int Id { get; set; }
-        public string RoleId { get; set; } = string.Empty;
+        public string? RoleId { get; set; }
         public string PermissionCode { get; set; } = string.Empty;
         public string PermissionName { get; set; } = string.Empty;
         public string Module { get; set; } = string.Empty;
         public bool IsAllowed { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public virtual ApplicationRole Role { get; set; } = null!;
+        public virtual ApplicationRole? Role { get; set; }
     }
 
     // Permission constants matching your existing system
@@ -94,5 +94,6 @@ namespace Domain.Entities
         public const string PROG33 = "Prog33"; // صلاحيات المستخدمين
         public const string PROG34 = "Prog34"; // تهيئه اعدادات النظام
         public const string PROG35 = "Prog35"; // ترحيل الحركه اليوميه
+        public const string PROG99 = "Prog99"; // لا يوجد
     }
 }

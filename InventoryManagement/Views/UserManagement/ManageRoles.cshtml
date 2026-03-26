@@ -48,69 +48,69 @@
         <p class="text-slate-500 text-sm mb-6">قائمة بجميع الصلاحيات المتاحة في النظام مصنفة حسب الوحدات. يمكنك تعيين هذه الصلاحيات للأدوار من خلال إنشاء أو تعديل الدور.</p>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="permission-card">
-                <div class="card-header-yellow p-4 flex items-center gap-3">
-                    <span class="material-icons-round">calendar_today</span>
-                    <span class="font-bold">الحركة اليومية</span>
-                </div>
-                <div class="p-5 space-y-3">
-                    @foreach (var item in new[] { "تسجيل حركة الوارد", "تسجيل حركة المنصرف", "تسجيل حركة التحويل", "تسجيل المرتجعات", "استعلام وبحث البيانات" })
-                    {
-                        <div class="flex items-center gap-3">
-                            <span class="material-icons-round text-xs text-amber-500">check_circle</span>
-                            <span class="text-slate-600 text-sm">@item</span>
-                        </div>
-                    }
-                </div>
-            </div>
+            @{
+                var permissionsGrouped = ViewBag.PermissionsGrouped as IEnumerable<dynamic>;
+                var moduleColors = new Dictionary<string, (string headerClass, string iconColor, string icon)>
+                {
+                    { "الحركة اليومية", ("card-header-yellow", "text-amber-500", "calendar_today") },
+                    { "إدارة المخزون", ("card-header-blue", "text-blue-500", "inventory_2") },
+                    { "أكواد النظام", ("card-header-purple", "text-purple-500", "grid_view") },
+                    { "إدارة النظام", ("card-header-red", "text-red-500", "settings") }
+                };
+                int colorIndex = 0;
+                var defaultColors = new[] 
+                {
+                    ("card-header-yellow", "text-amber-500", "folder"),
+                    ("card-header-blue", "text-blue-500", "folder"),
+                    ("card-header-purple", "text-purple-500", "folder"),
+                    ("card-header-red", "text-red-500", "folder")
+                };
+            }
 
-            <div class="permission-card">
-                <div class="card-header-blue p-4 flex items-center gap-3">
-                    <span class="material-icons-round">inventory_2</span>
-                    <span class="font-bold">أرصدة المخزن</span>
-                </div>
-                <div class="p-5 space-y-3">
-                    @foreach (var item in new[] { "تسجيل أرصدة الفتح", "الأرصدة الحالية", "كارت الصنف", "جرد المخزن", "تقارير الأرصدة والاستهلاك", "جرد كل المخازن" })
-                    {
-                        <div class="flex items-center gap-3">
-                            <span class="material-icons-round text-xs text-blue-500">check_circle</span>
-                            <span class="text-slate-600 text-sm">@item</span>
+            @if (permissionsGrouped != null)
+            {
+                @foreach (var group in permissionsGrouped)
+                {
+                    var moduleName = group.Module as string;
+                    var permissions = group.Permissions as List<string>;
+                    
+                    var colorConfig = moduleColors.ContainsKey(moduleName) 
+                        ? moduleColors[moduleName] 
+                        : defaultColors[colorIndex % defaultColors.Length];
+                    
+                    <div class="permission-card">
+                        <div class="@colorConfig.Item1 p-4 flex items-center gap-3">
+                            <span class="material-icons-round">@colorConfig.Item3</span>
+                            <span class="font-bold">@moduleName</span>
                         </div>
-                    }
-                </div>
-            </div>
-
-            <div class="permission-card">
-                <div class="card-header-purple p-4 flex items-center gap-3">
-                    <span class="material-icons-round">grid_view</span>
-                    <span class="font-bold">أكواد النظام</span>
-                </div>
-                <div class="p-5 space-y-3">
-                    @foreach (var item in new[] { "أكواد الأصناف", "أكواد الموردين", "إدارات المؤسسة", "العاملين بالمؤسسة" })
-                    {
-                        <div class="flex items-center gap-3">
-                            <span class="material-icons-round text-xs text-purple-500">check_circle</span>
-                            <span class="text-slate-600 text-sm">@item</span>
+                        <div class="p-5 space-y-3">
+                            @if (permissions != null && permissions.Any())
+                            {
+                                @foreach (var permission in permissions)
+                                {
+                                    <div class="flex items-center gap-3">
+                                        <span class="material-icons-round text-xs @colorConfig.Item2">check_circle</span>
+                                        <span class="text-slate-600 text-sm">@permission</span>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-slate-400 text-sm">لا توجد صلاحيات</div>
+                            }
                         </div>
-                    }
+                    </div>
+                    
+                    colorIndex++;
+                }
+            }
+            else
+            {
+                <div class="col-span-full text-center text-slate-400 py-8">
+                    <span class="material-icons-round text-4xl mb-2">info</span>
+                    <p>لا توجد صلاحيات محددة في النظام</p>
                 </div>
-            </div>
-
-            <div class="permission-card">
-                <div class="card-header-red p-4 flex items-center gap-3">
-                    <span class="material-icons-round">settings</span>
-                    <span class="font-bold">إدارة النظام</span>
-                </div>
-                <div class="p-5 space-y-3">
-                    @foreach (var item in new[] { "صلاحيات المستخدمين", "تهيئة إعدادات النظام", "ترحيل الحركة اليومية" })
-                    {
-                        <div class="flex items-center gap-3">
-                            <span class="material-icons-round text-xs text-red-500">check_circle</span>
-                            <span class="text-slate-600 text-sm">@item</span>
-                        </div>
-                    }
-                </div>
-            </div>
+            }
         </div>
     </div>
 
@@ -516,10 +516,28 @@
     }
 
     // View Permissions Modal functions
-    function viewRolePermissions(roleId, roleName) {
+    let moduleColors = null;
+
+    async function loadModuleColors() {
+        if (!moduleColors) {
+            try {
+                const response = await fetch('/UserManagement/GetModuleColors');
+                moduleColors = await response.json();
+            } catch (error) {
+                console.error('Error loading module colors:', error);
+                moduleColors = {};
+            }
+        }
+        return moduleColors;
+    }
+
+    async function viewRolePermissions(roleId, roleName) {
         document.getElementById('viewPermissionsRoleName').textContent = 'صلاحيات: ' + roleName;
         document.getElementById('viewPermissionsModal').classList.remove('hidden');
         document.body.style.overflow = 'hidden';
+        
+        // Load module colors first
+        await loadModuleColors();
         
         // Fetch role permissions via AJAX
         fetch(`/UserManagement/GetRolePermissions?roleId=${roleId}`)
@@ -539,17 +557,22 @@
     }
 
     function displayPermissions(permissions) {
-        const modules = {
-            'الحركة اليومية': { permissions: [], color: 'yellow' },
-            'أرصدة المخزن': { permissions: [], color: 'blue' },
-            'أكواد النظام': { permissions: [], color: 'purple' },
-            'إدارة النظام': { permissions: [], color: 'red' }
+        const colors = moduleColors || {
+            'الحركة اليومية': 'yellow',
+            'إدارة المخزون': 'blue',
+            'أكواد النظام': 'purple',
+            'إدارة النظام': 'red'
         };
 
+        const modules = {};
         permissions.forEach(perm => {
-            if (modules[perm.module]) {
-                modules[perm.module].permissions.push(perm);
+            if (!modules[perm.module]) {
+                modules[perm.module] = {
+                    permissions: [],
+                    color: colors[perm.module] || 'gray'
+                };
             }
+            modules[perm.module].permissions.push(perm);
         });
 
         let html = '';

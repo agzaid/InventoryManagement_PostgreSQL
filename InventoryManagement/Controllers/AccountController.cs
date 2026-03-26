@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Domain.Entities;
 using System.ComponentModel.DataAnnotations;
+using InventoryManagement.ViewModels;
+using Application.Interfaces.Contracts.Persistance;
+using System.Security.Claims;
 
 namespace InventoryManagement.Controllers
 {
@@ -13,17 +16,20 @@ namespace InventoryManagement.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ILogger<AccountController> _logger;
+        private readonly IUnitOfWork _unitOfWork;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             RoleManager<ApplicationRole> roleManager,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _logger = logger;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpGet]
@@ -43,6 +49,91 @@ namespace InventoryManagement.Controllers
             
             if (ModelState.IsValid)
             {
+                // First, try to authenticate with InvUser
+                var invUsers = await _unitOfWork.InvUserRepository.GetAllUsersWithEmployeeDetailsAsync();
+                var invUser = invUsers.FirstOrDefault(u => u.UserName == model.Username && u.UserPasswd == model.Password);
+
+                if (invUser != null)
+                {
+                    // InvUser found - create or update ApplicationUser
+                    var appUser = await _userManager.FindByNameAsync(model.Username);
+                    
+                    if (appUser == null)
+                    {
+                        // Create new ApplicationUser from InvUser
+                        appUser = new ApplicationUser
+                        {
+                            UserName = invUser.UserName,
+                            Email = $"{invUser.UserName}@inventory.EGX",
+                            FullName = invUser.Employee?.EmpName ?? invUser.UserName,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        };
+
+                        var createResult = await _userManager.CreateAsync(appUser, model.Password);
+                        if (!createResult.Succeeded)
+                        {
+                            ModelState.AddModelError(string.Empty, "Failed to create user account.");
+                            return View(model);
+                        }
+                    }
+                    else if (!appUser.IsActive)
+                    {
+                        ModelState.AddModelError(string.Empty, "Your account is deactivated. Please contact administrator.");
+                        return View(model);
+                    }
+
+                    // Remove existing permission claims to prevent duplicates
+                    var existingClaims = await _userManager.GetClaimsAsync(appUser);
+                    var permissionClaims = existingClaims.Where(c => c.Type == "Permission").ToList();
+                    if (permissionClaims.Any())
+                    {
+                        await _userManager.RemoveClaimsAsync(appUser, permissionClaims);
+                    }
+
+                    // Add permission claims based on InvUser Prog fields
+                    var claims = new List<Claim>();
+                    AddPermissionClaim(claims, invUser.Prog01, SystemPermissions.PROG01);
+                    AddPermissionClaim(claims, invUser.Prog02, SystemPermissions.PROG02);
+                    AddPermissionClaim(claims, invUser.Prog03, SystemPermissions.PROG03);
+                    AddPermissionClaim(claims, invUser.Prog11, SystemPermissions.PROG11);
+                    AddPermissionClaim(claims, invUser.Prog12, SystemPermissions.PROG12);
+                    AddPermissionClaim(claims, invUser.Prog13, SystemPermissions.PROG13);
+                    AddPermissionClaim(claims, invUser.Prog14, SystemPermissions.PROG14);
+                    AddPermissionClaim(claims, invUser.Prog21, SystemPermissions.PROG21);
+                    AddPermissionClaim(claims, invUser.Prog22, SystemPermissions.PROG22);
+                    AddPermissionClaim(claims, invUser.Prog23, SystemPermissions.PROG23);
+                    AddPermissionClaim(claims, invUser.Prog24, SystemPermissions.PROG24);
+                    AddPermissionClaim(claims, invUser.Prog25, SystemPermissions.PROG25);
+                    AddPermissionClaim(claims, invUser.Prog29, SystemPermissions.PROG29);
+                    AddPermissionClaim(claims, invUser.Prog31, SystemPermissions.PROG31);
+                    AddPermissionClaim(claims, invUser.Prog32, SystemPermissions.PROG32);
+                    AddPermissionClaim(claims, invUser.Prog33, SystemPermissions.PROG33);
+                    AddPermissionClaim(claims, invUser.Prog34, SystemPermissions.PROG34);
+                    AddPermissionClaim(claims, invUser.Prog35, SystemPermissions.PROG35);
+
+                    if (claims.Any())
+                    {
+                        await _userManager.AddClaimsAsync(appUser, claims);
+                    }
+
+                    // Sign in the user with updated claims
+                    await _signInManager.SignInAsync(appUser, model.RememberMe);
+
+                    // Update last login
+                    appUser.LastLoginAt = DateTime.UtcNow;
+                    await _userManager.UpdateAsync(appUser);
+
+                    _logger.LogInformation("InvUser {UserName} logged in.", model.Username);
+                    
+                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    {
+                        return Redirect(returnUrl);
+                    }
+                    return RedirectToAction("Index", "Home");
+                }
+
+                // If not InvUser, try standard ApplicationUser authentication
                 var user = await _userManager.FindByNameAsync(model.Username);
                 if (user == null)
                 {
@@ -79,6 +170,14 @@ namespace InventoryManagement.Controllers
             }
 
             return View(model);
+        }
+
+        private void AddPermissionClaim(List<Claim> claims, string progValue, string permissionCode)
+        {
+            if (!string.IsNullOrEmpty(progValue) && (progValue == "1" || progValue.Equals("true", StringComparison.OrdinalIgnoreCase)))
+            {
+                claims.Add(new Claim("Permission", permissionCode));
+            }
         }
 
         [HttpGet]
@@ -234,85 +333,5 @@ namespace InventoryManagement.Controllers
                 ModelState.AddModelError(string.Empty, error.Description);
             }
         }
-    }
-
-    public class LoginViewModel
-    {
-        [Required(ErrorMessage = "Username is required")]
-        [Display(Name = "Username")]
-        public string Username { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Password is required")]
-        [DataType(DataType.Password)]
-        [Display(Name = "Password")]
-        public string Password { get; set; } = string.Empty;
-
-        [Display(Name = "Remember me?")]
-        public bool RememberMe { get; set; }
-        
-        public string? ReturnUrl { get; set; }
-    }
-
-    public class RegisterViewModel
-    {
-        [Required(ErrorMessage = "Username is required")]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 3)]
-        [Display(Name = "Username")]
-        public string Username { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress]
-        [Display(Name = "Email")]
-        public string Email { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Password is required")]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-        [DataType(DataType.Password)]
-        [Display(Name = "Password")]
-        public string Password { get; set; } = string.Empty;
-
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "First name is required")]
-        [Display(Name = "First Name")]
-        public string FirstName { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Last name is required")]
-        [Display(Name = "Last Name")]
-        public string LastName { get; set; } = string.Empty;
-
-        [Display(Name = "Employee Code")]
-        public int? EmployeeCode { get; set; }
-
-        [Display(Name = "Department")]
-        public string? Department { get; set; }
-
-        [Display(Name = "Role")]
-        public string? RoleId { get; set; }
-        
-        public string? ReturnUrl { get; set; }
-    }
-
-    public class ProfileViewModel
-    {
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public string? Email { get; set; }
-        public string? UserName { get; set; }
-        public int? EmployeeCode { get; set; }
-        public string? Department { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? Address { get; set; }
-        public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? LastLoginAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
-        
-        // Read-only properties for display
-        public string? FullName => $"{FirstName} {LastName}";
-        public List<string> Roles { get; set; } = new List<string>();
     }
 }

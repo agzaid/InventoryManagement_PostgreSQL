@@ -57,117 +57,68 @@
                         </h4>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-                            @* Daily Movement Module *@
-                            <div class="bg-yellow-50 rounded-xl p-4">
-                                <h5 class="font-bold text-yellow-800 mb-3 flex items-center gap-2">
-                                    <span class="material-icons-round text-sm">calendar_today</span>
-                                    الحركة اليومية
-                                </h5>
-                                <div class="space-y-2">
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog01" @(Model.SelectedPermissions.Contains("Prog01") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-yellow-600">
-                                        <span class="text-sm text-slate-700">تسجيل حركة الوارد</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog02" @(Model.SelectedPermissions.Contains("Prog02") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-yellow-600">
-                                        <span class="text-sm text-slate-700">تسجيل حركة المنصرف</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog03" @(Model.SelectedPermissions.Contains("Prog03") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-yellow-600">
-                                        <span class="text-sm text-slate-700">تسجيل حركة التحويل</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog11" @(Model.SelectedPermissions.Contains("Prog11") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-yellow-600">
-                                        <span class="text-sm text-slate-700">تسجيل المرتجعات</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog12" @(Model.SelectedPermissions.Contains("Prog12") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-yellow-600">
-                                        <span class="text-sm text-slate-700">استعلام وبحث البيانات</span>
-                                    </label>
-                                </div>
-                            </div>
+                            @{
+                                var permissionsGrouped = ViewBag.PermissionsGrouped as IEnumerable<dynamic>;
+                                var moduleStyles = new Dictionary<string, (string bgClass, string textClass, string checkboxClass, string icon)>
+                                {
+                                    { "الحركة اليومية", ("bg-yellow-50", "text-yellow-800", "text-yellow-600", "calendar_today") },
+                                    { "إدارة المخزون", ("bg-blue-50", "text-blue-800", "text-blue-600", "inventory_2") },
+                                    { "أكواد النظام", ("bg-purple-50", "text-purple-800", "text-purple-600", "grid_view") },
+                                    { "إدارة النظام", ("bg-red-50", "text-red-800", "text-red-600", "settings") }
+                                };
+                                var defaultStyles = new[]
+                                {
+                                    ("bg-yellow-50", "text-yellow-800", "text-yellow-600", "folder"),
+                                    ("bg-blue-50", "text-blue-800", "text-blue-600", "folder"),
+                                    ("bg-purple-50", "text-purple-800", "text-purple-600", "folder"),
+                                    ("bg-red-50", "text-red-800", "text-red-600", "folder")
+                                };
+                                int styleIndex = 0;
+                            }
 
-                            @* Inventory Module *@
-                            <div class="bg-blue-50 rounded-xl p-4">
-                                <h5 class="font-bold text-blue-800 mb-3 flex items-center gap-2">
-                                    <span class="material-icons-round text-sm">inventory_2</span>
-                                    أرصدة المخزن
-                                </h5>
-                                <div class="space-y-2">
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog13" @(Model.SelectedPermissions.Contains("Prog13") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-blue-600">
-                                        <span class="text-sm text-slate-700">تسجيل أرصدة الفتح</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog14" @(Model.SelectedPermissions.Contains("Prog14") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-blue-600">
-                                        <span class="text-sm text-slate-700">الأرصدة الحالية</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog21" @(Model.SelectedPermissions.Contains("Prog21") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-blue-600">
-                                        <span class="text-sm text-slate-700">كارت الصنف</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog22" @(Model.SelectedPermissions.Contains("Prog22") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-blue-600">
-                                        <span class="text-sm text-slate-700">جرد المخزن</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog23" @(Model.SelectedPermissions.Contains("Prog23") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-blue-600">
-                                        <span class="text-sm text-slate-700">تقارير الأرصدة والاستهلاك</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog24" @(Model.SelectedPermissions.Contains("Prog24") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-blue-600">
-                                        <span class="text-sm text-slate-700">جرد كل المخازن</span>
-                                    </label>
-                                </div>
-                            </div>
+                            @if (permissionsGrouped != null)
+                            {
+                                @foreach (var group in permissionsGrouped)
+                                {
+                                    var moduleName = group.Module as string;
+                                    var permissions = group.Permissions as IEnumerable<dynamic>;
+                                    
+                                    var style = moduleStyles.ContainsKey(moduleName)
+                                        ? moduleStyles[moduleName]
+                                        : defaultStyles[styleIndex % defaultStyles.Length];
 
-                            @* System Codes Module *@
-                            <div class="bg-purple-50 rounded-xl p-4">
-                                <h5 class="font-bold text-purple-800 mb-3 flex items-center gap-2">
-                                    <span class="material-icons-round text-sm">grid_view</span>
-                                    أكواد النظام
-                                </h5>
-                                <div class="space-y-2">
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog25" @(Model.SelectedPermissions.Contains("Prog25") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-purple-600">
-                                        <span class="text-sm text-slate-700">أكواد الأصناف</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog29" @(Model.SelectedPermissions.Contains("Prog29") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-purple-600">
-                                        <span class="text-sm text-slate-700">أكواد الموردين</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog31" @(Model.SelectedPermissions.Contains("Prog31") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-purple-600">
-                                        <span class="text-sm text-slate-700">إدارات المؤسسة</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog32" @(Model.SelectedPermissions.Contains("Prog32") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-purple-600">
-                                        <span class="text-sm text-slate-700">العاملين بالمؤسسة</span>
-                                    </label>
-                                </div>
-                            </div>
+                                    <div class="@style.Item1 rounded-xl p-4">
+                                        <h5 class="font-bold @style.Item2 mb-3 flex items-center gap-2">
+                                            <span class="material-icons-round text-sm">@style.Item4</span>
+                                            @moduleName
+                                        </h5>
+                                        <div class="space-y-2">
+                                            @if (permissions != null)
+                                            {
+                                                @foreach (var permission in permissions)
+                                                {
+                                                    var permCode = permission.PermissionCode as string;
+                                                    var permName = permission.PermissionName as string;
+                                                    var isChecked = Model.SelectedPermissions.Contains(permCode);
 
-                            @* Admin Module *@
-                            <div class="bg-red-50 rounded-xl p-4">
-                                <h5 class="font-bold text-red-800 mb-3 flex items-center gap-2">
-                                    <span class="material-icons-round text-sm">settings</span>
-                                    إدارة النظام
-                                </h5>
-                                <div class="space-y-2">
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog33" @(Model.SelectedPermissions.Contains("Prog33") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-red-600">
-                                        <span class="text-sm text-slate-700">صلاحيات المستخدمين</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog34" @(Model.SelectedPermissions.Contains("Prog34") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-red-600">
-                                        <span class="text-sm text-slate-700">تهيئة إعدادات النظام</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="selectedPermissions" value="Prog35" @(Model.SelectedPermissions.Contains("Prog35") ? "checked" : "") class="w-4 h-4 rounded border-slate-300 text-red-600">
-                                        <span class="text-sm text-slate-700">ترحيل الحركة اليومية</span>
-                                    </label>
+                                                    <label class="flex items-center gap-2 cursor-pointer">
+                                                        <input type="checkbox" name="selectedPermissions" value="@permCode" @(isChecked ? "checked" : "") class="w-4 h-4 rounded border-slate-300 @style.Item3">
+                                                        <span class="text-sm text-slate-700">@permName</span>
+                                                    </label>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+
+                                    styleIndex++;
+                                }
+                            }
+                            else
+                            {
+                                <div class="col-span-full text-center text-slate-400 py-8">
+                                    <p>لا توجد صلاحيات متاحة</p>
                                 </div>
-                            </div>
+                            }
                         </div>
                     </div>
                 </div>

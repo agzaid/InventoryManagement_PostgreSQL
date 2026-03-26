@@ -14,6 +14,9 @@ namespace Application
             services.AddAutoMapper(typeof(MappingProfile));
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
+            services.AddScoped<ILowStockService, LowStockService>();
+            services.AddScoped<IRoleManagementService, RoleManagementService>();
+            
             //services.AddScoped<IInvUserService, InvUserService>();
             //services.AddScoped<IDepartmentService, DepartmentService>();
             //services.AddScoped<ISystemManagementService, SystemManagementService>();

@@ -1,0 +1,441 @@
+@model Application.Interfaces.Models.Pagination.PagedResult<Application.Interfaces.Models.LowStockNotificationDto>
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Infrastructure.Localization.CommonResource> Localizer
+
+@{
+    ViewData["Title"] = Localizer["BalanceNotifications"];
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    body {
+        font-family: 'Cairo', sans-serif;
+        background-color: #f8fafc;
+    }
+
+    .status-badge-critical {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #991b1b;
+        border: 1px solid #fca5a5;
+    }
+
+    .status-badge-low {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #92400e;
+        border: 1px solid #fcd34d;
+    }
+
+    .status-badge-normal {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #065f46;
+        border: 1px solid #6ee7b7;
+    }
+
+    .editable-input {
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .editable-input:hover {
+        border-color: #e2e8f0;
+        background-color: #f8fafc;
+    }
+
+    .editable-input:focus {
+        border-color: #3b82f6;
+        background-color: white;
+        outline: none;
+    }
+
+    .progress-bar {
+        height: 8px;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #e2e8f0;
+    }
+
+    .progress-fill {
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+</style>
+
+<div class="p-6 max-w-[1600px] mx-auto" dir="rtl">
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="material-icons-round text-4xl text-blue-600">notifications_active</span>
+                    <h1 class="text-3xl font-bold text-slate-800">@Localizer["BalanceNotifications"]</h1>
+                </div>
+                <p class="text-slate-500 text-sm mr-14">إدارة حدود التنبيه للأصناف ومراقبة المخزون المنخفض</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="saveAllChanges()" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl transition-all shadow-lg shadow-blue-200">
+                    <span class="material-icons-round">save</span>
+                    <span class="font-bold">حفظ جميع التغييرات</span>
+                </button>
+                <a href="@Url.Action("Index", "ItemBalance")" class="inline-flex items-center gap-2 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all">
+                    <span class="material-icons-round">arrow_back</span>
+                    <span class="font-bold">رجوع</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-500 text-sm mb-1">إجمالي الأصناف</p>
+                        <p class="text-3xl font-black text-slate-800">@Model.TotalCount</p>
+                    </div>
+                    <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <span class="material-icons-round text-blue-600 text-2xl">inventory_2</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-500 text-sm mb-1">مخزون منخفض</p>
+                        <p class="text-3xl font-black text-amber-600">@Model.Items.Count(m => m.IsLowStock)</p>
+                    </div>
+                    <div class="w-14 h-14 bg-amber-100 rounded-xl flex items-center justify-center">
+                        <span class="material-icons-round text-amber-600 text-2xl">warning</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-500 text-sm mb-1">حرج</p>
+                        <p class="text-3xl font-black text-red-600">@Model.Items.Count(m => m.StockStatus == "Critical")</p>
+                    </div>
+                    <div class="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center">
+                        <span class="material-icons-round text-red-600 text-2xl">error</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-500 text-sm mb-1">طبيعي</p>
+                        <p class="text-3xl font-black text-green-600">@Model.Items.Count(m => m.StockStatus == "Normal")</p>
+                    </div>
+                    <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center">
+                        <span class="material-icons-round text-green-600 text-2xl">check_circle</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="material-icons-round text-slate-600">filter_list</span>
+                <h3 class="font-bold text-slate-800 text-lg">قائمة الأصناف</h3>
+            </div>
+            <form method="get" class="relative">
+                <span class="material-icons-round absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="بحث عن صنف..." 
+                       class="pr-10 pl-4 py-2 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all">
+                <input type="hidden" name="storeCode" value="@ViewBag.StoreCode" />
+                <input type="hidden" name="pageSize" value="@Model.PageSize" />
+            </form>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-right">
+                <thead class="bg-slate-50 text-slate-600 text-sm">
+                    <tr>
+                        <th class="p-4 font-semibold">كود الصنف</th>
+                        <th class="p-4 font-semibold">اسم الصنف</th>
+                        <th class="p-4 font-semibold">التصنيف</th>
+                        <th class="p-4 font-semibold">الكمية الحالية</th>
+                        <th class="p-4 font-semibold">@Localizer["MinimumQuantity"]</th>
+                        <th class="p-4 font-semibold">@Localizer["NotificationPercentage"]</th>
+                        <th class="p-4 font-semibold">نسبة المخزون</th>
+                        <th class="p-4 font-semibold">الحالة</th>
+                        <th class="p-4 font-semibold text-center">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsTableBody" class="divide-y divide-slate-50">
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr class="hover:bg-slate-50/50 transition-colors item-row" data-item-name="@item.ItemDesc.ToLower()">
+                            <td class="p-4">
+                                <span class="font-mono text-sm bg-slate-100 px-3 py-1 rounded-lg">@item.ItemCode</span>
+                            </td>
+                            <td class="p-4">
+                                <div class="font-semibold text-slate-800">@item.ItemDesc</div>
+                            </td>
+                            <td class="p-4 text-slate-600 text-sm">@item.CategoryName</td>
+                            <td class="p-4">
+                                <span class="font-bold text-lg @(item.IsLowStock ? "text-red-600" : "text-slate-800")">
+                                    @item.CurrentQuantity.ToString("N2")
+                                </span>
+                            </td>
+                            <td class="p-4">
+                                <input type="number" 
+                                       class="editable-input w-24 px-3 py-2 rounded-lg text-center font-semibold"
+                                       value="@item.MinimumQuantity"
+                                       min="0"
+                                       step="0.01"
+                                       data-item-id="@item.Id"
+                                       data-field="minimum"
+                                       onchange="markAsChanged(this)" />
+                            </td>
+                            <td class="p-4">
+                                <div class="flex items-center gap-2">
+                                    <input type="number" 
+                                           class="editable-input w-20 px-3 py-2 rounded-lg text-center font-semibold"
+                                           value="@item.NotificationPercentage"
+                                           min="0"
+                                           max="100"
+                                           step="1"
+                                           data-item-id="@item.Id"
+                                           data-field="percentage"
+                                           onchange="markAsChanged(this)" />
+                                    <span class="text-slate-500">%</span>
+                                </div>
+                            </td>
+                            <td class="p-4">
+                                <div class="space-y-1">
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="font-semibold text-slate-600">@item.StockPercentage.ToString("N0")%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill @(item.StockPercentage >= 100 ? "bg-green-500" : item.StockPercentage >= 50 ? "bg-amber-500" : "bg-red-500")" 
+                                             style="width: @(Math.Min(item.StockPercentage, 100))%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-4">
+                                @if (item.StockStatus == "Critical")
+                                {
+                                    <span class="status-badge-critical inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold">
+                                        <span class="material-icons-round text-sm">error</span>
+                                        حرج
+                                    </span>
+                                }
+                                else if (item.StockStatus == "Low")
+                                {
+                                    <span class="status-badge-low inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold">
+                                        <span class="material-icons-round text-sm">warning</span>
+                                        منخفض
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge-normal inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold">
+                                        <span class="material-icons-round text-sm">check_circle</span>
+                                        طبيعي
+                                    </span>
+                                }
+                            </td>
+                            <td class="p-4">
+                                <div class="flex justify-center gap-2">
+                                    <button onclick="saveItem(@item.Id)" 
+                                            class="p-2 hover:bg-blue-50 text-blue-600 rounded-xl transition-colors"
+                                            title="حفظ">
+                                        <span class="material-icons-round text-sm">save</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="p-6 border-t border-slate-100 flex items-center justify-between">
+                <div class="text-sm text-slate-600">
+                    عرض @((Model.PageNumber - 1) * Model.PageSize + 1) - @Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount) من @Model.TotalCount صنف
+                </div>
+                <div class="flex items-center gap-2">
+                    @if (Model.PageNumber > 1)
+                    {
+                        <a href="?pageNumber=1&pageSize=@Model.PageSize&storeCode=@ViewBag.StoreCode&searchTerm=@ViewBag.SearchTerm" 
+                           class="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">
+                            <span class="material-icons-round text-sm">first_page</span>
+                        </a>
+                        <a href="?pageNumber=@(Model.PageNumber - 1)&pageSize=@Model.PageSize&storeCode=@ViewBag.StoreCode&searchTerm=@ViewBag.SearchTerm" 
+                           class="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">
+                            <span class="material-icons-round text-sm">chevron_right</span>
+                        </a>
+                    }
+
+                    @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+                    {
+                        <a href="?pageNumber=@i&pageSize=@Model.PageSize&storeCode=@ViewBag.StoreCode&searchTerm=@ViewBag.SearchTerm" 
+                           class="px-4 py-2 @(i == Model.PageNumber ? "bg-blue-600 text-white" : "bg-white text-slate-700 hover:bg-slate-50") border border-slate-200 rounded-lg transition-all font-semibold">
+                            @i
+                        </a>
+                    }
+
+                    @if (Model.PageNumber < Model.TotalPages)
+                    {
+                        <a href="?pageNumber=@(Model.PageNumber + 1)&pageSize=@Model.PageSize&storeCode=@ViewBag.StoreCode&searchTerm=@ViewBag.SearchTerm" 
+                           class="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">
+                            <span class="material-icons-round text-sm">chevron_left</span>
+                        </a>
+                        <a href="?pageNumber=@Model.TotalPages&pageSize=@Model.PageSize&storeCode=@ViewBag.StoreCode&searchTerm=@ViewBag.SearchTerm" 
+                           class="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">
+                            <span class="material-icons-round text-sm">last_page</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    const changedItems = new Set();
+
+    function markAsChanged(input) {
+        const itemId = input.getAttribute('data-item-id');
+        changedItems.add(itemId);
+        input.classList.add('border-amber-400', 'bg-amber-50');
+    }
+
+    async function saveItem(itemId) {
+        const minInput = document.querySelector(`input[data-item-id="${itemId}"][data-field="minimum"]`);
+        const pctInput = document.querySelector(`input[data-item-id="${itemId}"][data-field="percentage"]`);
+
+        const dto = {
+            itemId: parseInt(itemId),
+            minimumQuantity: parseFloat(minInput.value),
+            notificationPercentage: parseFloat(pctInput.value)
+        };
+
+        try {
+            const response = await fetch('@Url.Action("UpdateThreshold", "BalanceNotifications")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify(dto)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'تم الحفظ',
+                    text: result.message,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                minInput.classList.remove('border-amber-400', 'bg-amber-50');
+                pctInput.classList.remove('border-amber-400', 'bg-amber-50');
+                changedItems.delete(itemId.toString());
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ',
+                    text: result.message
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'خطأ',
+                text: 'حدث خطأ أثناء الحفظ'
+            });
+        }
+    }
+
+    async function saveAllChanges() {
+        if (changedItems.size === 0) {
+            Swal.fire({
+                icon: 'info',
+                title: 'لا توجد تغييرات',
+                text: 'لم يتم إجراء أي تغييرات لحفظها'
+            });
+            return;
+        }
+
+        const dtos = Array.from(changedItems).map(itemId => {
+            const minInput = document.querySelector(`input[data-item-id="${itemId}"][data-field="minimum"]`);
+            const pctInput = document.querySelector(`input[data-item-id="${itemId}"][data-field="percentage"]`);
+
+            return {
+                itemId: parseInt(itemId),
+                minimumQuantity: parseFloat(minInput.value),
+                notificationPercentage: parseFloat(pctInput.value)
+            };
+        });
+
+        try {
+            const response = await fetch('@Url.Action("UpdateThresholdsBatch", "BalanceNotifications")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify(dtos)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'تم الحفظ',
+                    text: result.message,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                document.querySelectorAll('.editable-input').forEach(input => {
+                    input.classList.remove('border-amber-400', 'bg-amber-50');
+                });
+                changedItems.clear();
+
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ',
+                    text: result.message
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'خطأ',
+                text: 'حدث خطأ أثناء الحفظ'
+            });
+        }
+    }
+
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('.item-row');
+
+        rows.forEach(row => {
+            const itemName = row.getAttribute('data-item-name');
+            if (itemName.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+@Html.AntiForgeryToken()

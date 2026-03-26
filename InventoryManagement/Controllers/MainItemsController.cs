@@ -56,7 +56,6 @@ namespace InventoryManagement.Controllers
         {
             try
             {
-                // 1. Basic null check
                 if (string.IsNullOrWhiteSpace(CatgryDesc))
                 {
                     return Json(new { success = false, message = "يرجى إدخال اسم التصنيف" });

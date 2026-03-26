@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -257,5 +257,21 @@
   </data>
   <data name="Email" xml:space="preserve">
     <value>Email</value>
+  </data>
+
+  <data name="BalanceNotifications" xml:space="preserve">
+    <value>Balance Notifications</value>
+  </data>
+  <data name="MinimumQuantity" xml:space="preserve">
+    <value>Minimum Quantity</value>
+  </data>
+  <data name="NotificationPercentage" xml:space="preserve">
+    <value>Notification Percentage</value>
+  </data>
+  <data name="LowStock" xml:space="preserve">
+    <value>Low Stock</value>
+  </data>
+  <data name="ManageApplicationUsers" xml:space="preserve">
+    <value>Manage Application Users</value>
   </data>
 </root>

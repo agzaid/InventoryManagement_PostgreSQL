@@ -1,0 +1,12 @@
+  <data name="BalanceNotifications" xml:space="preserve">
+    <value>Balance Notifications</value>
+  </data>
+  <data name="MinimumQuantity" xml:space="preserve">
+    <value>Minimum Quantity</value>
+  </data>
+  <data name="NotificationPercentage" xml:space="preserve">
+    <value>Notification Percentage</value>
+  </data>
+  <data name="LowStock" xml:space="preserve">
+    <value>Low Stock</value>
+  </data>

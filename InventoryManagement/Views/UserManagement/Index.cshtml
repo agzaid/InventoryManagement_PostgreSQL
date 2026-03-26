@@ -50,14 +50,14 @@
                         <span class="material-icons-round text-lg">person_add</span>
                         <span class="font-medium">مستخدم جديد</span>
                     </button>
-                    <a href="@Url.Action("ManageRoles", "UserManagement")" class="inline-flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-colors shadow-sm">
+                  @*   <a href="@Url.Action("ManageRoles", "UserManagement")" class="inline-flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-colors shadow-sm">
                         <span class="material-icons-round text-lg">shield</span>
                         <span class="font-medium">إدارة الأدوار</span>
                     </a>
                     <a href="@Url.Action("Index", "Permissions")" class="inline-flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary/90 text-white rounded-lg transition-colors shadow-sm">
                         <span class="material-icons-round text-lg">verified_user</span>
                         <span class="font-medium">الصلاحيات</span>
-                    </a>
+                    </a> *@
                 </div>
             </div>
 
@@ -107,7 +107,7 @@
             <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-purple-100 text-sm font-medium mb-1">المستخدمين النشطين</p>
+                        <p class="text-purple-100 text-sm font-medium mb-1">المستخدمين لهم صلاحيات</p>
                         <h3 class="text-3xl font-bold">@(Model.invUserDto?.Count ?? 0)</h3>
                     </div>
                     <div class="bg-white/20 rounded-full p-4">
@@ -302,16 +302,17 @@
                         <span class="material-icons-round text-sm align-middle">badge</span>
                         اختر الموظف
                     </label>
-                    <select name="UserCode" required class="w-full px-4 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-slate-900 dark:text-white">
+                    <select id="employeeSelect" name="UserCode" required class="w-full px-4 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-slate-900 dark:text-white" onchange="updateEmployeeName()">
                         <option value="">-- اختر موظف --</option>
                         @if (Model.EgxEmployeeDto != null)
                         {
                             @foreach (var emp in Model.EgxEmployeeDto)
                             {
-                                <option value="@emp.EmpCode">@emp.EmpName (@emp.EmpCode)</option>
+                                <option value="@emp.EmpCode" data-name="@emp.EmpName">@emp.EmpName (@emp.EmpCode)</option>
                             }
                         }
                     </select>
+                    <input type="hidden" id="fullNameArabic" name="FullNameArabic" value="">
                 </div>
 
                 <div>
@@ -435,104 +436,29 @@
             <input type="hidden" id="permFullName" name="FullNameArabic" />
             <input type="hidden" id="permUserPasswd" name="UserPasswd" />
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                    <h4 class="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                        <span class="material-icons-round text-blue-600 dark:text-blue-400">inventory_2</span>
-                        الحركة اليومية
-                    </h4>
-                    <div class="space-y-2">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog01" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">تسجيل حركة الوارد</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog02" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">تسجيل حركة المنصرف</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog03" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">تسجيل حركة التحويل</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog11" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">تسجيل المرتجعات</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog12" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">استعلام وبحث البيانات</span>
-                        </label>
-                    </div>
+            @* Role Selection Section *@
+            <div class="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                <h4 class="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                    <span class="material-icons-round text-indigo-600 dark:text-indigo-400">shield</span>
+                    اختيار دور (Role) - سيتم تطبيق جميع صلاحيات الدور المحدد
+                </h4>
+                <div id="rolesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Roles will be loaded here dynamically -->
                 </div>
+            </div>
 
-                <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                    <h4 class="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                        <span class="material-icons-round text-green-600 dark:text-green-400">warehouse</span>
-                        إدارة المخزون
-                    </h4>
-                    <div class="space-y-2">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog13" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">تسجيل أرصدة الفتح</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog14" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">الأرصدة الحالية</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog21" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">كارت الصنف</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog22" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">جرد المخزن</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog23" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">تقارير الأرصدة والاستهلاك</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog24" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">جرد كل المخازن</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
-                    <h4 class="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                        <span class="material-icons-round text-purple-600 dark:text-purple-400">settings</span>
-                        أكواد النظام
-                    </h4>
-                    <div class="space-y-2">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog25" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">أكواد الأصناف</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog29" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">أكواد الموردين</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog31" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">إدارات البورصة</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog32" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">العاملين بالبورصة</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog33" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">صلاحيات المستخدمين</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog34" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">تهيئة إعدادات النظام</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="Prog35" value="1" class="rounded text-primary focus:ring-primary">
-                            <span class="text-sm text-slate-700 dark:text-slate-300">ترحيل الحركة اليومية</span>
-                        </label>
-                    </div>
+            <div class="border-t border-border-light dark:border-border-dark pt-4 mb-4">
+                <h4 class="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                    <span class="material-icons-round text-blue-600 dark:text-blue-400">tune</span>
+                    أو اختر صلاحيات فردية
+                </h4>
+            </div>
+            
+            <div id="permissionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Permissions will be loaded here dynamically -->
+                <div class="col-span-full text-center py-8">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">جاري تحميل الصلاحيات...</p>
                 </div>
             </div>
 
@@ -551,6 +477,90 @@
 
 <script>
     const users = @Html.Raw(Json.Serialize(Model.invUserDto ?? new List<Application.Interfaces.Models.InvUserDto>()));
+    let availableRoles = [];
+    let availablePermissions = [];
+
+    // Module color mapping
+    const moduleColors = {
+        'الحركة اليومية': { bg: 'bg-blue-50 dark:bg-blue-900/20', icon: 'inventory_2', iconColor: 'text-blue-600 dark:text-blue-400' },
+        'إدارة المخزون': { bg: 'bg-green-50 dark:bg-green-900/20', icon: 'warehouse', iconColor: 'text-green-600 dark:text-green-400' },
+        'أكواد النظام': { bg: 'bg-purple-50 dark:bg-purple-900/20', icon: 'code', iconColor: 'text-purple-600 dark:text-purple-400' },
+        'إدارة النظام': { bg: 'bg-amber-50 dark:bg-amber-900/20', icon: 'admin_panel_settings', iconColor: 'text-amber-600 dark:text-amber-400' },
+        'المخزون': { bg: 'bg-green-50 dark:bg-green-900/20', icon: 'warehouse', iconColor: 'text-green-600 dark:text-green-400' },
+        'الإدارة': { bg: 'bg-amber-50 dark:bg-amber-900/20', icon: 'admin_panel_settings', iconColor: 'text-amber-600 dark:text-amber-400' }
+    };
+
+    // Load roles on page load
+    async function loadRoles() {
+        try {
+            const response = await fetch('@Url.Action("GetRolesWithPermissions", "UserManagement")');
+            availableRoles = await response.json();
+            console.log('Loaded roles:', availableRoles);
+        } catch (error) {
+            console.error('Error loading roles:', error);
+        }
+    }
+
+    // Load permissions from database
+    async function loadPermissions() {
+        try {
+            const response = await fetch('@Url.Action("GetAllPermissions", "UserManagement")');
+            availablePermissions = await response.json();
+            console.log('Loaded permissions:', availablePermissions);
+            renderPermissions();
+        } catch (error) {
+            console.error('Error loading permissions:', error);
+            document.getElementById('permissionsContainer').innerHTML = '<div class="col-span-full text-center py-8 text-red-600">حدث خطأ في تحميل الصلاحيات</div>';
+        }
+    }
+
+    // Render permissions dynamically
+    function renderPermissions() {
+        const container = document.getElementById('permissionsContainer');
+        if (!container || availablePermissions.length === 0) {
+            container.innerHTML = '<div class="col-span-full text-center py-8 text-slate-500">لا توجد صلاحيات متاحة</div>';
+            return;
+        }
+
+        container.innerHTML = availablePermissions.map(module => {
+            const colors = moduleColors[module.module] || { bg: 'bg-slate-50 dark:bg-slate-900/20', icon: 'settings', iconColor: 'text-slate-600 dark:text-slate-400' };
+            
+            return `
+                <div class="${colors.bg} p-4 rounded-lg">
+                    <h4 class="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                        <span class="material-icons-round ${colors.iconColor}">${colors.icon}</span>
+                        ${module.module}
+                    </h4>
+                    <div class="space-y-2">
+                        ${module.permissions.map(perm => `
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="${perm.code}" value="1" class="rounded text-primary focus:ring-primary permission-checkbox">
+                                <span class="text-sm text-slate-700 dark:text-slate-300">${perm.name}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Re-attach event listeners to new checkboxes
+        attachPermissionCheckboxListeners();
+    }
+
+    function attachPermissionCheckboxListeners() {
+        const permCheckboxes = document.querySelectorAll('.permission-checkbox');
+        permCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                clearRoleSelection();
+            });
+        });
+    }
+
+    // Call load functions when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadRoles();
+        loadPermissions();
+    });
 
     function openAddUserModal() {
         document.getElementById('addUserModal').classList.remove('hidden');
@@ -578,7 +588,7 @@
         document.getElementById('editUserModal').classList.add('hidden');
     }
 
-    function managePermissions(userCode, userName) {
+    async function managePermissions(userCode, userName) {
         const user = users.find(u => u.userCode === userCode);
         if (!user) return;
 
@@ -589,39 +599,128 @@
         document.getElementById('permUserPasswd').value = user.userPasswd;
         document.getElementById('permUserName').textContent = userName;
         
-        const permFields = ['Prog01', 'Prog02', 'Prog03', 'Prog11', 'Prog12', 'Prog13', 'Prog14', 'Prog21', 'Prog22', 'Prog23', 'Prog24', 'Prog25', 'Prog29', 'Prog31', 'Prog32', 'Prog33', 'Prog34', 'Prog35'];
-        permFields.forEach(field => {
-            const checkbox = document.querySelector(`input[name="${field}"]`);
-            if (checkbox) {
-                checkbox.checked = user[field.toLowerCase()] === '1' || user[field.toLowerCase()] === 1;
-            }
-        });
+        // Render roles
+        renderRoles();
+        
+        // Ensure permissions are loaded
+        if (availablePermissions.length === 0) {
+            await loadPermissions();
+        }
+        
+        // Wait a bit for DOM to update
+        setTimeout(() => {
+            // Check all permission checkboxes based on user's current permissions
+            const allPermFields = ['Prog01', 'Prog02', 'Prog03', 'Prog11', 'Prog12', 'Prog13', 'Prog14', 'Prog21', 'Prog22', 'Prog23', 'Prog24', 'Prog25', 'Prog29', 'Prog31', 'Prog32', 'Prog33', 'Prog34', 'Prog35'];
+            allPermFields.forEach(field => {
+                const checkbox = document.querySelector(`input[name="${field}"]`);
+                if (checkbox) {
+                    checkbox.checked = user[field.toLowerCase()] === '1' || user[field.toLowerCase()] === 1;
+                }
+            });
+        }, 100);
         
         document.getElementById('permissionsModal').classList.remove('hidden');
     }
+
+    function renderRoles() {
+        const container = document.getElementById('rolesContainer');
+        if (!container) return;
+        
+        if (availableRoles.length === 0) {
+            container.innerHTML = '<p class="text-sm text-slate-500 dark:text-slate-400">لا توجد أدوار متاحة</p>';
+            return;
+        }
+        
+        container.innerHTML = availableRoles.map(role => `
+            <div class="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-600 transition-colors">
+                <label class="flex items-start gap-3 cursor-pointer">
+                    <input type="radio" name="selectedRole" value="${role.id}" 
+                           class="mt-1 text-indigo-600 focus:ring-indigo-500"
+                           onchange="applyRolePermissions('${role.id}')">
+                    <div class="flex-1">
+                        <div class="font-semibold text-slate-900 dark:text-white">${role.name}</div>
+                        ${role.description ? `<div class="text-xs text-slate-500 dark:text-slate-400 mt-1">${role.description}</div>` : ''}
+                        <div class="text-xs text-indigo-600 dark:text-indigo-400 mt-1">${role.permissions.length} صلاحية</div>
+                    </div>
+                </label>
+            </div>
+        `).join('');
+    }
+
+    function applyRolePermissions(roleId) {
+        const role = availableRoles.find(r => r.id === roleId);
+        if (!role) return;
+        
+        // First, uncheck all permissions
+        const allPermFields = ['Prog01', 'Prog02', 'Prog03', 'Prog11', 'Prog12', 'Prog13', 'Prog14', 'Prog21', 'Prog22', 'Prog23', 'Prog24', 'Prog25', 'Prog29', 'Prog31', 'Prog32', 'Prog33', 'Prog34', 'Prog35'];
+        allPermFields.forEach(field => {
+            const checkbox = document.querySelector(`input[name="${field}"]`);
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+        });
+        
+        // Then check permissions from the selected role
+        role.permissions.forEach(permission => {
+            const checkbox = document.querySelector(`input[name="${permission}"]`);
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+        
+        console.log(`Applied ${role.permissions.length} permissions from role: ${role.name}`);
+    }
+
+    function clearRoleSelection() {
+        const roleRadios = document.querySelectorAll('input[name="selectedRole"]');
+        roleRadios.forEach(radio => radio.checked = false);
+    }
+
+    // Add event listeners to individual permission checkboxes to clear role selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const permCheckboxes = document.querySelectorAll('#permissionsForm input[type="checkbox"]');
+        permCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // When user manually changes a permission, clear role selection
+                clearRoleSelection();
+            });
+        });
+    });
 
     function closePermissionsModal() {
         document.getElementById('permissionsModal').classList.add('hidden');
     }
 
     function deleteUser(userCode, userName) {
-        if (confirm('هل أنت متأكد من حذف المستخدم: ' + userName + '?')) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '@Url.Action("DeleteUser", "UserManagement")/' + userCode;
-            
-            const token = document.querySelector('input[name="__RequestVerificationToken"]');
-            if (token) {
-                const tokenInput = document.createElement('input');
-                tokenInput.type = 'hidden';
-                tokenInput.name = '__RequestVerificationToken';
-                tokenInput.value = token.value;
-                form.appendChild(tokenInput);
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            html: `سيتم حذف المستخدم <strong>${userName}</strong> نهائياً`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'نعم، احذف',
+            cancelButtonText: 'إلغاء',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '@Url.Action("DeleteUser", "UserManagement")/' + userCode;
+                
+                const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (token) {
+                    const tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '__RequestVerificationToken';
+                    tokenInput.value = token.value;
+                    form.appendChild(tokenInput);
+                }
+                
+                document.body.appendChild(form);
+                form.submit();
             }
-            
-            document.body.appendChild(form);
-            form.submit();
-        }
+        });
     }
 
     document.getElementById('searchInput')?.addEventListener('input', function(e) {
@@ -633,6 +732,17 @@
             row.style.display = text.includes(searchTerm) ? '' : 'none';
         });
     });
+
+    function updateEmployeeName() {
+        const select = document.getElementById('employeeSelect');
+        const hiddenInput = document.getElementById('fullNameArabic');
+        
+        if (select && hiddenInput) {
+            const selectedOption = select.options[select.selectedIndex];
+            const employeeName = selectedOption.getAttribute('data-name') || '';
+            hiddenInput.value = employeeName;
+        }
+    }
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {

@@ -31,8 +31,9 @@ namespace Application.Service
 
         public async Task<int> CreateInvUserAsync(InvUserDto command)
         {
-            command.UserCode = Convert.ToInt32(command.FullNameArabic);
+            command.UserCode = Convert.ToInt32(command.UserCode);
 
+            // Check if employee exists
             var employees = await _unitOfWork.EgxEmployeeRepository.GetAllAsyncExpression(
                                              filter: s => s.EmpCode == command.UserCode,
                                              orderBy: s => s.EmpCode,
@@ -42,6 +43,22 @@ namespace Application.Service
             {
                 throw new BadRequestException("Employee code does not exist in the human resources system.");
             }
+
+            // Check if InvUser with same UserCode already exists
+            var existingUserByCode = await _unitOfWork.InvUserRepository.GetInvUserByCodeAsync((int)command.UserCode);
+            if (existingUserByCode != null)
+            {
+                throw new BadRequestException("User with this employee code already exists.");
+            }
+
+            // Check if InvUser with same UserName already exists
+            var allUsers = await _unitOfWork.InvUserRepository.GetAllUsersWithEmployeeDetailsAsync();
+            var existingUserByName = allUsers.FirstOrDefault(u => u.UserName.Equals(command.UserName, StringComparison.OrdinalIgnoreCase));
+            if (existingUserByName != null)
+            {
+                throw new BadRequestException("Username is already taken. Please choose a different username.");
+            }
+
             var newUser = _mapper.Map<InvUser>(command);
             await _unitOfWork.InvUserRepository.AddAsync(newUser);
             int rowsAffected = await _unitOfWork.SaveChangesAsync();

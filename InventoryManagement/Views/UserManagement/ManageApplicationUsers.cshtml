@@ -1,0 +1,234 @@
+@model IEnumerable<InventoryManagement.Models.UserManagement.ApplicationUserViewModel>
+@{
+    ViewData["Title"] = "إدارة حسابات المستخدمين";
+}
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-primary/10 rounded-lg">
+                        <span class="material-icons-round text-primary text-2xl">manage_accounts</span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">إدارة حسابات المستخدمين</h1>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">عرض وإدارة حسابات المستخدمين (ApplicationUser)</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium">
+                        <span class="material-icons-round text-sm align-middle">people</span>
+                        @Model.Count() مستخدم
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
+                <span class="material-icons-round">check_circle</span>
+                <span>@TempData["Success"]</span>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
+                <span class="material-icons-round">error</span>
+                <span>@TempData["Error"]</span>
+            </div>
+        }
+
+        <!-- Search Bar -->
+        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 mb-6">
+            <div class="relative">
+                <span class="material-icons-round absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input type="text" id="searchInput" placeholder="ابحث عن مستخدم..." 
+                       class="w-full pr-10 pl-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-slate-900 dark:text-white">
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full" id="usersTable">
+                    <thead class="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                        <tr>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">اسم المستخدم</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">الاسم الكامل</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">البريد الإلكتروني</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">الأدوار</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">الحالة</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">تاريخ الإنشاء</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">آخر دخول</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                        @foreach (var user in Model)
+                        {
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center gap-2">
+                                        <span class="material-icons-round text-slate-400 text-sm">person</span>
+                                        <span class="text-sm font-medium text-slate-900 dark:text-white">@user.UserName</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm text-slate-700 dark:text-slate-300">@user.FullName</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm text-slate-600 dark:text-slate-400">@user.Email</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach (var role in user.Roles)
+                                        {
+                                            @if (role == "Admin")
+                                            {
+                                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
+                                                    <span class="material-icons-round text-xs mr-1">admin_panel_settings</span>
+                                                    @role
+                                                </span>
+                                            }
+                                            else if (role == "Manager")
+                                            {
+                                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+                                                    <span class="material-icons-round text-xs mr-1">supervisor_account</span>
+                                                    @role
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
+                                                    <span class="material-icons-round text-xs mr-1">person</span>
+                                                    @role
+                                                </span>
+                                            }
+                                        }
+                                        @if (!user.Roles.Any())
+                                        {
+                                            <span class="text-xs text-slate-400">لا يوجد أدوار</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if (user.IsActive)
+                                    {
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
+                                            <span class="material-icons-round text-xs mr-1">check_circle</span>
+                                            نشط
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300">
+                                            <span class="material-icons-round text-xs mr-1">cancel</span>
+                                            معطل
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm text-slate-600 dark:text-slate-400">@user.CreatedAt.ToString("yyyy-MM-dd")</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if (user.LastLoginAt.HasValue)
+                                    {
+                                        <span class="text-sm text-slate-600 dark:text-slate-400">@user.LastLoginAt.Value.ToString("yyyy-MM-dd HH:mm")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-sm text-slate-400">لم يسجل دخول</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center gap-2">
+                                        @if (user.UserName != User.Identity.Name)
+                                        {
+                                            <button onclick="deleteApplicationUser('@user.Id', '@user.UserName')" 
+                                                    class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-lg transition-colors text-sm">
+                                                <span class="material-icons-round text-sm">delete</span>
+                                                <span>حذف</span>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-xs text-slate-400 italic">(أنت)</span>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-12 text-center">
+                <span class="material-icons-round text-slate-300 dark:text-slate-600 text-6xl mb-4">people_outline</span>
+                <p class="text-slate-600 dark:text-slate-400">لا يوجد مستخدمين</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Search functionality
+        document.getElementById('searchInput')?.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#usersTable tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Delete user with SweetAlert
+        function deleteApplicationUser(userId, userName) {
+            Swal.fire({
+                title: 'هل أنت متأكد؟',
+                html: `سيتم حذف حساب المستخدم <strong>${userName}</strong> نهائياً<br><small class="text-slate-500">سيتم حذف جميع البيانات المرتبطة بهذا الحساب</small>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'نعم، احذف',
+                cancelButtonText: 'إلغاء',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '@Url.Action("DeleteApplicationUser", "UserManagement")';
+                    
+                    const idInput = document.createElement('input');
+                    idInput.type = 'hidden';
+                    idInput.name = 'id';
+                    idInput.value = userId;
+                    form.appendChild(idInput);
+                    
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (token) {
+                        const tokenInput = document.createElement('input');
+                        tokenInput.type = 'hidden';
+                        tokenInput.name = '__RequestVerificationToken';
+                        tokenInput.value = token.value;
+                        form.appendChild(tokenInput);
+                    }
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+    </script>
+}

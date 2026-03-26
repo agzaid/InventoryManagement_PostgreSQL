@@ -13,6 +13,8 @@ namespace Domain.Entities
         public decimal? RecallPrc { get; set; }
         public decimal? RecallQnt { get; set; }
         public string Barecode { get; set; }
+        public decimal MinimumQuantity { get; set; }
+        public decimal NotificationPercentage { get; set; }
         public virtual ItemCategory ItemCategory { get; set; }
     }
 }

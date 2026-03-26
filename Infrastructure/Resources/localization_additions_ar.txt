@@ -1,0 +1,12 @@
+  <data name="BalanceNotifications" xml:space="preserve">
+    <value>تنبيهات الأرصدة</value>
+  </data>
+  <data name="MinimumQuantity" xml:space="preserve">
+    <value>الحد الأدنى للكمية</value>
+  </data>
+  <data name="NotificationPercentage" xml:space="preserve">
+    <value>نسبة التنبيه</value>
+  </data>
+  <data name="LowStock" xml:space="preserve">
+    <value>مخزون منخفض</value>
+  </data>

@@ -14,20 +14,40 @@ namespace InventoryManagement.Controllers
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly InventoryManagementDbContext _context;
         private readonly ILogger<PermissionsController> _logger;
+        private readonly ILoggerFactory _loggerFactory;
 
         public PermissionsController(
             RoleManager<ApplicationRole> roleManager,
             InventoryManagementDbContext context,
-            ILogger<PermissionsController> logger)
+            ILogger<PermissionsController> logger,
+            ILoggerFactory loggerFactory)
         {
             _roleManager = roleManager;
             _context = context;
             _logger = logger;
+            _loggerFactory = loggerFactory;
         }
 
         // GET: Permissions
         public async Task<IActionResult> Index()
         {
+            // Auto-seed permissions on every Index load
+            try
+            {
+                var logger = _loggerFactory.CreateLogger<Services.PermissionSeedingService>();
+                var seeder = new Services.PermissionSeedingService(_context, logger);
+                var count = await seeder.SeedPermissionsAsync();
+                
+                if (count > 0)
+                {
+                    TempData["Info"] = $"تم إضافة {count} صلاحية جديدة تلقائياً";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error auto-seeding permissions");
+            }
+
             var roles = await _roleManager.Roles.ToListAsync();
             var model = new AllPermissionsViewModel
             {
@@ -49,7 +69,14 @@ namespace InventoryManagement.Controllers
                 });
             }
 
-            var allPermissions = GetAllPermissions();
+            // Get all available permissions from database
+            var allPermissions = await _context.RolePermissions
+                .Select(rp => new { rp.PermissionCode, rp.PermissionName, rp.Module })
+                .Distinct()
+                .OrderBy(p => p.Module)
+                .ThenBy(p => p.PermissionCode)
+                .ToListAsync();
+
             model.PermissionGroups = allPermissions
                 .GroupBy(p => p.Module)
                 .Select(g => new PermissionGroupViewModel
@@ -57,12 +84,9 @@ namespace InventoryManagement.Controllers
                     ModuleName = g.Key,
                     Permissions = g.Select(p => new PermissionItemViewModel
                     {
-                        Code = p.Code,
-                        Name = p.Name,
+                        Code = p.PermissionCode,
+                        Name = p.PermissionName,
                         Module = p.Module,
-                        Controller = p.Controller,
-                        Action = p.Action,
-                        Description = p.Description,
                         IsAllowed = false
                     }).ToList()
                 }).ToList();
@@ -77,6 +101,29 @@ namespace InventoryManagement.Controllers
                 .OrderBy(pa => pa.Module)
                 .ThenBy(pa => pa.PermissionName)
                 .ToListAsync();
+
+            // Get available permissions from database
+            var allPermissions = await _context.RolePermissions
+                .Select(rp => new { rp.PermissionCode, rp.PermissionName, rp.Module })
+                .Distinct()
+                .OrderBy(p => p.Module)
+                .ThenBy(p => p.PermissionCode)
+                .ToListAsync();
+
+            var availablePermissions = allPermissions
+                .GroupBy(p => p.Module)
+                .Select(g => new PermissionModuleDto
+                {
+                    Module = g.Key,
+                    ModuleNameArabic = g.Key,
+                    Permissions = g.Select(p => new PermissionItemDto
+                    {
+                        Code = p.PermissionCode,
+                        Name = p.PermissionName,
+                        IsAssigned = false
+                    }).ToList()
+                })
+                .ToList();
 
             var model = new PermissionActionManagementDto
             {
@@ -93,7 +140,7 @@ namespace InventoryManagement.Controllers
                     Description = pa.Description,
                     IsActive = pa.IsActive
                 }).ToList(),
-                AvailablePermissions = GetAvailablePermissionsGrouped(),
+                AvailablePermissions = availablePermissions,
                 AvailableControllers = GetAvailableControllers()
             };
 
@@ -183,6 +230,35 @@ namespace InventoryManagement.Controllers
             return RedirectToActionWithCulture(nameof(ManagePermissionActions));
         }
 
+        // POST: Permissions/SeedPermissions
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SeedPermissions()
+        {
+            try
+            {
+                var logger = _loggerFactory.CreateLogger<Services.PermissionSeedingService>();
+                var seeder = new Services.PermissionSeedingService(_context, logger);
+                var count = await seeder.SeedPermissionsAsync();
+                
+                if (count > 0)
+                {
+                    TempData["Success"] = $"تم إضافة {count} صلاحية جديدة بنجاح";
+                }
+                else
+                {
+                    TempData["Info"] = "جميع الصلاحيات موجودة بالفعل في قاعدة البيانات";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error seeding permissions");
+                TempData["Error"] = "حدث خطأ أثناء إضافة الصلاحيات";
+            }
+
+            return RedirectToActionWithCulture(nameof(Index));
+        }
+
         // GET: Permissions/ManageRole/5
         public async Task<IActionResult> ManageRole(string id)
         {
@@ -196,7 +272,14 @@ namespace InventoryManagement.Controllers
                 .Where(rp => rp.RoleId == id)
                 .ToListAsync();
 
-            var allPermissions = GetAllPermissions();
+            // Get all available permissions from database
+            var allPermissions = await _context.RolePermissions
+                .Select(rp => new { rp.PermissionCode, rp.PermissionName, rp.Module })
+                .Distinct()
+                .OrderBy(p => p.Module)
+                .ThenBy(p => p.PermissionCode)
+                .ToListAsync();
+
             var permissionGroups = new List<PermissionGroupViewModel>();
 
             foreach (var group in allPermissions.GroupBy(p => p.Module))
@@ -205,16 +288,13 @@ namespace InventoryManagement.Controllers
                 
                 foreach (var permission in group)
                 {
-                    var existing = existingPermissions.FirstOrDefault(ep => ep.PermissionCode == permission.Code);
+                    var existing = existingPermissions.FirstOrDefault(ep => ep.PermissionCode == permission.PermissionCode);
                     groupPermissions.Add(new PermissionItemViewModel
                     {
                         Id = existing?.Id,
-                        Code = permission.Code,
-                        Name = permission.Name,
+                        Code = permission.PermissionCode,
+                        Name = permission.PermissionName,
                         Module = permission.Module,
-                        Controller = permission.Controller,
-                        Action = permission.Action,
-                        Description = permission.Description,
                         IsAllowed = existing?.IsAllowed ?? false
                     });
                 }
@@ -255,18 +335,22 @@ namespace InventoryManagement.Controllers
 
             if (permissionCodes != null && permissionCodes.Any())
             {
-                var allPermissions = GetAllPermissions();
+                // Get permission info from database
+                var allPermissions = await _context.RolePermissions
+                    .Select(rp => new { rp.PermissionCode, rp.PermissionName, rp.Module })
+                    .Distinct()
+                    .ToListAsync();
                 
                 foreach (var code in permissionCodes)
                 {
-                    var permissionInfo = allPermissions.FirstOrDefault(p => p.Code == code);
+                    var permissionInfo = allPermissions.FirstOrDefault(p => p.PermissionCode == code);
                     if (permissionInfo != null)
                     {
                         _context.RolePermissions.Add(new RolePermission
                         {
                             RoleId = roleId,
                             PermissionCode = code,
-                            PermissionName = permissionInfo.Name,
+                            PermissionName = permissionInfo.PermissionName,
                             Module = permissionInfo.Module,
                             IsAllowed = true,
                             CreatedAt = DateTime.UtcNow
@@ -281,87 +365,6 @@ namespace InventoryManagement.Controllers
             return RedirectToActionWithCulture(nameof(Index));
         }
 
-        private List<PermissionViewModel> GetAllPermissions()
-        {
-            return new List<PermissionViewModel>
-            {
-                // Daily Movement Module
-                new PermissionViewModel { Code = "PROG01", Name = "تسجيل حركة الوارد", Module = "الحركة اليومية", Controller = "InventoryMovement", Action = "Incoming", Description = "إضافة وتسجيل حركات الوارد للمخزن" },
-                new PermissionViewModel { Code = "PROG02", Name = "تسجيل حركة المنصرف", Module = "الحركة اليومية", Controller = "InventoryMovement", Action = "Outgoing", Description = "إضافة وتسجيل حركات المنصرف من المخزن" },
-                new PermissionViewModel { Code = "PROG03", Name = "تسجيل حركة التحويل", Module = "الحركة اليومية", Controller = "InventoryMovement", Action = "Transfer", Description = "تحويل الأصناف بين المخازن" },
-                new PermissionViewModel { Code = "PROG11", Name = "تسجيل المرتجعات", Module = "الحركة اليومية", Controller = "InventoryMovement", Action = "Returns", Description = "تسجيل المرتجعات والإرجاعات" },
-                new PermissionViewModel { Code = "PROG12", Name = "استعلام وبحث البيانات", Module = "الحركة اليومية", Controller = "InventoryMovement", Action = "SearchAndInquiry", Description = "البحث والاستعلام عن الحركات" },
-
-                // Inventory Module
-                new PermissionViewModel { Code = "PROG13", Name = "تسجيل أرصدة الفتح", Module = "إدارة المخزون", Controller = "Inventory", Action = "OpeningBalance", Description = "تسجيل الأرصدة الافتتاحية" },
-                new PermissionViewModel { Code = "PROG14", Name = "الأرصدة الحالية", Module = "إدارة المخزون", Controller = "Inventory", Action = "CurrentStock", Description = "عرض الأرصدة الحالية للأصناف" },
-                new PermissionViewModel { Code = "PROG21", Name = "كارت الصنف", Module = "إدارة المخزون", Controller = "Inventory", Action = "ItemCard", Description = "عرض كارت الصنف وحركاته" },
-                new PermissionViewModel { Code = "PROG22", Name = "جرد المخزن", Module = "إدارة المخزون", Controller = "Inventory", Action = "StockTaking", Description = "إجراء جرد المخزن" },
-                new PermissionViewModel { Code = "PROG23", Name = "تقارير الأرصدة والاستهلاك", Module = "إدارة المخزون", Controller = "Reports", Action = "StockReports", Description = "تقارير الأرصدة والاستهلاك" },
-                new PermissionViewModel { Code = "PROG24", Name = "جرد كل المخازن", Module = "إدارة المخزون", Controller = "Inventory", Action = "AllStoresTaking", Description = "جرد شامل لجميع المخازن" },
-
-                // System Codes Module
-                new PermissionViewModel { Code = "PROG25", Name = "أكواد الأصناف", Module = "أكواد النظام", Controller = "Items", Action = "Index", Description = "إدارة أكواد الأصناف" },
-                new PermissionViewModel { Code = "PROG29", Name = "أكواد الموردين", Module = "أكواد النظام", Controller = "Suppliers", Action = "Index", Description = "إدارة أكواد الموردين" },
-                new PermissionViewModel { Code = "PROG31", Name = "إدارات البورصة", Module = "أكواد النظام", Controller = "Departments", Action = "Index", Description = "إدارة الإدارات والأقسام" },
-                new PermissionViewModel { Code = "PROG32", Name = "العاملين بالبورصة", Module = "أكواد النظام", Controller = "Employees", Action = "Index", Description = "إدارة بيانات العاملين" },
-
-                // Admin Module
-                new PermissionViewModel { Code = "PROG33", Name = "صلاحيات المستخدمين", Module = "إدارة النظام", Controller = "UserManagement", Action = "Index", Description = "إدارة المستخدمين والصلاحيات" },
-                new PermissionViewModel { Code = "PROG34", Name = "تهيئة إعدادات النظام", Module = "إدارة النظام", Controller = "Settings", Action = "Index", Description = "إعدادات النظام العامة" },
-                new PermissionViewModel { Code = "PROG35", Name = "ترحيل الحركة اليومية", Module = "إدارة النظام", Controller = "System", Action = "PostDailyMovement", Description = "ترحيل الحركات اليومية" },
-            };
-        }
-
-        private List<PermissionGroupViewModel> GetAllPermissionGroups()
-        {
-            var allPermissions = GetAllPermissions();
-            var groups = new List<PermissionGroupViewModel>();
-
-            foreach (var group in allPermissions.GroupBy(p => p.Module))
-            {
-                groups.Add(new PermissionGroupViewModel
-                {
-                    ModuleName = group.Key,
-                    Permissions = group.Select(p => new PermissionItemViewModel
-                    {
-                        Code = p.Code,
-                        Name = p.Name,
-                        Module = p.Module,
-                        Controller = p.Controller,
-                        Action = p.Action,
-                        Description = p.Description,
-                        IsAllowed = false
-                    }).ToList()
-                });
-            }
-
-            return groups;
-        }
-
-        private List<PermissionModuleDto> GetAvailablePermissionsGrouped()
-        {
-            var allPermissions = GetAllPermissions();
-            var modules = new List<PermissionModuleDto>();
-
-            var moduleGroups = allPermissions.GroupBy(p => p.Module);
-            foreach (var group in moduleGroups)
-            {
-                modules.Add(new PermissionModuleDto
-                {
-                    Module = group.Key,
-                    ModuleNameArabic = group.Key,
-                    Permissions = group.Select(p => new PermissionItemDto
-                    {
-                        Code = p.Code,
-                        Name = p.Name,
-                        IsAssigned = false
-                    }).ToList()
-                });
-            }
-
-            return modules;
-        }
 
         private List<ControllerActionDto> GetAvailableControllers()
         {

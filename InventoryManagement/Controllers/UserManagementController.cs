@@ -6,7 +6,6 @@ using Domain.Entities;
 using System.ComponentModel.DataAnnotations;
 using InventoryManagement.Models.UserManagement;
 using Application.Interfaces.Contracts.Service;
-using Persistance;
 
 namespace InventoryManagement.Controllers
 {
@@ -17,20 +16,20 @@ namespace InventoryManagement.Controllers
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ILogger<UserManagementController> _logger;
         private readonly ISystemManagementService _systemManagementService;
-        private readonly InventoryManagementDbContext _context;
+        private readonly IRoleManagementService _roleManagementService;
 
         public UserManagementController(
             UserManager<ApplicationUser> userManager,
             RoleManager<ApplicationRole> roleManager,
             ILogger<UserManagementController> logger,
             ISystemManagementService systemManagementService,
-            InventoryManagementDbContext context)
+            IRoleManagementService roleManagementService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _logger = logger;
             _systemManagementService = systemManagementService;
-            _context = context;
+            _roleManagementService = roleManagementService;
         }
 
         // GET: UserManagement
@@ -38,6 +37,59 @@ namespace InventoryManagement.Controllers
         {
             var model = await _systemManagementService.GetAllEgxEmployeesAsync();
             return View(model);
+        }
+
+        // GET: UserManagement/GetRolesWithPermissions
+        [HttpGet]
+        public async Task<IActionResult> GetRolesWithPermissions()
+        {
+            var roles = await _roleManager.Roles
+                .Where(r => r.IsActive)
+                .Include(r => r.RolePermissions)
+                .Select(r => new
+                {
+                    id = r.Id,
+                    name = r.Name,
+                    description = r.Description,
+                    permissions = r.RolePermissions
+                        .Where(rp => rp.IsAllowed)
+                        .Select(rp => rp.PermissionCode)
+                        .ToList()
+                })
+                .ToListAsync();
+
+            return Json(roles);
+        }
+
+        // GET: UserManagement/GetAllPermissions
+        [HttpGet]
+        public async Task<IActionResult> GetAllPermissions()
+        {
+            // Get all distinct permissions from service
+            var allPermissions = await _roleManagementService.GetAllDistinctPermissionsAsync();
+            
+            var grouped = allPermissions
+                .GroupBy(rp => rp.Module)
+                .Select(g => new
+                {
+                    module = g.Key,
+                    permissions = g.Select(p => new
+                    {
+                        code = p.PermissionCode,
+                        name = p.PermissionName
+                    }).ToList()
+                })
+                .ToList();
+
+            return Json(grouped);
+        }
+
+        // GET: UserManagement/GetModuleColors
+        [HttpGet]
+        public IActionResult GetModuleColors()
+        {
+            var moduleColors = _roleManagementService.GetModuleColors();
+            return Json(moduleColors);
         }
 
         // GET: UserManagement/Roles
@@ -85,6 +137,19 @@ namespace InventoryManagement.Controllers
                     UserCount = usersInRole.Count
                 });
             }
+
+            // Get all permissions grouped by module from service
+            var systemPermissions = await _roleManagementService.GetSystemPermissionsAsync();
+            var permissionsGrouped = systemPermissions
+                .GroupBy(rp => rp.Module)
+                .Select(g => new
+                {
+                    Module = g.Key,
+                    Permissions = g.Select(p => p.PermissionName).ToList()
+                })
+                .ToList();
+
+            ViewBag.PermissionsGrouped = permissionsGrouped;
 
             return View(roles);
         }
@@ -221,17 +286,17 @@ namespace InventoryManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> GetRolePermissions(string roleId)
         {
-            var permissions = await _context.RolePermissions
-                .Where(rp => rp.RoleId == roleId && rp.IsAllowed)
-                .Select(rp => new
-                {
-                    permissionCode = rp.PermissionCode,
-                    permissionName = rp.PermissionName,
-                    module = rp.Module
-                })
-                .ToListAsync();
+            // Get only the permissions assigned to this specific role from service
+            var permissions = await _roleManagementService.GetRolePermissionsAsync(roleId);
+            
+            var result = permissions.Select(rp => new
+            {
+                permissionCode = rp.PermissionCode,
+                permissionName = rp.PermissionName,
+                module = rp.Module
+            });
 
-            return Json(permissions);
+            return Json(result);
         }
 
         // GET: UserManagement/CreateRole
@@ -259,28 +324,10 @@ namespace InventoryManagement.Controllers
                 var result = await _roleManager.CreateAsync(role);
                 if (result.Succeeded)
                 {
-                    // Add permissions to role
+                    // Add permissions to role using service
                     if (selectedPermissions != null && selectedPermissions.Any())
                     {
-                        var permissions = GetAllPermissions();
-                        foreach (var permCode in selectedPermissions)
-                        {
-                            var perm = permissions.FirstOrDefault(p => p.Code == permCode);
-                            if (perm != null)
-                            {
-                                var rolePermission = new RolePermission
-                                {
-                                    RoleId = role.Id,
-                                    PermissionCode = perm.Code,
-                                    PermissionName = perm.Name,
-                                    Module = perm.Module,
-                                    IsAllowed = true,
-                                    CreatedAt = DateTime.UtcNow
-                                };
-                                _context.RolePermissions.Add(rolePermission);
-                            }
-                        }
-                        await _context.SaveChangesAsync();
+                        await _roleManagementService.UpdateRolePermissionsAsync(role.Id, selectedPermissions);
                     }
 
                     TempData["Success"] = "تم إنشاء الدور بنجاح";
@@ -313,10 +360,22 @@ namespace InventoryManagement.Controllers
                 return RedirectToActionWithCulture(nameof(ManageRoles));
             }
 
-            var permissions = await _context.RolePermissions
-                .Where(rp => rp.RoleId == id && rp.IsAllowed)
-                .Select(rp => rp.PermissionCode)
-                .ToListAsync();
+            // Get role's assigned permissions from service
+            var rolePermissions = await _roleManagementService.GetRolePermissionsAsync(id);
+            var permissions = rolePermissions.Select(rp => rp.PermissionCode).ToList();
+
+            // Get all available permissions grouped by module from service
+            var systemPermissions = await _roleManagementService.GetSystemPermissionsAsync();
+            var permissionsGrouped = systemPermissions
+                .GroupBy(rp => rp.Module)
+                .Select(g => new
+                {
+                    Module = g.Key,
+                    Permissions = g.Select(p => new { p.PermissionCode, p.PermissionName }).ToList()
+                })
+                .ToList();
+
+            ViewBag.PermissionsGrouped = permissionsGrouped;
 
             var model = new EditRoleViewModel
             {
@@ -353,36 +412,8 @@ namespace InventoryManagement.Controllers
                 var result = await _roleManager.UpdateAsync(role);
                 if (result.Succeeded)
                 {
-                    // Update permissions
-                    var existingPermissions = await _context.RolePermissions
-                        .Where(rp => rp.RoleId == role.Id)
-                        .ToListAsync();
-                    
-                    _context.RolePermissions.RemoveRange(existingPermissions);
-                    
-                    if (selectedPermissions != null && selectedPermissions.Any())
-                    {
-                        var permissions = GetAllPermissions();
-                        foreach (var permCode in selectedPermissions)
-                        {
-                            var perm = permissions.FirstOrDefault(p => p.Code == permCode);
-                            if (perm != null)
-                            {
-                                var rolePermission = new RolePermission
-                                {
-                                    RoleId = role.Id,
-                                    PermissionCode = perm.Code,
-                                    PermissionName = perm.Name,
-                                    Module = perm.Module,
-                                    IsAllowed = true,
-                                    CreatedAt = DateTime.UtcNow
-                                };
-                                _context.RolePermissions.Add(rolePermission);
-                            }
-                        }
-                    }
-                    
-                    await _context.SaveChangesAsync();
+                    // Update permissions using service
+                    await _roleManagementService.UpdateRolePermissionsAsync(role.Id, selectedPermissions ?? new List<string>());
                     
                     TempData["Success"] = "تم تحديث الدور بنجاح";
                     return RedirectToActionWithCulture(nameof(ManageRoles));
@@ -445,16 +476,8 @@ namespace InventoryManagement.Controllers
                 return RedirectToActionWithCulture(nameof(ManageRoles));
             }
 
-            // Delete associated permissions first
-            var rolePermissions = await _context.RolePermissions
-                .Where(rp => rp.RoleId == id)
-                .ToListAsync();
-            
-            if (rolePermissions.Any())
-            {
-                _context.RolePermissions.RemoveRange(rolePermissions);
-                await _context.SaveChangesAsync();
-            }
+            // Delete associated permissions first using service
+            await _roleManagementService.DeleteRolePermissionsAsync(id);
 
             var result = await _roleManager.DeleteAsync(role);
             if (result.Succeeded)
@@ -726,40 +749,6 @@ namespace InventoryManagement.Controllers
             };
         }
 
-        private List<PermissionInfo> GetAllPermissions()
-        {
-            return new List<PermissionInfo>
-            {
-                new PermissionInfo { Code = "Prog01", Name = "تسجيل حركة الوارد", Module = "الحركة اليومية" },
-                new PermissionInfo { Code = "Prog02", Name = "تسجيل حركة المنصرف", Module = "الحركة اليومية" },
-                new PermissionInfo { Code = "Prog03", Name = "تسجيل حركة التحويل", Module = "الحركة اليومية" },
-                new PermissionInfo { Code = "Prog11", Name = "تسجيل المرتجعات", Module = "الحركة اليومية" },
-                new PermissionInfo { Code = "Prog12", Name = "استعلام وبحث البيانات", Module = "الحركة اليومية" },
-                
-                new PermissionInfo { Code = "Prog13", Name = "تسجيل أرصدة الفتح", Module = "أرصدة المخزن" },
-                new PermissionInfo { Code = "Prog14", Name = "الأرصدة الحالية", Module = "أرصدة المخزن" },
-                new PermissionInfo { Code = "Prog21", Name = "كارت الصنف", Module = "أرصدة المخزن" },
-                new PermissionInfo { Code = "Prog22", Name = "جرد المخزن", Module = "أرصدة المخزن" },
-                new PermissionInfo { Code = "Prog23", Name = "تقارير الأرصدة والاستهلاك", Module = "أرصدة المخزن" },
-                new PermissionInfo { Code = "Prog24", Name = "جرد كل المخازن", Module = "أرصدة المخزن" },
-                
-                new PermissionInfo { Code = "Prog25", Name = "أكواد الأصناف", Module = "أكواد النظام" },
-                new PermissionInfo { Code = "Prog29", Name = "أكواد الموردين", Module = "أكواد النظام" },
-                new PermissionInfo { Code = "Prog31", Name = "إدارات المؤسسة", Module = "أكواد النظام" },
-                new PermissionInfo { Code = "Prog32", Name = "العاملين بالمؤسسة", Module = "أكواد النظام" },
-                
-                new PermissionInfo { Code = "Prog33", Name = "صلاحيات المستخدمين", Module = "إدارة النظام" },
-                new PermissionInfo { Code = "Prog34", Name = "تهيئة إعدادات النظام", Module = "إدارة النظام" },
-                new PermissionInfo { Code = "Prog35", Name = "ترحيل الحركة اليومية", Module = "إدارة النظام" }
-            };
-        }
-
-        public class PermissionInfo
-        {
-            public string Code { get; set; } = string.Empty;
-            public string Name { get; set; } = string.Empty;
-            public string Module { get; set; } = string.Empty;
-        }
 
         // Quick action to seed Admin role permissions
         [HttpPost]
@@ -775,35 +764,20 @@ namespace InventoryManagement.Controllers
                     return RedirectToActionWithCulture(nameof(ManageRoles));
                 }
 
-                // Check if permissions already exist
-                var existingPermissions = await _context.RolePermissions
-                    .Where(rp => rp.RoleId == adminRole.Id)
-                    .ToListAsync();
+                // Check if permissions already exist using service
+                var existingCount = await _roleManagementService.GetRolePermissionCountAsync(adminRole.Id);
 
-                if (existingPermissions.Any())
+                if (existingCount > 0)
                 {
-                    TempData["Info"] = $"دور Admin يحتوي بالفعل على {existingPermissions.Count} صلاحية";
+                    TempData["Info"] = $"دور Admin يحتوي بالفعل على {existingCount} صلاحية";
                     return RedirectToActionWithCulture(nameof(ManageRoles));
                 }
 
-                // Get all permissions
-                var allPermissions = GetAllPermissions();
-
-                // Add all permissions to Admin role
-                var rolePermissions = allPermissions.Select(p => new RolePermission
-                {
-                    RoleId = adminRole.Id,
-                    PermissionCode = p.Code,
-                    PermissionName = p.Name,
-                    Module = p.Module,
-                    IsAllowed = true,
-                    CreatedAt = DateTime.UtcNow
-                }).ToList();
-
-                await _context.RolePermissions.AddRangeAsync(rolePermissions);
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = $"تم إضافة {rolePermissions.Count} صلاحية لدور Admin بنجاح. يرجى تسجيل الخروج والدخول مرة أخرى لتفعيل الصلاحيات.";
+                // Seed all permissions to Admin role using service
+                await _roleManagementService.SeedAllPermissionsToAdminAsync(adminRole.Id);
+                
+                var allPermissionsCount = (await _roleManagementService.GetSystemPermissionsAsync()).Count;
+                TempData["Success"] = $"تم إضافة {allPermissionsCount} صلاحية لدور Admin بنجاح. يرجى تسجيل الخروج والدخول مرة أخرى لتفعيل الصلاحيات.";
                 return RedirectToActionWithCulture(nameof(ManageRoles));
             }
             catch (Exception ex)
@@ -812,6 +786,74 @@ namespace InventoryManagement.Controllers
                 TempData["Error"] = "حدث خطأ أثناء إضافة الصلاحيات: " + ex.Message;
                 return RedirectToActionWithCulture(nameof(ManageRoles));
             }
+        }
+
+        // GET: UserManagement/ManageApplicationUsers
+        public async Task<IActionResult> ManageApplicationUsers()
+        {
+            var users = await _userManager.Users
+                .OrderBy(u => u.UserName)
+                .ToListAsync();
+
+            var userViewModels = new List<ApplicationUserViewModel>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                userViewModels.Add(new ApplicationUserViewModel
+                {
+                    Id = user.Id,
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    IsActive = user.IsActive,
+                    CreatedAt = user.CreatedAt,
+                    LastLoginAt = user.LastLoginAt,
+                    Roles = roles.ToList()
+                });
+            }
+
+            return View(userViewModels);
+        }
+
+        // POST: UserManagement/DeleteApplicationUser
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteApplicationUser(string id)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(id);
+                if (user == null)
+                {
+                    TempData["Error"] = "المستخدم غير موجود";
+                    return RedirectToActionWithCulture(nameof(ManageApplicationUsers));
+                }
+
+                // Prevent deleting the current user
+                if (user.UserName == User.Identity.Name)
+                {
+                    TempData["Error"] = "لا يمكنك حذف حسابك الخاص";
+                    return RedirectToActionWithCulture(nameof(ManageApplicationUsers));
+                }
+
+                var result = await _userManager.DeleteAsync(user);
+                if (result.Succeeded)
+                {
+                    TempData["Success"] = $"تم حذف المستخدم {user.UserName} بنجاح";
+                }
+                else
+                {
+                    TempData["Error"] = "فشل في حذف المستخدم: " + string.Join(", ", result.Errors.Select(e => e.Description));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting application user");
+                TempData["Error"] = $"حدث خطأ أثناء حذف المستخدم: {ex.Message}";
+            }
+
+            return RedirectToActionWithCulture(nameof(ManageApplicationUsers));
         }
     }
 }
