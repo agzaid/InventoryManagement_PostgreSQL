@@ -23,18 +23,20 @@ namespace InventoryManagement.Services
             {
                 var permissions = GetAllPermissionDefinitions();
                 int seededCount = 0;
+                int updatedCount = 0;
 
-                // Get all existing permission codes to avoid duplicates
-                var existingCodes = await _context.RolePermissions
-                    .Select(rp => rp.PermissionCode)
-                    .Distinct()
+                // Get all existing system-defined permission templates (RoleId = null)
+                var existingPermissions = await _context.RolePermissions
+                    .Where(rp => rp.RoleId == null)
                     .ToListAsync();
 
                 // For each permission definition, ensure at least one record exists in the database
                 // This allows the GetAllPermissions API to query distinct permissions
                 foreach (var permission in permissions)
                 {
-                    if (!existingCodes.Contains(permission.Code))
+                    var existing = existingPermissions.FirstOrDefault(ep => ep.PermissionCode == permission.Code);
+                    
+                    if (existing == null)
                     {
                         // Create a placeholder record - this will be used as reference data
                         // Actual role assignments will be separate records
@@ -49,12 +51,41 @@ namespace InventoryManagement.Services
                         });
                         seededCount++;
                     }
+                    else if (existing.PermissionName != permission.Name || existing.Module != permission.Module)
+                    {
+                        // Update existing template if name or module changed
+                        existing.PermissionName = permission.Name;
+                        existing.Module = permission.Module;
+                        updatedCount++;
+                    }
                 }
 
-                if (seededCount > 0)
+                // Also update role-assigned permissions to keep them in sync with templates
+                if (updatedCount > 0)
+                {
+                    var roleAssignedPermissions = await _context.RolePermissions
+                        .Where(rp => rp.RoleId != null)
+                        .ToListAsync();
+
+                    foreach (var rolePermission in roleAssignedPermissions)
+                    {
+                        var template = permissions.FirstOrDefault(p => p.Code == rolePermission.PermissionCode);
+                        if (template != null && 
+                            (rolePermission.PermissionName != template.Name || rolePermission.Module != template.Module))
+                        {
+                            rolePermission.PermissionName = template.Name;
+                            rolePermission.Module = template.Module;
+                        }
+                    }
+                }
+
+                if (seededCount > 0 || updatedCount > 0)
                 {
                     await _context.SaveChangesAsync();
-                    _logger.LogInformation($"Seeded {seededCount} new permissions");
+                    if (seededCount > 0)
+                        _logger.LogInformation($"Seeded {seededCount} new permissions");
+                    if (updatedCount > 0)
+                        _logger.LogInformation($"Updated {updatedCount} permission templates and synced role assignments");
                 }
                 else
                 {
@@ -90,7 +121,7 @@ namespace InventoryManagement.Services
                 new PermissionDefinition { Code = "PROG24", Name = "جرد كل المخازن", Module = "إدارة المخزون" },
 
                 // System Codes Module
-                new PermissionDefinition { Code = "PROG25", Name = "أكواد الأصناف", Module = "أكواد النظام" },
+                new PermissionDefinition { Code = "PROG25", Name = "أكواد الأصناف تصنيف رئيسى", Module = "أكواد النظام" },
                 new PermissionDefinition { Code = "PROG29", Name = "أكواد الموردين", Module = "أكواد النظام" },
                 new PermissionDefinition { Code = "PROG31", Name = "إدارات البورصة", Module = "أكواد النظام" },
                 new PermissionDefinition { Code = "PROG32", Name = "العاملين بالبورصة", Module = "أكواد النظام" },

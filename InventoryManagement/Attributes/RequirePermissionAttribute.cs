@@ -27,7 +27,7 @@ namespace InventoryManagement.Attributes
             var userPermissions = user.Claims
                 .Where(c => c.Type == "Permission")
                 .Select(c => c.Value)
-                .ToList();
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
             var hasPermission = _permissionCodes.Any(p => userPermissions.Contains(p));
 

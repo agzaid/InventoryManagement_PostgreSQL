@@ -71,6 +71,7 @@ builder.Services.AddLocalization();
 builder.Services.AddScoped<IAppLocalizer, Infrastructure.Localization.AppLocalizer>();
 builder.Services.AddScoped<InventoryManagement.Services.RoleSeedingService>();
 builder.Services.AddScoped<InventoryManagement.Services.AdminSeedingService>();
+builder.Services.AddScoped<InventoryManagement.Services.PermissionSeedingService>();
 builder.Services.AddScoped<InventoryManagement.Services.IPermissionClaimsService, InventoryManagement.Services.PermissionClaimsService>();
 
 builder.Services.AddControllersWithViews()
@@ -142,7 +143,7 @@ app.UseRouting();
 
 app.UseRequestLocalization(localizationOptions);
 
-// Seed roles and admin user on startup
+// Seed roles, admin user, and permissions on startup
 using (var scope = app.Services.CreateScope())
 {
     var roleSeeder = scope.ServiceProvider.GetRequiredService<InventoryManagement.Services.RoleSeedingService>();
@@ -150,6 +151,14 @@ using (var scope = app.Services.CreateScope())
     
     var adminSeeder = scope.ServiceProvider.GetRequiredService<InventoryManagement.Services.AdminSeedingService>();
     await adminSeeder.SeedAdminUserAsync();
+    
+    var permissionSeeder = scope.ServiceProvider.GetRequiredService<InventoryManagement.Services.PermissionSeedingService>();
+    var seededCount = await permissionSeeder.SeedPermissionsAsync();
+    if (seededCount > 0)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation($"Seeded {seededCount} new permissions on startup");
+    }
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

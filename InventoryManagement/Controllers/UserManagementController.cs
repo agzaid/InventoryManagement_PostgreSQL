@@ -168,6 +168,7 @@ namespace InventoryManagement.Controllers
                 .ToListAsync();
 
             var roles = await _roleManager.Roles
+                .Where(r => r.IsActive)
                 .Select(r => new RoleSelectionViewModel
                 {
                     Id = r.Id,

@@ -62,7 +62,8 @@ namespace Application.Service
             // Remove existing permissions for the role
             var existingPermissions = await _unitOfWork.RolePermissionRepository.GetAllAsyncExpression(
                 rp => rp.RoleId == roleId,
-                orderBy: rp => rp.Id
+                orderBy: rp => rp.Id,
+                tracked: true
             );
 
             foreach (var permission in existingPermissions)
@@ -114,7 +115,8 @@ namespace Application.Service
         {
             var rolePermissions = await _unitOfWork.RolePermissionRepository.GetAllAsyncExpression(
                 rp => rp.RoleId == roleId,
-                orderBy: rp => rp.Id
+                orderBy: rp => rp.Id,
+                tracked: true
             );
 
             foreach (var permission in rolePermissions)
